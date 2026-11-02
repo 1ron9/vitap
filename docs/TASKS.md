@@ -151,7 +151,7 @@
 ---
 
 ### [TASK-1.7] Xây dựng GitHub Actions Pipeline CI & Database Test Fixtures
-- **Phân cấp:** `Module 1` $\rightarrow$ `DevOps & Governance Engine`
+- **Phân cấp:** `Module 1` $\rightarrow$ `DevOps & CI Engine`
 - **Assignee:** Trương Huệ Trí (VT1) | **Peer Reviewer:** Nguyễn Bảo Trọng (VT2)
 - **Sprint:** Sprint 1 | **Deadline:** 2026-11-06 23:59 | **Story Points:** 3 SP
 - **Phụ thuộc (Depends On):** `TASK-1.1` (Schema DDL), `TASK-2.1` (Docker môi trường cơ sở).
@@ -178,7 +178,6 @@
 - **Mục tiêu kỹ thuật:** Tổ chức tổng kiểm tra chất lượng (Audit Checklist), rà soát 100% các API contracts, xác nhận Definition of Done của toàn bộ các tasks trước khi báo cáo môn học.
 - **File tác động:**
   - `0_medicare/docs/TASKS.md`
-  - `0_medicare/docs/designs/operational_governance_harness.md`
 - **Đầu vào (Input Contract):** Báo cáo kết quả CI từ GitHub Actions và danh sách PRs đã merge.
 - **Đầu ra (Output Artifact):** Bảng tổng hợp đánh giá % đóng góp (Academic Contribution Metric) và biên bản nghiệm thu đồ án.
 - **Tiêu chuẩn nghiệm thu (DoD):**
