@@ -277,3 +277,111 @@ erDiagram
 | `scheduled_time` | String(5) | Not Null | Giờ uống định dạng `HH:MM` (ví dụ `08:00`, `20:00`). |
 | `dosage` | Float | Default(1.0) | Số lượng uống trong cữ đó (ví dụ: `1`, `0.5`, `2`). |
 | `is_active` | Boolean | Default(True) | Trạng thái bật / tắt thông báo nhắc nhở cữ này. |
+
+
+---
+
+## 4. Mã Nguồn DBML Dành Cho dbdiagram.io (Interactive ERD)
+
+> **Hướng dẫn:** Truy cập [https://dbdiagram.io](https://dbdiagram.io), tạo Diagram mới và dán toàn bộ đoạn mã bên dưới vào khung soạn thảo để xem và chỉnh sửa sơ đồ CSDL trực quan.
+
+```dbml
+Table users {
+  id integer [pk, increment]
+  phone varchar(15) [unique, not null]
+  hashed_password varchar(255) [not null]
+  full_name varchar(100)
+  created_at timestamp [default: `now()`]
+}
+
+Table patient_profiles {
+  id integer [pk, increment]
+  user_id integer [unique, not null]
+  yob integer
+  gender varchar(10) [default: 'OTHER']
+  medical_conditions text [default: '[]']
+  drug_allergies text [default: '[]']
+  updated_at timestamp
+}
+
+Table active_ingredients {
+  id integer [pk, increment]
+  inn_name varchar(255) [unique, not null]
+  atc_code varchar(10)
+  drug_class varchar(100)
+}
+
+Table brand_names {
+  id integer [pk, increment]
+  brand_name varchar(255) [not null]
+  manufacturer varchar(255)
+  dosage_form varchar(50)
+}
+
+Table drug_ingredients {
+  brand_id integer [not null]
+  ingredient_id integer [not null]
+  strength varchar(50)
+
+  indexes {
+    (brand_id, ingredient_id) [pk]
+  }
+}
+
+Table conditions {
+  id integer [pk, increment]
+  icd10_code varchar(10) [unique, not null]
+  condition_name varchar(255) [not null]
+}
+
+Table drug_drug_interactions {
+  id integer [pk, increment]
+  ingredient_a_id integer [not null]
+  ingredient_b_id integer [not null]
+  severity varchar(10) [not null]
+  mechanism text [not null]
+  clinical_management text [not null]
+}
+
+Table drug_condition_interactions {
+  id integer [pk, increment]
+  ingredient_id integer [not null]
+  condition_id integer [not null]
+  severity varchar(10) [not null]
+  contraindication_type varchar(20) [default: 'ABSOLUTE']
+  clinical_advice text [not null]
+}
+
+Table user_cabinets {
+  id integer [pk, increment]
+  user_id integer [not null]
+  brand_id integer
+  custom_drug_name varchar(255)
+  total_quantity integer [default: 0]
+  remaining_quantity integer [default: 0]
+  expiry_date date
+}
+
+Table medication_schedules {
+  id integer [pk, increment]
+  cabinet_id integer [not null]
+  session varchar(20) [not null]
+  scheduled_time varchar(5) [not null]
+  dosage float [default: 1.0]
+  is_active boolean [default: true]
+}
+
+Ref: patient_profiles.user_id - users.id
+Ref: user_cabinets.user_id > users.id
+Ref: user_cabinets.brand_id > brand_names.id
+Ref: medication_schedules.cabinet_id > user_cabinets.id
+
+Ref: drug_ingredients.brand_id > brand_names.id
+Ref: drug_ingredients.ingredient_id > active_ingredients.id
+
+Ref: drug_drug_interactions.ingredient_a_id > active_ingredients.id
+Ref: drug_drug_interactions.ingredient_b_id > active_ingredients.id
+
+Ref: drug_condition_interactions.ingredient_id > active_ingredients.id
+Ref: drug_condition_interactions.condition_id > conditions.id
+```
