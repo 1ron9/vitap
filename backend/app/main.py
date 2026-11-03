@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import m0_auth, m3_chatbot, m4_ddi, m5_summary
+from app.routers import m0_auth, m3_chatbot, m4_ddi
 
 app = FastAPI(
     title="VitaP API",
@@ -21,7 +21,6 @@ app.add_middleware(
 app.include_router(m0_auth.router, prefix="/api/v1/auth", tags=["F1/E0 - Tài khoản & Hồ sơ"])
 app.include_router(m3_chatbot.router, prefix="/api/v1/chatbot", tags=["F3/E3 - Trợ lý Sức khỏe AI"])
 app.include_router(m4_ddi.router, prefix="/api/v1/ddi", tags=["F2/E2 - Tương tác thuốc"])
-app.include_router(m5_summary.router, prefix="/api/v1/summary", tags=["F1 - Tóm tắt hồ sơ"])
 
 @app.get("/")
 def read_root():

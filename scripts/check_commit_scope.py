@@ -21,8 +21,7 @@ MODULE_OWNERSHIP = {
         "backend/tests/test_fuzzy_matcher.py"
     ],
     "m3": ["backend/app/routers/m3_chatbot.py", "backend/app/services/rag/", "backend/tests/test_m3_chatbot.py"],
-    "m4": ["backend/app/routers/m4_ddi.py", "backend/tests/test_m4_ddi.py", "docs/designs/m4_ddi_engine.md"],
-    "m5": ["backend/app/routers/m5_summary.py", "backend/tests/test_m5_summary.py"],
+    "m4": ["backend/app/routers/m4_ddi.py", "backend/tests/test_m4_ddi.py"],
     "frontend": ["frontend/"],
     "devops": [".github/", "Dockerfile", "backend/requirements.txt", "backend/pytest.ini", "backend/tests/conftest.py"]
 }
