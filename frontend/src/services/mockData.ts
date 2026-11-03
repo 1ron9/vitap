@@ -4,13 +4,6 @@
  * Cho phép Frontend phát triển giao diện độc lập mà không cần chờ Backend API thật.
  */
 
-export const MOCK_CABINET_DRUGS = [
-  { id: 1, brandName: "Panadol Extra", strength: "500mg/65mg", activeIngredient: "Paracetamol + Caffeine" },
-  { id: 2, brandName: "Amlodipine 5mg", strength: "5mg", activeIngredient: "Amlodipine" },
-  { id: 3, brandName: "Glucophage 850mg", strength: "850mg", activeIngredient: "Metformin" },
-  { id: 4, brandName: "Decolgen Forte", strength: "500mg/10mg/2mg", activeIngredient: "Paracetamol + Phenylephrine + Chlorpheniramine" },
-];
-
 export const MOCK_INTERACTION_RED_RESULT = {
   summary: {
     overall_risk_level: "RED",

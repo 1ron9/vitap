@@ -22,7 +22,7 @@ Dự án được phân chia thành 4 Sandbox kỹ thuật độc lập. Mọi t
 | Mã số | Thành viên | Chuyên môn & Vai trò | Thư mục & Tập tin phụ trách chính (Sandbox) | Lệnh Test Sandbox riêng |
 | :---: | :--- | :--- | :--- | :--- |
 | **VT1** | **Trương Huệ Trí** (`24120472`) | **PO & Database / Data Core Lead** | • `backend/app/routers/m0_auth.py`<br>• `backend/app/routers/m5_summary.py`<br>• `backend/app/models/`<br>• `backend/data_seed/`<br>• `docs/srs/` | `pytest tests/test_m0_auth.py -v`<br>`pytest tests/test_m5_summary.py -v` |
-| **VT2** | **Nguyễn Bảo Trọng** (`24120476`) | **Backend Lead, DevOps & QA Lead** | • `backend/app/main.py`<br>• `backend/app/core/`<br>• `backend/app/services/scheduler.py`<br>• `.github/workflows/`, Docker, `requirements.txt`<br>• `backend/tests/conftest.py` | `pytest tests/test_main.py -v` |
+| **VT2** | **Nguyễn Bảo Trọng** (`24120476`) | **Backend Lead, DevOps & QA Lead** | • `backend/app/main.py`<br>• `backend/app/core/`<br>• `backend/app/routers/health_logs.py`<br>• `.github/workflows/`, Docker, `requirements.txt`<br>• `backend/tests/conftest.py` | `pytest tests/test_main.py -v` |
 | **VT3** | **Dương Phan Minh Trí** (`24120470`) | **Frontend Lead & DDI Logic Lead** | • `frontend/src/` (Toàn bộ UI Web)<br>• `backend/app/routers/m4_ddi.py`<br>• `docs/designs/m4_ddi_engine.md` | `npm run dev` (Mock mode)<br>`pytest tests/test_m4_ddi.py -v` |
 | **VT4** | **Lê Thanh Phong** (`24120409`) | **AI Assistant & Knowledge Base Lead** | • `backend/app/routers/m3_chatbot.py`<br>• `backend/app/services/rag/`<br>• `backend/app/services/mock_ai_service.py` | `pytest tests/test_m3_chatbot.py -v` |
 

@@ -34,11 +34,8 @@
 
 ---
 
-## 📚 Tài Liệu Kỹ Thuật Trọng Tâm (Single Source of Truth)
-
-1. [**`docs/TASKS.md`**](docs/TASKS.md) — Ma trận 24 nhiệm vụ kỹ thuật chi tiết (Assignee, Reviewer, Input, Output, DoD).
-2. [**`docs/api_contracts.md`**](docs/api_contracts.md) — Hợp đồng dữ liệu & đặc tả toàn bộ API Endpoints giữa Frontend và Backend.
-3. [**`docs/uml/database_erd.md`**](docs/uml/database_erd.md) — Sơ đồ CSDL 3NF (9 bảng), Từ điển dữ liệu và mã nguồn DBML cho [dbdiagram.io](https://dbdiagram.io).
+## 📚 Tài Liệu Kỹ Thuật (Lưu trữ nội bộ)
+Tài liệu kiến trúc, ma trận nhiệm vụ (TASKS), hợp đồng API và sơ đồ CSDL 3NF được quản lý nội bộ bởi nhóm tác giả (được lưu tại thư mục `docs/` trên máy phát triển).
 
 ---
 

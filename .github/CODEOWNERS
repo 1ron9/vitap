@@ -17,7 +17,7 @@ docs/srs/                               @truonghuetri
 # --- VT2: NGUYỄN BẢO TRỌNG (DevOps, QA & Backend Infrastructure) ---
 backend/app/main.py                     @nguyenbaotrong
 backend/app/core/                       @nguyenbaotrong
-backend/app/services/scheduler.py       @nguyenbaotrong
+backend/app/routers/health_logs.py      @nguyenbaotrong
 backend/tests/conftest.py               @nguyenbaotrong
 backend/tests/test_main.py              @nguyenbaotrong
 backend/requirements.txt                @nguyenbaotrong

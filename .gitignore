@@ -26,6 +26,5 @@ build/
 .DS_Store
 Thumbs.db
 
-# Local Context & Baseline (Internal)
-docs/PROJECT_BASELINE.md
-docs/CURRENT_CONTEXT.md
+# Documentation (Kept local, untracked from Git)
+docs/

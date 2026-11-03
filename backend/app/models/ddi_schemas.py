@@ -10,7 +10,7 @@ class RiskLevelEnum(str, Enum):
 
 class InputSourceEnum(str, Enum):
     MANUAL_INPUT = "MANUAL_INPUT"
-    CABINET_F2 = "CABINET_F2"
+    AUTOCOMPLETE = "AUTOCOMPLETE"
     OCR_M1 = "OCR_M1"
 
 class DrugInputItem(BaseModel):

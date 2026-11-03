@@ -11,7 +11,7 @@ export const InteractionPage: React.FC = () => {
       const res = await checkDrugInteractions({
         drugs: [
           { brand_id: 1, raw_name: "Decolgen Forte", source: "MANUAL_INPUT" },
-          { brand_id: 2, raw_name: "Amlodipine 5mg", source: "CABINET_F2" }
+          { brand_id: 2, raw_name: "Amlodipine 5mg", source: "AUTOCOMPLETE" }
         ],
         patient_profile: { age: 65, gender: "MALE", condition_ids: [1], is_pregnant: false }
       });
