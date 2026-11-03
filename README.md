@@ -1,39 +1,44 @@
-# VitaP - Sổ Tay Y Tế Cá Nhân Hóa & Cảnh Báo An Toàn Dược Phẩm
+# VitaP - Sổ Tay Y Tế Cá Nhân Hóa & Tra Cứu Dược Phẩm Thông Minh
 
 **Đồ án môn học:** Nhập môn Công nghệ Phần mềm (NMCNPM) - FIT, Trường ĐH Khoa học Tự nhiên, ĐHQG-HCM  
 **Nhóm tác giả (4 thành viên):**
 - **Trương Huệ Trí** (`24120472`) - Product Owner & Data Core Lead (VT1)
 - **Nguyễn Bảo Trọng** (`24120476`) - Full Stack Developer, DevOps & QA Lead (VT2)
-- **Dương Phan Minh Trí** (`24120470`) - Frontend Lead & DDI Logic Lead (VT3)
-- **Lê Thanh Phong** (`24120409`) - AI Assistant & Knowledge Base Lead (VT4)
+- **Dương Phan Minh Trí** (`24120470`) - Frontend Lead & Clinical DDI Engine Lead (VT3)
+- **Lê Thanh Phong** (`24120409`) - AI Assistant & Medical RAG Lead (VT4)
 
 ---
 
-## 🏛️ Kiến Trúc Dự Án (Phân Quyền & Sandbox Độc Lập)
-
-Dự án áp dụng mô hình phân chia theo **File Ownership Matrix** và **Sandbox Modules** học tập từ dự án AI Bloxorz nhằm đảm bảo mỗi thành viên có không gian phát triển độc lập, không bị chồng chéo mã nguồn và không xảy ra merge conflict:
+## 🏛️ Kiến Trúc Chuẩn Hóa 3 Phân Hệ (3 Client Modules)
 
 ```text
-0_medicare/
-├── backend/                            # 📦 MÃ NGUỒN BACKEND (FastAPI + PostgreSQL)
-│   ├── app/
-│   │   ├── core/                       # Cấu hình hệ thống, DB connection, JWT Security (VT2)
-│   │   ├── models/                     # Lược đồ CSDL SQLAlchemy 3NF & Pydantic Schemas (VT1)
-│   │   ├── routers/                    # Các Router API VitaP (m0_auth, m3_chatbot, m4_ddi, m5_summary)
-│   │   └── services/                   # Scheduler nhắc thuốc, RAG Engine, OCR Scanner (VT2 & VT4)
-│   ├── data_seed/                      # Dữ liệu 350 biệt dược & Script nạp CSDL (VT1)
-│   ├── tests/                          # 🧪 Test Suite Pytest phân chia theo từng module cá nhân
-│   └── sandbox/                        # 🔬 Góc thử nghiệm code nháp an toàn (vt1_data_lab, vt2_devops_lab, vt3_ui_lab, vt4_ai_lab)
-│
-├── frontend/                           # 🖥️ MÃ NGUỒN FRONTEND (React Vite + Tailwind CSS) (VT3)
-│   ├── src/pages/                      # Màn hình chính (Login, Cabinet, Interaction, Chatbot, Summary)
-│   ├── src/components/                 # Components tái sử dụng (ChatBox, Modal, Buttons)
-│   ├── src/services/                   # API Client tự động chuyển đổi giữa Real API và Mock Sandbox
-│   └── sandbox/                        # Góc thử nghiệm giao diện nháp (prototype_ui)
-│
-├── docs/                               # 📚 Tài liệu kỹ thuật: SDD, SRS, UML, Test Plans
-└── scripts/                            # 🔒 Script kiểm tra vi phạm commit độc lập (check_commit_scope.py)
+┌────────────────────────────────────────────────────────────────────────┐
+│                        TẦNG GIAO DIỆN (CLIENT)                         │
+│                     React (Vite) + Tailwind CSS                        │
+├───────────────────┬────────────────────────────┬───────────────────────┤
+│ F1: HỒ SƠ & CHỈ SỐ│   F2: TRA CỨU DƯỢC PHẨM    │   F3: TRỢ LÝ HỎI ĐÁP  │
+│(Personal Health)  │    (DDI & Safety Engine)   │    (Medical RAG AI)   │
+└───────────────────┴────────────────────────────┴───────────────────────┘
 ```
+
+1. **F1: Hồ sơ & Chỉ số Sinh hiệu (VT1 & VT2):**
+   - Đăng ký, đăng nhập JWT, hồ sơ bệnh nền ICD-10 và dị ứng thuốc.
+   - Sổ tay nhật ký đo (`health_logs`): Huyết áp (tâm thu/tâm trương), nhịp tim, cân nặng, đường huyết.
+   - Biểu đồ xu hướng (Line Charts) trực quan hóa dữ liệu sức khỏe theo thời gian trên Dashboard.
+2. **F2: Tra cứu Dược phẩm & DDI Engine (VT1 & VT3):**
+   - CSDL Dược học 3NF (220+ biệt dược, 110+ hoạt chất).
+   - Động cơ kiểm tra tương tác thuốc (DDI) Canonical Pair và chống chỉ định bệnh nền (DCI) hiển thị thẻ Đỏ/Vàng/Xanh.
+   - Cổng nhập liệu thông minh (Smart Input OCR): Quét ảnh đơn thuốc $\rightarrow$ Gemini 1.5 Flash Vision $\rightarrow$ Fuzzy Matcher $\rightarrow$ Tự động đổ thuốc vào Tra cứu F2.
+3. **F3: Trợ lý Hỏi đáp AI (VT4):**
+   - Chatbot RAG y tế dựa trên kho cẩm nang Bộ Y Tế, phản hồi câu hỏi lối sống/dinh dưỡng qua SSE Streaming thời gian thực kèm Medical Guardrails an toàn.
+
+---
+
+## 📚 Tài Liệu Kỹ Thuật Trọng Tâm (Single Source of Truth)
+
+1. [**`docs/TASKS.md`**](docs/TASKS.md) — Ma trận 24 nhiệm vụ kỹ thuật chi tiết (Assignee, Reviewer, Input, Output, DoD).
+2. [**`docs/api_contracts.md`**](docs/api_contracts.md) — Hợp đồng dữ liệu & đặc tả toàn bộ API Endpoints giữa Frontend và Backend.
+3. [**`docs/uml/database_erd.md`**](docs/uml/database_erd.md) — Sơ đồ CSDL 3NF (9 bảng), Từ điển dữ liệu và mã nguồn DBML cho [dbdiagram.io](https://dbdiagram.io).
 
 ---
 
@@ -49,7 +54,7 @@ cp .env.example .env
 uvicorn app.main:app --reload --port 8000
 ```
 - Swagger API Docs: `http://localhost:8000/docs`
-- Chạy test kiểm thử tự động (Sandbox):
+- Chạy kiểm thử tự động:
   ```bash
   pytest tests/ -v
   ```
@@ -61,11 +66,10 @@ npm install
 npm run dev
 ```
 - Ứng dụng chạy tại: `http://localhost:5173`
-- Để chạy chế độ **Mock Sandbox độc lập** không cần Backend, chỉ cần đặt `VITE_USE_MOCK=true` trong file `.env`.
 
 ---
 
 ## 📋 Quy Định Đóng Góp (Git & PR Workflow)
-Vui lòng đọc kỹ file [CONTRIBUTING.md](CONTRIBUTING.md) trước khi bắt đầu tạo nhánh hoặc commit code:
+Vui lòng đọc kỹ file [CONTRIBUTING.md](CONTRIBUTING.md):
 - **Nguyên tắc sống còn:** *"Chỉ sửa file của mình. Cần sửa file người khác thì nhắn người đó."*
-- **Commit độc lập:** Kiểm tra trước khi commit bằng lệnh `python scripts/check_commit_scope.py --staged --module <mã_module>`.
+- **Kiểm thử tự động:** Mọi Pull Request bắt buộc phải vượt qua GitHub Actions CI Pytest trước khi merge vào `main`.
