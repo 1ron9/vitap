@@ -23,7 +23,13 @@ MODULE_OWNERSHIP = {
     "m3": ["backend/app/routers/m3_chatbot.py", "backend/app/services/rag/", "backend/tests/test_m3_chatbot.py"],
     "m4": ["backend/app/routers/m4_ddi.py", "backend/tests/test_m4_ddi.py"],
     "frontend": ["frontend/"],
-    "devops": [".github/", "Dockerfile", "backend/requirements.txt", "backend/pytest.ini", "backend/tests/conftest.py"]
+    "devops": [
+        ".github/", "Dockerfile", ".dockerignore", "compose.yaml", ".env.example",
+        "docker/postgres/init/", "backend/.env.example", "backend/app/main.py",
+        "backend/app/core/", "backend/requirements.txt", "backend/requirements-runtime.txt",
+        "backend/pytest.ini", "backend/tests/conftest.py", "backend/tests/test_main.py",
+        "scripts/check_commit_scope.py", "scripts/smoke_compose.py",
+    ]
 }
 
 def get_changed_files(staged_only=False):

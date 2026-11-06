@@ -15,15 +15,15 @@ backend/tests/test_m0_auth.py           @truonghuetri
 docs/srs/                               @truonghuetri
 
 # --- VT2: NGUYỄN BẢO TRỌNG (DevOps, QA & Backend Infrastructure) ---
-backend/app/main.py                     @nguyenbaotrong
-backend/app/core/                       @nguyenbaotrong
-backend/app/routers/health_logs.py      @nguyenbaotrong
-backend/tests/conftest.py               @nguyenbaotrong
-backend/tests/test_main.py              @nguyenbaotrong
-backend/requirements.txt                @nguyenbaotrong
-backend/pytest.ini                      @nguyenbaotrong
-.github/                                @nguyenbaotrong
-Dockerfile*                             @nguyenbaotrong
+backend/app/main.py                     @1ron9
+backend/app/core/                       @1ron9
+backend/app/routers/health_logs.py      @1ron9
+backend/tests/conftest.py               @1ron9
+backend/tests/test_main.py              @1ron9
+backend/requirements.txt                @1ron9
+backend/pytest.ini                      @1ron9
+.github/                                @1ron9
+Dockerfile*                             @1ron9
 
 # --- VT3: DƯƠNG PHAN MINH TRÍ (Frontend Lead & DDI Logic Lead) ---
 frontend/                               @duongphanminhtri
@@ -35,3 +35,14 @@ backend/app/routers/m3_chatbot.py       @lethanhphong
 backend/app/services/rag/               @lethanhphong
 backend/app/services/ocr/               @lethanhphong
 backend/tests/test_m3_chatbot.py        @lethanhphong
+
+
+# FD-01: local development infrastructure (VT2)
+compose.yaml                           @1ron9
+.dockerignore                          @1ron9
+.env.example                           @1ron9
+backend/.env.example                   @1ron9
+backend/requirements-runtime.txt       @1ron9
+docker/postgres/init/                  @1ron9
+scripts/check_commit_scope.py          @1ron9
+scripts/smoke_compose.py               @1ron9
