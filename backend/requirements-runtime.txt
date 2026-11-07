@@ -1,0 +1,10 @@
+# Runtime tối thiểu cho backend; các công cụ AI/data vẫn ở requirements.txt.
+fastapi==0.162.0
+uvicorn[standard]==0.54.0
+pydantic==2.14.3
+pydantic-settings==2.16.2
+sqlalchemy==2.0.57
+psycopg2-binary==2.9.13
+python-jose[cryptography]==3.5.0
+bcrypt==5.0.0
+python-multipart==0.0.33

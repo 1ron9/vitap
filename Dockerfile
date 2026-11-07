@@ -10,11 +10,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Cài đặt Python dependencies
-COPY backend/requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+COPY backend/requirements-runtime.txt /app/requirements-runtime.txt
+RUN pip install --no-cache-dir -r requirements-runtime.txt
 
 # Copy mã nguồn backend
 COPY backend/ /app/
+
+# Chạy ứng dụng bằng user không có quyền root.
+RUN useradd --create-home appuser && chown -R appuser:appuser /app
+USER appuser
 
 EXPOSE 8000
 
