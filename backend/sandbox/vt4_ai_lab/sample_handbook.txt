@@ -1,0 +1,27 @@
+MEDICATION GUIDE: IBUPROFEN ORAL
+
+1. USES:
+Ibuprofen is a nonsteroidal anti-inflammatory drug (NSAID). It is used to relieve pain from various conditions such as headache, dental pain, menstrual cramps, muscle aches, or arthritis. It is also used to reduce fever.
+
+2. DOSAGE & ADMINISTRATION:
+- Adults and children 12 years and older: Take 200 mg to 400 mg every 4 to 6 hours as needed while symptoms persist.
+- Do not exceed 1200 mg in 24 hours unless directed by a doctor.
+- Take with food or milk if stomach upset occurs.
+
+3. CONTRAINDICATIONS & BLACK BOX WARNINGS:
+- Cardiovascular Risk: NSAIDs may cause an increased risk of serious cardiovascular thrombotic events, myocardial infarction (heart attack), and stroke. Do not use right before or after heart bypass surgery.
+- Gastrointestinal Risk: NSAIDs cause an increased risk of serious gastrointestinal adverse events including bleeding, ulceration, and perforation of the stomach or intestines.
+- Contraindicated in patients with known hypersensitivity to ibuprofen or aspirin, severe heart failure, or severe renal impairment.
+
+4. DRUG INTERACTIONS:
+- Anticoagulants (e.g., Warfarin, Aspirin): Concomitant use increases the risk of serious GI bleeding.
+- ACE inhibitors and Diuretics: Ibuprofen may diminish the antihypertensive effect of these drugs.
+- Lithium & Methotrexate: Ibuprofen may increase blood levels and toxicity of these agents.
+- Alcohol: Chronic alcohol use combined with ibuprofen increases the risk of stomach bleeding.
+```<FollowUp>
+Bạn muốn thử nghiệm prompt bằng tiếng Anh gốc hay yêu cầu Gemini đọc tài liệu tiếng Anh rồi trả lời/cảnh báo bằng tiếng Việt?
+</FollowUp>
+<ElicitationsGroup>
+  <Elicitation description="Yêu cầu Gemini phân tích tài liệu tiếng Anh nhưng trả về cảnh báo an toàn bằng tiếng Việt" id="cross_language" title="Xử lý đa ngôn ngữ (EN -"> VI)"/>
+  <Elicitation description="Lấy dữ liệu tự động từ API mở như openFDA thay vì copy file thủ công" id="openfda_integration" title="Tích hợp openFDA API"/>
+</ElicitationsGroup>
