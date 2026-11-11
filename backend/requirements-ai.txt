@@ -1,0 +1,4 @@
+-r requirements-runtime.txt
+# Install only for real M3 work; verify provider integration before promotion.
+langchain-ollama
+langchain-google-genai

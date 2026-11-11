@@ -30,6 +30,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
       SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
       USE_MOCK_AI: ${USE_MOCK_AI:-true}
+    volumes:
+      - private_storage:/app/storage
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
     depends_on:
@@ -42,5 +44,26 @@ services:
       retries: 12
       start_period: 15s
 
+  worker:
+    profiles: [worker]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["python", "-m", "app.workers.runner"]
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: ${POSTGRES_DB:-vitap}
+      POSTGRES_USER: ${POSTGRES_USER:-vitap}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY}
+      STORAGE_ROOT: /app/storage
+    volumes:
+      - private_storage:/app/storage
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
+  private_storage:
   postgres_data:

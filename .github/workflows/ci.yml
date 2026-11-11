@@ -1,10 +1,17 @@
-name: MediCare CI Pipeline
+name: VitaP CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, dev ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, dev ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   backend-tests:
@@ -25,7 +32,7 @@ jobs:
         working-directory: backend
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-runtime.txt pytest httpx
+          pip install -r requirements-dev.txt
 
       - name: Run Pytest Suite
         working-directory: backend
@@ -52,3 +59,51 @@ jobs:
         run: docker compose config --quiet
       - name: Check API, vector queries, persistence and database recovery
         run: python scripts/smoke_compose.py
+
+
+  frontend:
+    name: Frontend build and tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run build && npm test
+        working-directory: frontend
+
+  postgres:
+    name: PostgreSQL migrations and contracts
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: pgvector/pgvector:0.8.1-pg16
+        env:
+          POSTGRES_USER: vitap
+          POSTGRES_PASSWORD: test_only
+          POSTGRES_DB: vitap_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U vitap -d vitap_test"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      DATABASE_URL: postgresql+psycopg2://vitap:test_only@localhost:5432/vitap_test
+      TEST_POSTGRES_URL: postgresql+psycopg2://vitap:test_only@localhost:5432/vitap_test
+      USE_MOCK_AI: 'true'
+      SECRET_KEY: ci_only_do_not_use_outside_tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r backend/requirements-dev.txt
+      - run: alembic upgrade head && alembic upgrade head
+        working-directory: backend
+      - run: pytest tests/integration -q
+        working-directory: backend
+      - run: python scripts/export_openapi.py --check

@@ -17,7 +17,7 @@ RUN pip install --no-cache-dir -r requirements-runtime.txt
 COPY backend/ /app/
 
 # Chạy ứng dụng bằng user không có quyền root.
-RUN useradd --create-home appuser && chown -R appuser:appuser /app
+RUN mkdir -p /app/storage && useradd --create-home appuser && chown -R appuser:appuser /app
 USER appuser
 
 EXPOSE 8000

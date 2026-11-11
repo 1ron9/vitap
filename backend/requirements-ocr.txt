@@ -1,0 +1,4 @@
+-r requirements-runtime.txt
+# Heavy OCR dependencies belong to the worker environment.
+paddleocr
+opencv-python-headless
