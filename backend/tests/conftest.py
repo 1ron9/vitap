@@ -1,39 +1,25 @@
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
 from app.main import app
 from app.core.database import Base, get_db
 
-# Thiết lập CSDL SQLite In-Memory dùng riêng cho Testing (cô lập hoàn toàn với database thật)
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-@pytest.fixture(scope="session", autouse=True)
-def setup_test_database():
-    """Tự động tạo toàn bộ bảng CSDL trước khi chạy test và hủy sau khi xong."""
-    Base.metadata.create_all(bind=engine)
-    yield
-    Base.metadata.drop_all(bind=engine)
-
 @pytest.fixture(scope="function")
 def db_session():
-    """Cung cấp session CSDL cho từng test case với transaction rollback sạch sẽ."""
-    connection = engine.connect()
-    transaction = connection.begin()
-    session = TestingSessionLocal(bind=connection)
+    """Mỗi test dùng database riêng để endpoint được commit thật mà không rò dữ liệu."""
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    Base.metadata.create_all(bind=engine)
+    session = Session(engine)
     yield session
     session.close()
-    transaction.rollback()
-    connection.close()
+    engine.dispose()
 
 @pytest.fixture(scope="function")
 def client(db_session):

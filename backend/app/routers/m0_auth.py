@@ -1,196 +1,177 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from sqlalchemy.orm import Session
-from jose import jwt, JWTError
+"""AU-01 identity endpoints and reusable User/Guest principal dependency."""
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from uuid import UUID, uuid4
 
-from app.core.database import get_db
+from fastapi import APIRouter, Depends, Header, Request, Response
+from jose import JWTError, jwt
+from jose.exceptions import ExpiredSignatureError
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
 from app.core.config import settings
-from app.core.security import get_password_hash, verify_password, create_access_token
+from app.core.database import get_db
+from app.core.security import create_access_token, create_opaque_token, get_password_hash, hash_token, verify_password
 from app.models.user_models import (
-    User, 
-    PatientProfile, 
-    UserRegisterRequest, 
-    UserLoginRequest, 
-    TokenResponse, 
-    ProfileUpdateRequest, 
-    ProfileResponse
+    GuestSession, GuestSessionCreated, GuestSessionRequest, LoginRequest,
+    RefreshRequest, RefreshSession, RegisterRequest, TokenPair, User,
+    UserConsent, UserIdentity, UserProfile, utc_now,
 )
 
 router = APIRouter()
-security_bearer = HTTPBearer(auto_error=False)
+guest_router = APIRouter()
 
-def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security_bearer),
-    db: Session = Depends(get_db)
-) -> User:
-    """Dependency trích xuất và xác thực User từ JWT Bearer Token."""
-    if not credentials:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Yêu cầu token xác thực Bearer",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    token = credentials.credentials
+
+class AuthError(Exception):
+    def __init__(self, status_code: int, code: str, message: str):
+        self.status_code = status_code
+        self.code = code
+        self.message = message
+
+
+@dataclass(frozen=True)
+class Principal:
+    kind: str
+    id: UUID | None = None
+
+
+def _aware(value: datetime) -> datetime:
+    return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+
+
+def get_principal(
+    authorization: str | None = Header(default=None),
+    x_guest_token: str | None = Header(default=None),
+    db: Session = Depends(get_db),
+) -> Principal:
+    if authorization is not None and x_guest_token is not None:
+        raise AuthError(400, "AMBIGUOUS_PRINCIPAL", "Chỉ gửi một loại token")
+    if authorization is not None:
+        scheme, _, token = authorization.partition(" ")
+        if scheme.lower() != "bearer" or not token:
+            raise AuthError(401, "INVALID_TOKEN", "Bearer token không hợp lệ")
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+            if payload.get("type") != "access":
+                raise ValueError("wrong token type")
+            user_id = UUID(payload["sub"])
+        except ExpiredSignatureError:
+            raise AuthError(401, "TOKEN_EXPIRED", "Token đã hết hạn")
+        except (JWTError, ValueError, KeyError):
+            raise AuthError(401, "INVALID_TOKEN", "Token không hợp lệ hoặc đã hết hạn")
+        user = db.get(User, user_id)
+        if user is None:
+            raise AuthError(401, "INVALID_TOKEN", "Token không hợp lệ")
+        if user.status != "ACTIVE":
+            raise AuthError(403, "ACCOUNT_INACTIVE", "Tài khoản không hoạt động")
+        return Principal("USER", user.id)
+    if x_guest_token is not None:
+        session = db.query(GuestSession).filter_by(session_token_hash=hash_token(x_guest_token)).first()
+        if session is None or not session.consent_accepted:
+            raise AuthError(401, "INVALID_TOKEN", "Phiên Guest không hợp lệ")
+        if _aware(session.expires_at) <= utc_now():
+            raise AuthError(401, "TOKEN_EXPIRED", "Phiên Guest đã hết hạn")
+        return Principal("GUEST", session.id)
+    return Principal("PUBLIC")
+
+
+def require_user(principal: Principal = Depends(get_principal), db: Session = Depends(get_db)) -> User:
+    if principal.kind == "PUBLIC":
+        raise AuthError(401, "AUTH_REQUIRED", "Cần đăng nhập")
+    if principal.kind == "GUEST":
+        raise AuthError(403, "LOGIN_REQUIRED", "Cần tài khoản User")
+    return db.get(User, principal.id)
+
+
+def _issue_pair(user: User, db: Session) -> TokenPair:
+    raw = create_opaque_token()
+    db.add(RefreshSession(
+        id=uuid4(), user_id=user.id, token_hash=hash_token(raw),
+        created_at=utc_now(), expires_at=utc_now() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
+    ))
+    db.commit()
+    return TokenPair(
+        access_token=create_access_token({"sub": str(user.id)}),
+        refresh_token=raw,
+        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
+
+
+@router.post("/register", status_code=201, response_model=UserIdentity)
+def register(payload: RegisterRequest, request: Request, db: Session = Depends(get_db)):
+    consent = payload.consent
+    if not consent.is_accepted or consent.version != settings.USER_CONSENT_VERSION or consent.scope != "HEALTH_DATA_AND_AI_PROCESSING":
+        raise AuthError(403, "CONSENT_REQUIRED", "Cần đồng ý phiên bản consent hiện hành")
+    user = User(id=uuid4(), email=payload.email, password_hash=get_password_hash(payload.password), role="USER", status="ACTIVE", created_at=utc_now())
+    db.add(user)
+    db.add(UserProfile(id=uuid4(), user_id=user.id, full_name=payload.full_name, created_at=utc_now()))
+    db.add(UserConsent(id=uuid4(), user_id=user.id, consent_version=consent.version, scope=consent.scope,
+                       is_accepted=True, ip_address=request.client.host if request.client else None, consented_at=utc_now()))
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        phone_number: str = payload.get("sub")
-        if phone_number is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token không chứa thông tin định danh hợp lệ",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-    except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token không hợp lệ hoặc đã hết hạn",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    user = db.query(User).filter(User.phone_number == phone_number).first()
-    if user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Người dùng không tồn tại")
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise AuthError(409, "RESOURCE_CONFLICT", "Không thể đăng ký tài khoản này")
+    db.refresh(user)
     return user
 
 
-@router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
-def register(req: UserRegisterRequest, db: Session = Depends(get_db)):
-    """Đăng ký tài khoản mới và tự động tạo hồ sơ bệnh nhân rỗng."""
-    # Kiểm tra số điện thoại đã tồn tại chưa
-    existing_user = db.query(User).filter(User.phone_number == req.phone_number).first()
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Số điện thoại này đã được đăng ký trong hệ thống"
-        )
+@router.post("/login", response_model=TokenPair)
+def login(payload: LoginRequest, db: Session = Depends(get_db)):
+    email = payload.email.strip().lower()
+    user = db.query(User).filter_by(email=email).first()
+    if user is None or not verify_password(payload.password, user.password_hash):
+        raise AuthError(401, "INVALID_CREDENTIALS", "Thông tin đăng nhập không hợp lệ")
+    if user.status != "ACTIVE":
+        raise AuthError(403, "ACCOUNT_INACTIVE", "Tài khoản không hoạt động")
+    return _issue_pair(user, db)
 
-    # Tạo User mới với mật khẩu băm bcrypt
-    new_user = User(
-        phone_number=req.phone_number,
-        full_name=req.full_name,
-        hashed_password=get_password_hash(req.password),
-        is_active=True
-    )
-    db.add(new_user)
-    db.flush()  # Nhận new_user.id
 
-    # Tạo hồ sơ bệnh nhân mặc định
-    profile = PatientProfile(
-        user_id=new_user.id,
-        age=30,
-        gender="OTHER",
-        allergies="",
-        underlying_conditions="",
-        medical_history=""
-    )
-    db.add(profile)
+@router.post("/refresh", response_model=TokenPair)
+def refresh(payload: RefreshRequest, db: Session = Depends(get_db)):
+    token_hash = hash_token(payload.refresh_token)
+    old = db.query(RefreshSession).filter_by(token_hash=token_hash).first()
+    if old is None or old.revoked_at is not None or _aware(old.expires_at) <= utc_now():
+        raise AuthError(401, "INVALID_TOKEN", "Refresh token không hợp lệ hoặc đã hết hạn")
+    user = db.get(User, old.user_id)
+    if user is None or user.status != "ACTIVE":
+        raise AuthError(403, "ACCOUNT_INACTIVE", "Tài khoản không hoạt động")
+    updated = db.query(RefreshSession).filter(
+        RefreshSession.id == old.id, RefreshSession.revoked_at.is_(None)
+    ).update({RefreshSession.revoked_at: utc_now()}, synchronize_session=False)
+    if updated != 1:
+        db.rollback()
+        raise AuthError(401, "INVALID_TOKEN", "Refresh token đã được sử dụng")
+    return _issue_pair(user, db)
+
+
+@router.post("/logout", status_code=204)
+def logout(payload: RefreshRequest, user: User = Depends(require_user), db: Session = Depends(get_db)):
+    session = db.query(RefreshSession).filter_by(token_hash=hash_token(payload.refresh_token), user_id=user.id).first()
+    if session is None or session.revoked_at is not None or _aware(session.expires_at) <= utc_now():
+        raise AuthError(401, "INVALID_TOKEN", "Refresh token không hợp lệ")
+    session.revoked_at = utc_now()
     db.commit()
-    db.refresh(new_user)
+    return Response(status_code=204)
 
-    # Sinh JWT Token
-    access_token = create_access_token(data={"sub": new_user.phone_number, "user_id": new_user.id})
-    return TokenResponse(
-        access_token=access_token,
-        token_type="bearer",
-        user_id=new_user.id,
-        full_name=new_user.full_name,
-        phone_number=new_user.phone_number
+
+@router.get("/me", response_model=UserIdentity)
+def me(user: User = Depends(require_user)):
+    return user
+
+
+@guest_router.post("/guest-sessions", status_code=201, response_model=GuestSessionCreated)
+def create_guest_session(payload: GuestSessionRequest, db: Session = Depends(get_db)):
+    if not payload.consent_accepted or payload.consent_version != settings.GUEST_CONSENT_VERSION:
+        raise AuthError(403, "CONSENT_REQUIRED", "Cần đồng ý phiên bản consent Guest hiện hành")
+    raw = create_opaque_token()
+    now = utc_now()
+    session = GuestSession(
+        id=uuid4(), session_token_hash=hash_token(raw), consent_accepted=True,
+        consent_version=payload.consent_version, consented_at=now,
+        created_at=now, expires_at=now + timedelta(hours=settings.GUEST_TOKEN_EXPIRE_HOURS),
     )
-
-
-@router.post("/login", response_model=TokenResponse)
-def login(req: UserLoginRequest, db: Session = Depends(get_db)):
-    """Đăng nhập bằng số điện thoại và mật khẩu, trả về JWT Access Token."""
-    user = db.query(User).filter(User.phone_number == req.phone_number).first()
-    if not user or not verify_password(req.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Số điện thoại hoặc mật khẩu không chính xác",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Tài khoản đã bị tạm khóa"
-        )
-
-    access_token = create_access_token(data={"sub": user.phone_number, "user_id": user.id})
-    return TokenResponse(
-        access_token=access_token,
-        token_type="bearer",
-        user_id=user.id,
-        full_name=user.full_name,
-        phone_number=user.phone_number
-    )
-
-
-@router.get("/me", response_model=ProfileResponse)
-def get_current_user_profile(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Lấy thông tin tài khoản kèm hồ sơ bệnh nền và dị ứng của người dùng hiện tại."""
-    profile = db.query(PatientProfile).filter(PatientProfile.user_id == current_user.id).first()
-    if not profile:
-        profile = PatientProfile(user_id=current_user.id)
-        db.add(profile)
-        db.commit()
-        db.refresh(profile)
-
-    return ProfileResponse(
-        id=profile.id,
-        user_id=current_user.id,
-        full_name=current_user.full_name,
-        phone_number=current_user.phone_number,
-        age=profile.age,
-        gender=profile.gender,
-        is_pregnant=profile.is_pregnant,
-        allergies=profile.allergies or "",
-        underlying_conditions=profile.underlying_conditions or "",
-        medical_history=profile.medical_history or "",
-        updated_at=profile.updated_at
-    )
-
-
-@router.put("/me/profile", response_model=ProfileResponse)
-def update_profile(
-    req: ProfileUpdateRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Cập nhật hồ sơ bệnh nền, tiền sử dị ứng và thông tin sức khỏe cá nhân."""
-    profile = db.query(PatientProfile).filter(PatientProfile.user_id == current_user.id).first()
-    if not profile:
-        profile = PatientProfile(user_id=current_user.id)
-        db.add(profile)
-
-    if req.age is not None:
-        profile.age = req.age
-    if req.gender is not None:
-        profile.gender = req.gender
-    if req.is_pregnant is not None:
-        profile.is_pregnant = req.is_pregnant
-    if req.allergies is not None:
-        profile.allergies = req.allergies
-    if req.underlying_conditions is not None:
-        profile.underlying_conditions = req.underlying_conditions
-    if req.medical_history is not None:
-        profile.medical_history = req.medical_history
-
+    db.add(session)
     db.commit()
-    db.refresh(profile)
-
-    return ProfileResponse(
-        id=profile.id,
-        user_id=current_user.id,
-        full_name=current_user.full_name,
-        phone_number=current_user.phone_number,
-        age=profile.age,
-        gender=profile.gender,
-        is_pregnant=profile.is_pregnant,
-        allergies=profile.allergies or "",
-        underlying_conditions=profile.underlying_conditions or "",
-        medical_history=profile.medical_history or "",
-        updated_at=profile.updated_at
-    )
+    return GuestSessionCreated(id=session.id, guest_token=raw, consent_accepted=True,
+                               consent_version=session.consent_version, created_at=now, expires_at=session.expires_at)

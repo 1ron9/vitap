@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from uuid import uuid4
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from app.core.database import engine
@@ -23,8 +24,16 @@ app.add_middleware(
 
 # Gắn các Routers phân hệ VitaP
 app.include_router(m0_auth.router, prefix="/api/v1/auth", tags=["F1/E0 - Tài khoản & Hồ sơ"])
+app.include_router(m0_auth.guest_router, prefix="/api/v1", tags=["F1/E0 - Phiên Guest"])
 app.include_router(m3_chatbot.router, prefix="/api/v1/chatbot", tags=["F3/E3 - Trợ lý Sức khỏe AI"])
 app.include_router(m4_ddi.router, prefix="/api/v1/ddi", tags=["F2/E2 - Tương tác thuốc"])
+
+
+@app.exception_handler(m0_auth.AuthError)
+def auth_error_handler(request, exc: m0_auth.AuthError):
+    return JSONResponse(status_code=exc.status_code, content={"error": {
+        "code": exc.code, "message": exc.message, "details": [], "request_id": str(uuid4())
+    }})
 
 @app.get("/")
 def read_root():

@@ -41,6 +41,29 @@ Tài liệu kiến trúc, ma trận nhiệm vụ (TASKS), hợp đồng API và 
 
 ## 🚀 Hướng Dẫn Chạy Môi Trường Phát Triển (Local Setup)
 
+### AU-01: Schema v2 và xác thực
+
+Backend AU-01 dùng email + UUID theo Schema v2 của nhóm. Các endpoint hiện có:
+
+| Method | Endpoint | Mục đích |
+| --- | --- | --- |
+| POST | `/api/v1/auth/register` | Tạo User, profile và bản ghi consent trong một transaction; không tự đăng nhập. |
+| POST | `/api/v1/auth/login` | Trả access token 15 phút và refresh token 7 ngày. |
+| POST | `/api/v1/auth/refresh` | Đổi refresh token; token cũ chỉ dùng một lần. |
+| POST | `/api/v1/auth/logout` | Thu hồi refresh token hiện tại. |
+| GET | `/api/v1/auth/me` | Trả danh tính từ Bearer access token. |
+| POST | `/api/v1/guest-sessions` | Tạo Guest session 24 giờ sau khi đồng ý xử lý dữ liệu. |
+
+Tạo cơ sở dữ liệu PostgreSQL mới bằng migration trước khi gọi các endpoint trên:
+
+```bash
+docker compose up --build --wait
+docker compose exec backend alembic -c alembic.ini upgrade head
+```
+
+Migration khởi tạo 27 bảng Schema v2, các extension/index/ràng buộc trong tài liệu và bảng `refresh_sessions` bổ sung cho rotation. Migration này dành cho database mới; dữ liệu trong các bảng demo cũ cần được sao lưu và chuyển đổi riêng. `SECRET_KEY` phải được đặt trong `.env` khi chạy Compose. Các phiên bản consent mặc định nằm trong `backend/app/core/config.py`.
+
+
 ### FD-01: Chạy backend và PostgreSQL + pgvector bằng Docker Compose
 
 Yêu cầu: Git, Docker Engine/Docker Desktop đang chạy và Docker Compose v2 có hỗ trợ `up --wait`. Trên Windows dùng Linux containers. Chạy các lệnh dưới đây tại thư mục gốc repo.

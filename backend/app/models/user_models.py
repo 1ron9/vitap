@@ -1,84 +1,144 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text
-from sqlalchemy.orm import relationship
-from datetime import datetime, timezone
-from typing import Optional, List
-from pydantic import BaseModel, Field, ConfigDict
+"""Identity tables and API DTOs from the VitaP Schema v2 contract."""
+from datetime import date, datetime, timezone
+from decimal import Decimal
+from uuid import UUID, uuid4
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Numeric, String, Uuid
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.core.database import Base
 
-def utc_now():
+
+def utc_now() -> datetime:
     return datetime.now(timezone.utc)
 
-# ==============================================================================
-# 1. SQLAlchemy ORM Models (CSDL Quan hệ)
-# ==============================================================================
 
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
-    phone_number = Column(String(20), unique=True, index=True, nullable=False)
-    full_name = Column(String(100), nullable=False)
-    hashed_password = Column(String(255), nullable=False)
-    is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=utc_now)
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    role: Mapped[str] = mapped_column(String(30), nullable=False, default="USER")
+    status: Mapped[str] = mapped_column(String(30), nullable=False, default="ACTIVE", index=True)
+    email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), onupdate=utc_now)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    profile: Mapped["UserProfile"] = relationship(back_populates="user", uselist=False)
 
-    # Quan hệ 1-1 với PatientProfile
-    profile = relationship("PatientProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
 
-class PatientProfile(Base):
-    __tablename__ = "patient_profiles"
+class UserProfile(Base):
+    __tablename__ = "user_profiles"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, index=True, nullable=False)
-    age = Column(Integer, nullable=True, default=30)
-    gender = Column(String(10), nullable=True, default="OTHER")
-    is_pregnant = Column(Boolean, default=False)
-    allergies = Column(Text, default="", nullable=True)  # VD: "Penicillin, Aspirin"
-    underlying_conditions = Column(Text, default="", nullable=True)  # VD: "Cao huyết áp, Đái tháo đường"
-    medical_history = Column(String(500), default="", nullable=True)
-    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    user_id: Mapped[UUID] = mapped_column(Uuid, ForeignKey("users.id"), unique=True, nullable=False)
+    full_name: Mapped[str | None] = mapped_column(String(255))
+    date_of_birth: Mapped[date | None] = mapped_column(Date)
+    biological_sex: Mapped[str | None] = mapped_column(String(20))
+    phone: Mapped[str | None] = mapped_column(String(30))
+    height_cm: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), onupdate=utc_now)
+    user: Mapped[User] = relationship(back_populates="profile")
 
-    user = relationship("User", back_populates="profile")
 
-# ==============================================================================
-# 2. Pydantic Schemas (API Data Contracts)
-# ==============================================================================
+class UserConsent(Base):
+    __tablename__ = "user_consents"
 
-class UserRegisterRequest(BaseModel):
-    phone_number: str = Field(..., min_length=9, max_length=15, description="Số điện thoại đăng ký")
-    full_name: str = Field(..., min_length=2, max_length=100, description="Họ và tên")
-    password: str = Field(..., min_length=6, description="Mật khẩu tối thiểu 6 ký tự")
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    user_id: Mapped[UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    consent_version: Mapped[str] = mapped_column(String(50), nullable=False)
+    scope: Mapped[str] = mapped_column(String(100), nullable=False)
+    is_accepted: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    ip_address: Mapped[str | None] = mapped_column(String(45))
+    consented_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-class UserLoginRequest(BaseModel):
-    phone_number: str = Field(..., description="Số điện thoại đăng nhập")
-    password: str = Field(..., description="Mật khẩu")
 
-class TokenResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-    user_id: int
-    full_name: str
-    phone_number: str
+class GuestSession(Base):
+    __tablename__ = "guest_sessions"
 
-class ProfileUpdateRequest(BaseModel):
-    age: Optional[int] = Field(None, ge=0, le=120)
-    gender: Optional[str] = Field(None, pattern="^(MALE|FEMALE|OTHER)$")
-    is_pregnant: Optional[bool] = False
-    allergies: Optional[str] = Field(None, description="Danh sách dị ứng thuốc phân tách bằng dấu phẩy")
-    underlying_conditions: Optional[str] = Field(None, description="Danh sách bệnh nền phân tách bằng dấu phẩy")
-    medical_history: Optional[str] = None
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    session_token_hash: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    consent_accepted: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    consent_version: Mapped[str] = mapped_column(String(50), nullable=False)
+    consented_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
-class ProfileResponse(BaseModel):
-    id: int
-    user_id: int
-    full_name: str
-    phone_number: str
-    age: Optional[int] = None
-    gender: Optional[str] = None
-    is_pregnant: bool = False
-    allergies: str = ""
-    underlying_conditions: str = ""
-    medical_history: str = ""
-    updated_at: Optional[datetime] = None
 
+class RefreshSession(Base):
+    __tablename__ = "refresh_sessions"
+
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    user_id: Mapped[UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class StrictDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+
+class ConsentInput(StrictDTO):
+    version: str
+    scope: str
+    is_accepted: bool
+
+
+class RegisterRequest(StrictDTO):
+    email: str = Field(min_length=3, max_length=255)
+    password: str = Field(min_length=12, max_length=128)
+    full_name: str | None = Field(default=None, max_length=255)
+    consent: ConsentInput
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: str) -> str:
+        value = value.strip().lower()
+        if value.count("@") != 1 or "." not in value.split("@", 1)[1]:
+            raise ValueError("Email không hợp lệ")
+        return value
+
+
+class LoginRequest(StrictDTO):
+    email: str
+    password: str
+
+
+class RefreshRequest(StrictDTO):
+    refresh_token: str
+
+
+class GuestSessionRequest(StrictDTO):
+    consent_accepted: bool
+    consent_version: str
+
+
+class UserIdentity(BaseModel):
+    id: UUID
+    email: str
+    role: str
+    status: str
+    created_at: datetime
     model_config = ConfigDict(from_attributes=True)
+
+
+class TokenPair(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    expires_in: int
+
+
+class GuestSessionCreated(BaseModel):
+    id: UUID
+    guest_token: str
+    consent_accepted: bool
+    consent_version: str
+    created_at: datetime
+    expires_at: datetime
