@@ -2,7 +2,7 @@ import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "MediCare API"
+    PROJECT_NAME: str = "VitaP API"
     VERSION: str = "1.0.0"
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./test.db")
     # Compose dùng các trường này; DATABASE_URL vẫn dùng cho Supabase/local thủ công.
@@ -20,6 +20,11 @@ class Settings(BaseSettings):
     GUEST_CONSENT_VERSION: str = "guest-processing-v1"
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     USE_MOCK_AI: bool = os.getenv("USE_MOCK_AI", "True").lower() == "true"
+    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
+    STORAGE_ROOT: str = "./storage"
+    OLLAMA_BASE_URL: str = "http://localhost:11434"
+    EMBEDDING_MODEL: str = "nomic-embed-text-v2-moe"
+    GEMINI_MODEL: str = "gemini-3.1-flash-lite"
     GEMINI_TIMEOUT_SECONDS: float = 1.5
 
     model_config = SettingsConfigDict(

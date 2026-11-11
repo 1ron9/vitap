@@ -228,4 +228,4 @@ def run_seed():
         db.close()
 
 if __name__ == "__main__":
-    run_seed()
+    raise SystemExit("Legacy dataset loader disabled. Use python -m data_seed.seed_dev after Alembic; port reviewed datasets to the UUID schema.")

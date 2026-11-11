@@ -1,0 +1,8 @@
+{
+  "version": "dev-1",
+  "source": "SYNTHETIC_DEV_FIXTURE",
+  "medical_evidence": false,
+  "coverage_version": null,
+  "reviewed_pairs": [],
+  "notes": "No rule match must yield INSUFFICIENT_DATA until reviewed coverage exists."
+}

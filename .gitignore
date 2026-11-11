@@ -28,3 +28,12 @@ Thumbs.db
 
 # Documentation (Kept local, untracked from Git)
 docs/
+
+# Generated/private local state
+.pytest_cache/
+*.tsbuildinfo
+backend/storage/
+.setup_build.py
+.repo_admin.py
+data/raw/
+data/cleaned/

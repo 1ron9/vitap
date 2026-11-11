@@ -6,6 +6,8 @@ from sqlalchemy.pool import StaticPool
 
 from app.main import app
 from app.core.database import Base, get_db
+from app.core import model_registry
+from app.legacy.drug_models import Base as LegacyBase
 
 @pytest.fixture(scope="function")
 def db_session():
@@ -16,6 +18,8 @@ def db_session():
         poolclass=StaticPool,
     )
     Base.metadata.create_all(bind=engine)
+    # Legacy fuzzy tests use isolated prototype tables.
+    LegacyBase.metadata.create_all(bind=engine)
     session = Session(engine)
     yield session
     session.close()
