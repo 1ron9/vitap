@@ -1,38 +1,75 @@
-# VitaP — Development baseline
+# VitaP — Sổ tay sức khỏe cá nhân
 
-Nhánh tích hợp: **dev**. Main chỉ nhận phiên bản nhóm đã review/chốt.
+VitaP là đồ án Nhập môn Công nghệ Phần mềm tại Trường Đại học Khoa học Tự nhiên,
+ĐHQG-HCM. Dự án hướng tới quản lý hồ sơ sức khỏe, số hóa đơn thuốc, tra cứu tương tác
+thuốc và trợ lý thông tin y tế có dẫn nguồn.
 
-Đọc [CODEBASE_DEV_MIGRATION.md](CODEBASE_DEV_MIGRATION.md) để xem kiến trúc,
-quyết định contract, hướng dẫn setup/test, và quy trình feature → dev → main.
+## Chức năng và trạng thái
 
-Backend hiện có Auth + Guest sessions, error envelope, model/migration v3.1 và worker
-scaffold. Frontend có React/Vite, đăng nhập email và routing. M1/M2/M3 là phần phát triển
-tiếp theo; các prototype cũ được giữ trong legacy/sandbox và không expose trong live API.
+| Phân hệ | Hiện có | Đang phát triển |
+|---|---|---|
+| Tài khoản | Đăng ký email, JWT, refresh rotation, logout, danh tính và Guest session | Giao diện đăng ký và tự refresh phiên frontend |
+| M1 — Sức khỏe | Model/migration hồ sơ, bệnh nền, dị ứng, nhật ký, chỉ số, đợt dùng thuốc | API và giao diện nghiệp vụ |
+| M2 — Thuốc | Model/migration danh mục, prescription/OCR, private storage và worker xóa file | Upload/review/save, OCR thật, tra cứu và rule engine DDI |
+| M3 — Trợ lý | Model/migration hội thoại, vector 768 chiều, CLI kiểm tra JSONL | Ingestion, retrieval, guardrails và generation thật |
 
-## Quick start
+Frontend dùng React/TypeScript/Vite, có đăng nhập email và routing. Các trang M1/M2/M3
+hiện thông báo đang phát triển. Fixture và prototype sandbox chỉ phục vụ thử nghiệm,
+không phải bằng chứng y khoa.
+
+## Chạy dự án
+
+Yêu cầu Git, Docker Engine/Desktop với Linux containers và Compose v2 hỗ trợ `up --wait`.
+Frontend dùng Node >=22.12 và npm; CI dùng Python 3.11 và Node 22.13.
+
+Tại gốc repo, tạo cấu hình local:
 
 ```powershell
 Copy-Item .env.example .env
-# Đặt SECRET_KEY và POSTGRES_PASSWORD
- docker compose up --build --wait
- docker compose exec backend alembic upgrade head
- docker compose exec backend python -m data_seed.seed_dev
- cd frontend
- Copy-Item .env.example .env
- npm ci
- npm run dev
 ```
 
-Swagger: http://localhost:8000/docs. Frontend: http://localhost:5173.
-Frontend mặc định dùng mock; đổi VITE_USE_MOCK=false để đăng nhập backend thật.
-Dataset seed_dev là giả lập, không phải bằng chứng y khoa.
+Linux/macOS dùng `cp .env.example .env`. Đặt `POSTGRES_PASSWORD` và `SECRET_KEY`
+trong `.env`, rồi chạy:
 
-## Tài liệu và kiểm thử
+```bash
+docker compose up --build --wait
+docker compose exec backend alembic upgrade head
+docker compose exec backend python -m data_seed.seed_dev
+```
 
-- [Hướng dẫn đóng góp](CONTRIBUTING.md)
-- [Contract đang triển khai](contracts/README.md)
-- [OpenAPI](contracts/openapi.json)
-- Backend: cài backend/requirements-dev.txt rồi chạy pytest trong backend.
-- Frontend: npm run build và npm test trong frontend.
-- Compose smoke: python scripts/smoke_compose.py (cần Docker).
-- Private raw datasets và tài liệu nội bộ vẫn không được commit tự động.
+Seed là bước tùy chọn, nạp fixture tổng hợp và có thể chạy lặp. Với DB có sẵn,
+đọc [hướng dẫn migration](DEVELOPMENT.md#database-và-migration) trước khi nâng cấp.
+
+Mở terminal thứ hai để chạy frontend:
+
+```powershell
+cd frontend
+Copy-Item .env.example .env
+npm ci
+npm run dev
+```
+
+Linux/macOS dùng `cp .env.example .env`. Frontend mặc định dùng mock; đặt
+`VITE_USE_MOCK=false` rồi khởi động lại Vite để đăng nhập backend thật. Tạo tài khoản
+qua `POST /api/v1/auth/register` trong Swagger; mẫu request có trong OpenAPI.
+
+| Địa chỉ | Mục đích |
+|---|---|
+| http://localhost:5173 | Giao diện web |
+| http://localhost:8000/docs | Swagger |
+| http://localhost:8000/health | Kiểm tra process backend |
+| http://localhost:8000/ready | Kiểm tra PostgreSQL/pgvector |
+
+`/ready` không xác nhận schema nghiệp vụ đã migrate. PostgreSQL trong Compose không
+publish cổng host; backend kết nối bằng hostname `db`.
+
+## Tài liệu
+
+- [Kiến trúc và ranh giới module](ARCHITECTURE.md)
+- [Phát triển, migration và kiểm thử](DEVELOPMENT.md)
+- [Đóng góp và quy trình nhánh](CONTRIBUTING.md)
+- [Hợp đồng API](contracts/README.md), [OpenAPI hiện hành](contracts/openapi.json)
+- [Lịch sử tổ chức lại codebase](CODEBASE_DEV_MIGRATION.md)
+
+`main` lưu phiên bản nhóm đã chốt; `dev` là nhánh tích hợp và thử nghiệm lâu dài.
+Tính năng mới đi qua PR vào dev trước khi phát hành sang main qua PR đã duyệt.
