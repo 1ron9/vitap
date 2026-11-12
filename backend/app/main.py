@@ -1,10 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from uuid import uuid4
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from app.core.database import engine
-from app.routers import m0_auth, m3_chatbot, m4_ddi
+from app.modules.auth import router as m0_auth
+from app.core.config import settings
+from app.shared.errors import install_error_handlers
 
 app = FastAPI(
     title="VitaP API",
@@ -15,7 +18,7 @@ app = FastAPI(
 # Cấu hình CORS để Frontend React gọi được API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -23,8 +26,10 @@ app.add_middleware(
 
 # Gắn các Routers phân hệ VitaP
 app.include_router(m0_auth.router, prefix="/api/v1/auth", tags=["F1/E0 - Tài khoản & Hồ sơ"])
-app.include_router(m3_chatbot.router, prefix="/api/v1/chatbot", tags=["F3/E3 - Trợ lý Sức khỏe AI"])
-app.include_router(m4_ddi.router, prefix="/api/v1/ddi", tags=["F2/E2 - Tương tác thuốc"])
+app.include_router(m0_auth.guest_router, prefix="/api/v1", tags=["F1/E0 - Phiên Guest"])
+
+
+install_error_handlers(app)
 
 @app.get("/")
 def read_root():
