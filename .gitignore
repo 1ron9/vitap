@@ -26,8 +26,9 @@ build/
 .DS_Store
 Thumbs.db
 
-# Documentation (Kept local, untracked from Git)
-docs/
+# Private documentation and temporary exports (project docs are tracked)
+docs/private/
+docs/_exports/
 
 # Generated/private local state
 .pytest_cache/

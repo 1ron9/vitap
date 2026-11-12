@@ -38,7 +38,7 @@ docker compose exec backend python -m data_seed.seed_dev
 ```
 
 Seed là bước tùy chọn, nạp fixture tổng hợp và có thể chạy lặp. Với DB có sẵn,
-đọc [hướng dẫn migration](DEVELOPMENT.md#database-và-migration) trước khi nâng cấp.
+đọc [hướng dẫn migration](docs/development.md#database-và-migration) trước khi nâng cấp.
 
 Mở terminal thứ hai để chạy frontend:
 
@@ -65,11 +65,15 @@ publish cổng host; backend kết nối bằng hostname `db`.
 
 ## Tài liệu
 
-- [Kiến trúc và ranh giới module](ARCHITECTURE.md)
-- [Phát triển, migration và kiểm thử](DEVELOPMENT.md)
+Bắt đầu từ [mục lục docs/](docs/README.md). Tài liệu cấp dự án được quản lý trong Git;
+Drive lưu nguồn làm việc và dataset lớn.
+
+- [Drive chung của nhóm](https://drive.google.com/drive/folders/1_ik5G4XIdZu2JeFgXxFPTC7FoMAGTaZg) và [hướng dẫn tìm/đọc nguồn tài liệu](docs/DRIVE_GUIDE.md).
+- [Kiến trúc và ranh giới module](docs/architecture.md)
+- [Phát triển, migration và kiểm thử](docs/development.md)
 - [Đóng góp và quy trình nhánh](CONTRIBUTING.md)
 - [Hợp đồng API](contracts/README.md), [OpenAPI hiện hành](contracts/openapi.json)
-- [Lịch sử tổ chức lại codebase](CODEBASE_DEV_MIGRATION.md)
+- [Lịch sử tổ chức lại codebase](docs/history/codebase-migration.md)
 
 `main` lưu phiên bản nhóm đã chốt; `dev` là nhánh tích hợp và thử nghiệm lâu dài.
 Tính năng mới đi qua PR vào dev trước khi phát hành sang main qua PR đã duyệt.

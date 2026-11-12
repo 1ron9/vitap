@@ -2,7 +2,7 @@
 
 ## Môi trường
 
-Khởi động nhanh: [README.md](README.md#chạy-dự-án). Docker/CI dùng Python 3.11;
+Khởi động nhanh: [README.md](../README.md#chạy-dự-án). Docker/CI dùng Python 3.11;
 frontend dùng Node >=22.12, .nvmrc và CI chọn Node 22.13.
 
 | File | Mục đích |
