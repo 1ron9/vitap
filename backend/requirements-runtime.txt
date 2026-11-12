@@ -10,5 +10,6 @@ python-jose[cryptography]==3.5.0
 bcrypt==5.0.0
 python-multipart==0.0.33
 pillow==11.3.0
+requests==2.32.3
 
 pgvector==0.4.1
