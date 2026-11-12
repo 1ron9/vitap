@@ -4,6 +4,7 @@
 
 | Nhu cầu | Tài liệu |
 |---|---|
+| Thành viên cần nắm nhanh phần đã setup và thứ tự đọc | [ONBOARDING.md](ONBOARDING.md) |
 | Giới thiệu, trạng thái chức năng và khởi động nhanh | [README dự án](../README.md) |
 | Tìm tài liệu nhóm trên Drive, đọc theo module, cập nhật khi upload | [DRIVE_GUIDE.md](DRIVE_GUIDE.md) |
 | Kiến trúc và ranh giới module | [architecture.md](architecture.md) |
