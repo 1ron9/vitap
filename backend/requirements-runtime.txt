@@ -9,5 +9,6 @@ psycopg2-binary==2.9.13
 python-jose[cryptography]==3.5.0
 bcrypt==5.0.0
 python-multipart==0.0.33
+pillow==11.3.0
 
 pgvector==0.4.1
