@@ -1,8 +1,21 @@
 """Provider boundaries; real OCR/RAG orchestration is owned by its module."""
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
+@runtime_checkable
 class OcrProvider(Protocol):
     def extract(self, image: bytes) -> list[dict]: ...
+
+
+class PrescriptionOcrProvider:
+    """Production prescription OCR provider backed by Gemini Vision with safe fallback."""
+
+    def __init__(self, mode: str = "vlm", use_mock: bool | None = None):
+        self.mode = mode
+        self.use_mock = use_mock
+
+    def extract(self, image: bytes) -> list[dict]:
+        from app.services.ocr.scanner import extract_drugs_from_image
+        return extract_drugs_from_image(image)
 
 class EmbeddingProvider(Protocol):
     def embed_documents(self, texts: list[str]) -> list[list[float]]: ...
