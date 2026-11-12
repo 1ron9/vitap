@@ -89,7 +89,8 @@ Tên `UI/UX` ở trên là tên của **một thư mục**.
 
 ## 3. Đọc gì trước để nắm ngữ cảnh
 
-1. **Repo hiện hành:** README, ARCHITECTURE, DEVELOPMENT, CONTRIBUTING, migrations,
+1. **Repo hiện hành:** [README](../README.md), [kiến trúc](architecture.md),
+   [phát triển](development.md), [CONTRIBUTING](../CONTRIBUTING.md), migrations,
    enum và contracts/openapi.json. Ghi rõ branch/commit đang khảo sát. OpenAPI chỉ mô tả
    route đã đăng ký, không chứng minh toàn bộ thiết kế M1/M2/M3 đã triển khai.
 2. **CTX-01 — Notes, tab “Đề tài thực thi”** để hiểu sản phẩm, ba module và ranh giới nghiệp vụ.
