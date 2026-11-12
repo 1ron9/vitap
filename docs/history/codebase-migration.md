@@ -2,8 +2,8 @@
 
 Ngày: 12/11/2026. Nhóm đã chốt codebase để đưa từ dev lên main.
 
-Đây là tài liệu lịch sử. Hướng dẫn hiện hành: [README](README.md),
-[ARCHITECTURE](ARCHITECTURE.md), [DEVELOPMENT](DEVELOPMENT.md), [CONTRIBUTING](CONTRIBUTING.md).
+Đây là tài liệu lịch sử. Hướng dẫn hiện hành: [README](../../README.md),
+[ARCHITECTURE](../architecture.md), [DEVELOPMENT](../development.md), [CONTRIBUTING](../../CONTRIBUTING.md).
 
 ## 1. Mục đích và phạm vi
 
@@ -59,4 +59,4 @@ validation và npm audit không báo lỗ hổng tại thời điểm kiểm tra
 không có Docker trong PATH; PostgreSQL/Compose được kiểm chứng trên CI Linux/Python 3.11.
 
 Các số liệu này ghi nhận lần bàn giao, không thay thế CI của commit hiện hành.
-Hướng dẫn phát triển và quy trình nhánh được duy trì trong DEVELOPMENT.md và CONTRIBUTING.md.
+Hướng dẫn phát triển và quy trình nhánh được duy trì trong [development.md](../development.md) và [CONTRIBUTING.md](../../CONTRIBUTING.md).

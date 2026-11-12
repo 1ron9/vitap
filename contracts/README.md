@@ -2,7 +2,7 @@
 
 openapi.json mô tả endpoint backend hiện triển khai: Auth, Guest và kiểm tra hạ tầng.
 Model M1/M2/M3 không đồng nghĩa API nghiệp vụ đã có; xem trạng thái trong
-[README](../README.md) và ranh giới module trong [ARCHITECTURE](../ARCHITECTURE.md).
+[README](../README.md) và ranh giới module trong [ARCHITECTURE](../docs/architecture.md).
 
 ## Cập nhật
 
@@ -26,6 +26,6 @@ Schema: lịch sử Alembic trong backend/migrations.
 - [API specification](https://drive.google.com/file/d/1zoiLz89zWNiQ-CMT4YwD7_KLnY12m8Ds/view)
 - [M3 technical design](https://drive.google.com/file/d/1a6ME1J6_NfADYL2PnlN9bkGaP94_q9NH/view)
 
-Các quyết định đối soát nằm trong [lịch sử chuyển đổi](../CODEBASE_DEV_MIGRATION.md).
+Các quyết định đối soát nằm trong [lịch sử chuyển đổi](../docs/history/codebase-migration.md).
 Khi thiết kế khác implementation, ghi rõ quyết định trong PR và cập nhật nguồn liên quan;
 không coi thiết kế là bằng chứng API đã hoạt động. Chốt codebase không tự sửa các file Drive.

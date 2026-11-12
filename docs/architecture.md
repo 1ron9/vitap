@@ -54,6 +54,6 @@ kể cả history từ PERSONAL trước đó.
 
 ## Contract
 
-[OpenAPI](contracts/openapi.json) phản ánh route thực sự đăng ký; xem
-[hướng dẫn contract](contracts/README.md) để cập nhật. Lịch sử quyết định schema nằm
-trong [CODEBASE_DEV_MIGRATION.md](CODEBASE_DEV_MIGRATION.md).
+[OpenAPI](../contracts/openapi.json) phản ánh route thực sự đăng ký; xem
+[hướng dẫn contract](../contracts/README.md) để cập nhật. Lịch sử quyết định schema nằm
+trong [CODEBASE_DEV_MIGRATION.md](history/codebase-migration.md).

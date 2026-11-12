@@ -4,4 +4,5 @@
 /.github/ @1ron9
 /backend/migrations/ @1ron9
 /contracts/ @1ron9
-/CODEBASE_DEV_MIGRATION.md @1ron9
+/docs/ @1ron9
+/AGENTS.md @1ron9

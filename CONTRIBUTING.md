@@ -50,7 +50,7 @@ sửa hoặc revert qua PR; không reset lịch sử dùng chung.
 
 ## Kiểm tra trước review
 
-Lệnh đầy đủ nằm trong [DEVELOPMENT.md](DEVELOPMENT.md#kiểm-thử).
+Lệnh đầy đủ nằm trong [docs/development.md](docs/development.md#kiểm-thử).
 
 | Thay đổi | Kiểm tra |
 |---|---|
@@ -64,3 +64,12 @@ Lệnh đầy đủ nằm trong [DEVELOPMENT.md](DEVELOPMENT.md#kiểm-thử).
 CI bắt buộc: `Run Backend Pytest`, `Frontend build and tests`,
 `PostgreSQL migrations and contracts`, `FastAPI + PostgreSQL + pgvector`.
 Không sửa test để che lỗi; cập nhật test khi contract đổi và giải thích trong PR.
+
+## Bàn giao tài liệu trên Drive
+
+Khi upload tài liệu mới hoặc cập nhật tài liệu hiện có trên [Drive chung](https://drive.google.com/drive/folders/1_ik5G4XIdZu2JeFgXxFPTC7FoMAGTaZg),
+người upload phải cập nhật [docs/DRIVE_GUIDE.md](docs/DRIVE_GUIDE.md) trong cùng đợt bàn giao:
+link/ID, mô tả nội dung vừa upload, version, owner, trạng thái review, tài liệu bị thay thế
+và ảnh hưởng tới code/API/schema/dataset nếu có. Thêm dòng changelog để người khác và
+AI agent biết nguồn nào mới hoặc đã đổi. Thay đổi chỉ mục đi qua PR vào dev như tài liệu khác.
+Ngày upload mới hơn không tự làm một bản nháp thành tài liệu đã được nhóm duyệt.
