@@ -1,6 +1,21 @@
 {
   "components": {
     "schemas": {
+      "Body_upload_prescription_ocr_api_v1_prescriptions_ocr_post": {
+        "properties": {
+          "image_file": {
+            "contentMediaType": "application/octet-stream",
+            "description": "Tệp ảnh đơn thuốc JPEG/PNG (tối đa 10 MiB)",
+            "title": "Image File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "image_file"
+        ],
+        "title": "Body_upload_prescription_ocr_api_v1_prescriptions_ocr_post",
+        "type": "object"
+      },
       "ConsentInput": {
         "additionalProperties": false,
         "properties": {
@@ -115,6 +130,277 @@
           "password"
         ],
         "title": "LoginRequest",
+        "type": "object"
+      },
+      "OcrJobItemDTO": {
+        "properties": {
+          "bounding_box": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bounding Box"
+          },
+          "candidate_drug_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Candidate Drug Id"
+          },
+          "candidates": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Candidates"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "duration_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Days"
+          },
+          "extracted_dosage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extracted Dosage"
+          },
+          "extracted_name": {
+            "title": "Extracted Name",
+            "type": "string"
+          },
+          "extracted_strength": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extracted Strength"
+          },
+          "field_confidences": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field Confidences"
+          },
+          "frequency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Frequency"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "instructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instructions"
+          },
+          "item_order": {
+            "title": "Item Order",
+            "type": "integer"
+          },
+          "resolution_status": {
+            "default": "UNRESOLVED_DRUG",
+            "title": "Resolution Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "item_order",
+          "extracted_name"
+        ],
+        "title": "OcrJobItemDTO",
+        "type": "object"
+      },
+      "OcrJobResponse": {
+        "properties": {
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/OcrJobItemDTO"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "model_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Name"
+          },
+          "model_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Version"
+          },
+          "prescription_id": {
+            "format": "uuid",
+            "title": "Prescription Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "prescription_id",
+          "status"
+        ],
+        "title": "OcrJobResponse",
+        "type": "object"
+      },
+      "PrescriptionUploadResponse": {
+        "properties": {
+          "items": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/OcrJobItemDTO"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Items"
+          },
+          "job_id": {
+            "format": "uuid",
+            "title": "Job Id",
+            "type": "string"
+          },
+          "job_status": {
+            "title": "Job Status",
+            "type": "string"
+          },
+          "poll_after_seconds": {
+            "default": 2,
+            "title": "Poll After Seconds",
+            "type": "integer"
+          },
+          "prescription_id": {
+            "format": "uuid",
+            "title": "Prescription Id",
+            "type": "string"
+          },
+          "prescription_status": {
+            "title": "Prescription Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "prescription_id",
+          "job_id",
+          "prescription_status",
+          "job_status"
+        ],
+        "title": "PrescriptionUploadResponse",
         "type": "object"
       },
       "RefreshRequest": {
@@ -592,6 +878,158 @@
         "summary": "Create Guest Session",
         "tags": [
           "F1/E0 - Phiên Guest"
+        ]
+      }
+    },
+    "/api/v1/ocr-jobs/{job_id}": {
+      "get": {
+        "operationId": "get_ocr_job_status_api_v1_ocr_jobs__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-guest-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Guest-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OcrJobResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Lấy kết quả bóc tách từng dòng thuốc của tác vụ OCR",
+        "tags": [
+          "F2/M2 - Số hóa Đơn thuốc & Dược phẩm",
+          "F2/M2 - Số hóa Đơn thuốc & Dược phẩm"
+        ]
+      }
+    },
+    "/api/v1/prescriptions/ocr": {
+      "post": {
+        "operationId": "upload_prescription_ocr_api_v1_prescriptions_ocr_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-guest-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Guest-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_prescription_ocr_api_v1_prescriptions_ocr_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrescriptionUploadResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upload ảnh đơn thuốc và chạy nhận dạng OCR/VLM",
+        "tags": [
+          "F2/M2 - Số hóa Đơn thuốc & Dược phẩm",
+          "F2/M2 - Số hóa Đơn thuốc & Dược phẩm"
         ]
       }
     },
