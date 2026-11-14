@@ -1,6 +1,5 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
-import { LucideProvider } from 'lucide-react'
 import { AppProvider, useApp } from '@/app/state'
 import { AppShell } from '@/components/AppShell'
 import { DataProvider } from '@/data/db'
@@ -41,14 +40,12 @@ export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
-      <LucideProvider strokeWidth={1.5} size={20}>
-        <AppProvider>
-          <DataProvider>
-            <Screens />
-            <AuthModal />
-          </DataProvider>
-        </AppProvider>
-      </LucideProvider>
+      <AppProvider>
+        <DataProvider>
+          <Screens />
+          <AuthModal />
+        </DataProvider>
+      </AppProvider>
     </BrowserRouter>
   )
 }

@@ -89,15 +89,39 @@ describe('Clinical Safety - rxSummary severity precedence', () => {
 
 describe('Clinical Safety - severeInteractions active filtering', () => {
   it('excludes prescriptions marked as ended', () => {
-    const statusMap: Record<string, RxStatus> = {
-      rx1: 'active',
-      rx2: 'ended',
+    const rxActive: Prescription = {
+      id: 'rx-test-active',
+      date: '2026-05-16',
+      place: 'Phòng khám Test A',
+      scenario: 'resultMixed',
+      drugs: [
+        { name: 'Simvastatin', strength: '20 mg' },
+        { name: 'Clarithromycin', strength: '500 mg' },
+      ],
     }
-    const alerts = severeInteractions((id) => statusMap[id] ?? 'active')
+    const rxEnded: Prescription = {
+      id: 'rx-test-ended',
+      date: '2026-04-28',
+      place: 'Phòng khám Test B',
+      scenario: 'resultSevere',
+      drugs: [
+        { name: 'Simvastatin', strength: '20 mg' },
+        { name: 'Clarithromycin', strength: '500 mg' },
+      ],
+    }
+
+    const statusMap: Record<string, RxStatus> = {
+      'rx-test-active': 'active',
+      'rx-test-ended': 'ended',
+    }
+    const alerts = severeInteractions((id) => statusMap[id] ?? 'active', [rxActive, rxEnded])
+
+    expect(alerts.length).toBeGreaterThan(0)
     for (const a of alerts) {
       expect(a.pair.status).toBe('INTERACTION_FOUND')
       expect(a.pair.severity).toBe('major')
-      expect(statusMap[a.rx.id]).not.toBe('ended')
+      expect(a.rx.id).toBe('rx-test-active')
+      expect(a.rx.id).not.toBe('rx-test-ended')
     }
   })
 })

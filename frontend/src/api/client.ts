@@ -175,6 +175,24 @@ export const authApi = {
     return await api<Identity>('/auth/me')
   },
 
+  async refresh(refreshToken?: string): Promise<TokenPair> {
+    const token = refreshToken || (typeof window !== 'undefined' ? localStorage.getItem('vitap-refresh-token') : null)
+    if (!token) throw new Error('NO_REFRESH_TOKEN')
+    if (mockMode) {
+      setCredentials({ access: MOCK_TOKEN_PAIR.access_token })
+      return MOCK_TOKEN_PAIR
+    }
+    const res = await api<TokenPair>('/auth/refresh', {
+      method: 'POST',
+      body: JSON.stringify({ refresh_token: token }),
+    })
+    setCredentials({ access: res.access_token })
+    if (res.refresh_token && typeof window !== 'undefined') {
+      localStorage.setItem('vitap-refresh-token', res.refresh_token)
+    }
+    return res
+  },
+
   async logout(refreshToken?: string): Promise<void> {
     const token = refreshToken || (typeof window !== 'undefined' ? localStorage.getItem('vitap-refresh-token') : null)
     if (!mockMode && token) {

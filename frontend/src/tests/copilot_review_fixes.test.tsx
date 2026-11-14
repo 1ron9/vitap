@@ -5,6 +5,7 @@ import { AppProvider } from '@/app/state'
 import { DataProvider } from '@/data/db'
 import { AppShell } from '@/components/AppShell'
 import { ApiError } from '@/shared/api'
+import { authApi } from '@/api/client'
 
 describe('Copilot Review Invariant Tests', () => {
   it('ApiError preserves both field-level reason and loc details', () => {
@@ -46,5 +47,9 @@ describe('Copilot Review Invariant Tests', () => {
     )
 
     expect(html).toContain('Testing DataProvider Isolation')
+  })
+
+  it('authApi exposes a defined refresh method', () => {
+    expect(typeof authApi.refresh).toBe('function')
   })
 })

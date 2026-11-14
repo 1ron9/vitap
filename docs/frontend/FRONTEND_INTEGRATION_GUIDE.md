@@ -18,7 +18,7 @@ Tài liệu này ghi lại chi tiết toàn bộ quá trình di chuyển (migrat
 - **Routing:** `react-router-dom` v7 (đồng bộ URL SPA: `/`, `/dashboard`, `/journal`, `/scan`, `/chat`, `/profile`)
 - **Iconography:** `lucide-react`
 - **Typography & Quyền riêng tư:** Self-hosted fonts `@fontsource/be-vietnam-pro` và `@fontsource/ibm-plex-mono` (không dùng CDN Google Fonts nhằm chống rò rỉ địa chỉ IP người bệnh ra bên thứ ba)
-- **Testing:** Vitest 5+, React Testing Library (30 tests lâm sàng và tính năng)
+- **Testing:** Vitest 5+, assertion qua `renderToString` (`react-dom/server`) cho kiểm thử component nhẹ và nhanh (33 tests lâm sàng và tính năng)
 - **Package Manager:** `pnpm` (>= 10.33)
 - **Backend đồng hành:** FastAPI (Python 3.11+), PostgreSQL 16 + pgvector, SQLAlchemy 2.0, Alembic
 
@@ -43,10 +43,10 @@ Từ thư mục gốc dự án:
 
 ```bash
 # Khởi động container Postgres (cổng 5432)
-docker compose -f vitap/compose.yaml up -d db
+docker compose up -d db
 
 # Kiểm tra container đã ở trạng thái healthy
-docker compose -f vitap/compose.yaml ps
+docker compose ps
 ```
 
 > _Lưu ý:_ Thông tin kết nối mặc định: `postgresql://vitap_dev:vitap_dev_pass_2026@127.0.0.1:5432/vitap_dev`.
@@ -58,7 +58,7 @@ docker compose -f vitap/compose.yaml ps
 Mở terminal tại thư mục backend:
 
 ```bash
-cd vitap/backend
+cd backend
 
 # Kích hoạt môi trường ảo Python
 source .venv/bin/activate
@@ -79,7 +79,7 @@ _Kết quả mong đợi:_ Terminal hiển thị nạp thành công các hoạt 
 Mở terminal tại thư mục frontend:
 
 ```bash
-cd vitap/frontend
+cd frontend
 
 # Cài đặt toàn bộ dependencies theo lockfile
 pnpm install
@@ -94,7 +94,7 @@ pnpm install
 #### A. Kiểm tra Backend Pytest
 
 ```bash
-cd vitap/backend
+cd backend
 PYTHONPATH=. .venv/bin/pytest -v
 ```
 
@@ -103,20 +103,21 @@ PYTHONPATH=. .venv/bin/pytest -v
 #### B. Kiểm tra Frontend TypeScript Typecheck
 
 ```bash
-pnpm --dir vitap/frontend typecheck
+pnpm --dir frontend typecheck
 ```
 
 - **Kết quả:** `0 errors` (TypeScript biên dịch hoàn toàn sạch).
 
-#### C. Chạy Frontend Vitest (30 Unit & Safety Tests)
+#### C. Chạy Frontend Vitest (33 Unit & Safety Tests)
 
 ```bash
-pnpm --dir vitap/frontend test --run
+pnpm --dir frontend test --run
 ```
 
-- **Kết quả:** `6 passed (6 suites), 30 passed (30 tests)`:
+- **Kết quả:** `7 passed (7 suites), 33 passed (33 tests)`:
   - `safety.test.tsx` (15 tests): Kiểm tra 4 trạng thái tương tác thuốc chuẩn, cấm nhãn xanh "safe", kiểm tra chuyển đổi mmol/L.
   - `review_fixes.test.tsx` (5 tests): Kiểm tra ngắt phiên đăng xuất, deep link quét đơn, phân tách trạng thái rỗng.
+  - `copilot_review_fixes.test.tsx` (3 tests): Kiểm tra chi tiết lỗi 422 envelope `{field, reason}`, skip link landmark chat, cô lập DataProvider.
   - `fixtures.test.ts` (4 tests): Kiểm tra đồng bộ dữ liệu hạt giống 3 persona.
   - `api.test.ts` (3 tests): Kiểm tra client API envelope và mapping lỗi HTTP 422/409.
   - `natural_screens.test.tsx` (2 tests): Kiểm tra hiển thị màn hình thực tế theo người dùng.
@@ -125,7 +126,7 @@ pnpm --dir vitap/frontend test --run
 #### D. Kiểm tra Production Build
 
 ```bash
-pnpm --dir vitap/frontend build
+pnpm --dir frontend build
 ```
 
 - **Kết quả:** `✓ built in ~800-900ms`, toàn bộ assets và fonts self-hosted được đóng gói chính xác vào thư mục `dist/`.
@@ -139,7 +140,7 @@ pnpm --dir vitap/frontend build
 **Cửa sổ 1 - Backend FastAPI:**
 
 ```bash
-cd vitap/backend
+cd backend
 source .venv/bin/activate
 uvicorn app.main:app --reload --port 8000
 ```
@@ -149,7 +150,7 @@ _(Backend chạy tại `http://localhost:8000`, tài liệu Swagger docs tại `
 **Cửa sổ 2 - Frontend Vite:**
 
 ```bash
-cd vitap/frontend
+cd frontend
 pnpm dev
 ```
 

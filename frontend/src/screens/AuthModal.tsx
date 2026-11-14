@@ -2,7 +2,7 @@ import { useId, useRef, useState } from 'react'
 import { Clock } from 'lucide-react'
 import { useApp } from '@/app/state'
 import { authApi } from '@/api/client'
-import { ApiError } from '@/shared/api'
+import { ApiError, mockMode } from '@/shared/api'
 import { GoogleG, Mark } from '@/components/brand'
 import { Banner, Button, Checkbox, Modal, ModalHeader, Segmented, TextField } from '@/components/ui'
 
@@ -70,8 +70,8 @@ function AuthInner({ onClose }: { onClose: () => void }) {
     setLoading(true)
     try {
       if (tab === 'login') {
-        // demo/mock check: any password containing "sai" fails
-        if (password.includes('sai')) {
+        // demo/mock check: in mockMode, passwords containing "sai" simulate failures
+        if (mockMode && password.includes('sai')) {
           const n = attempts + 1
           setAttempts(n)
           setFormError(n >= 3 ? 'rate' : 'failed')

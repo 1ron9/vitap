@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { CircleAlert, CircleCheck } from 'lucide-react'
 import type { AuthVariant, Route } from './variants'
 import { getCredentials, mockMode } from '@/shared/api'
+import { authApi } from '@/api/client'
 
 export type AuthRequest = { variant?: AuthVariant; gate?: string }
 type Toast = { id: number; msg: string; tone: 'success' | 'error' }
@@ -75,16 +76,37 @@ export function AppProvider({ children, initialGuest }: { children: ReactNode; i
 
   const [isGuest, setGuest] = useState<boolean>(() => {
     if (initialGuest !== undefined) return initialGuest
-    const qRole = params.get('role')
-    if (qRole === 'guest') return true
-    if (qRole === 'member') return false
+    // In dev and test environments, allow query param overrides for test harnesses
+    if (!import.meta.env.PROD) {
+      const qRole = params.get('role')
+      if (qRole === 'guest') return true
+      if (qRole === 'member') return false
+    }
     if (typeof window === 'undefined') return true
     if (mockMode) {
       return !localStorage.getItem('vitap-user-email')
     }
-    const hasToken = !!getCredentials().access || !!localStorage.getItem('vitap-refresh-token')
-    return !hasToken || !localStorage.getItem('vitap-user-email')
+    return !getCredentials().access
   })
+
+  // In real backend mode, attempt startup session refresh if refresh token is present
+  useEffect(() => {
+    if (typeof window === 'undefined' || mockMode) return
+    const refreshToken = localStorage.getItem('vitap-refresh-token')
+    if (!getCredentials().access && refreshToken) {
+      authApi
+        .refresh(refreshToken)
+        .then(() => {
+          setGuest(false)
+        })
+        .catch((err) => {
+          console.warn('[VitaP Auth] Session refresh failed, clearing session:', err)
+          localStorage.removeItem('vitap-refresh-token')
+          localStorage.removeItem('vitap-user-email')
+          setGuest(true)
+        })
+    }
+  }, [])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -93,8 +115,7 @@ export function AppProvider({ children, initialGuest }: { children: ReactNode; i
       if (mockMode) {
         setGuest(!email)
       } else {
-        const hasToken = !!getCredentials().access || !!localStorage.getItem('vitap-refresh-token')
-        setGuest(!hasToken || !email)
+        setGuest(!getCredentials().access)
       }
     }
     window.addEventListener('vitap-auth-change', onAuthChange)
