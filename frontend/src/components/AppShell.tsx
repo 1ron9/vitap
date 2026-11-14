@@ -81,7 +81,9 @@ export function AppShell({ children, bare }: { children?: ReactNode; bare?: bool
       </header>
 
       {isBare ? (
-        children ?? <Outlet />
+        <main id="main-content" tabIndex={-1} className="outline-none">
+          {children ?? <Outlet />}
+        </main>
       ) : (
         <main id="main-content" tabIndex={-1} className={cn(CONTAINER, 'pt-5 pb-20 outline-none lg:pt-8 lg:pb-16')}>
           {children ?? <Outlet />}

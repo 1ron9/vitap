@@ -5,14 +5,14 @@ export type ErrorEnvelope = { error: { code: string; message: string; details: u
 export class ApiError extends Error {
   status: number;
   code?: string;
-  details?: Array<{ loc?: (string | number)[]; msg?: string; type?: string }>;
+  details?: Array<{ loc?: (string | number)[]; msg?: string; type?: string; field?: string; reason?: string }>;
 
   constructor(message: string, status: number, code?: string, details?: unknown[]) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.code = code;
-    this.details = details as Array<{ loc?: (string | number)[]; msg?: string; type?: string }> | undefined;
+    this.details = details as Array<{ loc?: (string | number)[]; msg?: string; type?: string; field?: string; reason?: string }> | undefined;
   }
 }
 
@@ -24,6 +24,9 @@ export function setCredentials(tokens: { access?: string; guest?: string }) {
   if (tokens.access && tokens.guest) throw new Error('AMBIGUOUS_PRINCIPAL');
   accessToken = tokens.access;
   guestToken = tokens.guest;
+}
+export function getCredentials() {
+  return { access: accessToken, guest: guestToken };
 }
 export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers = new Headers(options.headers);

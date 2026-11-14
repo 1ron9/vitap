@@ -7,7 +7,8 @@ export type Series = { name: string; color: string; dashed?: boolean; data: Poin
 
 type Slot = { t: string; full: string; entries: Entry[] }
 
-// TODO(clinical): Reference ranges to be reviewed by clinical team
+// Tham khảo chuyên môn: VNHA/ISH 2020 (Huyết áp), QĐ 5481/QĐ-BYT (Đường huyết lúc đói)
+// Định hướng theo dõi sức khỏe cá nhân — Không thay thế chỉ định hoặc chẩn đoán y khoa.
 export const BP_SYSTOLIC_BAND: [number, number] = [90, 120]
 export const BP_DIASTOLIC_BAND: [number, number] = [60, 80]
 export const GLU_FASTING_BAND_MMOL: [number, number] = [3.9, 7.2]

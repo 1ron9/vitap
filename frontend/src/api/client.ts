@@ -102,57 +102,48 @@ export const authApi = {
       setSessionUserEmail(payload.email)
       return MOCK_TOKEN_PAIR
     }
-    try {
-      const res = await api<TokenPair>('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      })
-      setCredentials({ access: res.access_token })
-      if (res.refresh_token && typeof window !== 'undefined') {
-        localStorage.setItem('vitap-refresh-token', res.refresh_token)
-      }
-      setSessionUserEmail(payload.email)
-      return res
-    } catch (err) {
-      if (isNetworkError(err)) {
-        console.warn('[VitaP API] Backend offline, falling back to mock login', err)
-        setCredentials({ access: MOCK_TOKEN_PAIR.access_token })
-        setSessionUserEmail(payload.email)
-        return MOCK_TOKEN_PAIR
-      }
-      throw err
+    const res = await api<TokenPair>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+    setCredentials({ access: res.access_token })
+    if (res.refresh_token && typeof window !== 'undefined') {
+      localStorage.setItem('vitap-refresh-token', res.refresh_token)
     }
+    setSessionUserEmail(payload.email)
+    return res
   },
 
   async register(payload: RegisterPayload): Promise<Identity> {
     if (mockMode) {
+      setCredentials({ access: MOCK_TOKEN_PAIR.access_token })
       setSessionUserEmail(payload.email)
       return { ...MOCK_IDENTITY, email: payload.email }
     }
-    try {
-      const res = await api<Identity>('/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({
-          email: payload.email,
-          password: payload.password,
-          full_name: payload.full_name,
-          consent: payload.consent ?? {
-            is_accepted: true,
-            version: 'health-ai-v1',
-            scope: 'HEALTH_DATA_AND_AI_PROCESSING',
-          },
-        }),
-      })
-      setSessionUserEmail(payload.email)
-      return res
-    } catch (err) {
-      if (isNetworkError(err)) {
-        console.warn('[VitaP API] Backend offline, falling back to mock register', err)
-        setSessionUserEmail(payload.email)
-        return { ...MOCK_IDENTITY, email: payload.email }
-      }
-      throw err
+    const res = await api<Identity>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: payload.email,
+        password: payload.password,
+        full_name: payload.full_name,
+        consent: payload.consent ?? {
+          is_accepted: true,
+          version: 'health-ai-v1',
+          scope: 'HEALTH_DATA_AND_AI_PROCESSING',
+        },
+      }),
+    })
+    // Auto-login to obtain real token pair for the newly registered account
+    const loginRes = await api<TokenPair>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email: payload.email, password: payload.password }),
+    })
+    setCredentials({ access: loginRes.access_token })
+    if (loginRes.refresh_token && typeof window !== 'undefined') {
+      localStorage.setItem('vitap-refresh-token', loginRes.refresh_token)
     }
+    setSessionUserEmail(payload.email)
+    return res
   },
 
   async guestSession(payload?: GuestSessionPayload): Promise<GuestSessionResponse> {
@@ -168,37 +159,20 @@ export const authApi = {
       setCredentials({ guest: mockGuest.guest_token })
       return mockGuest
     }
-    try {
-      const res = await api<GuestSessionResponse>('/guest-sessions', {
-        method: 'POST',
-        body: JSON.stringify({
-          consent_accepted: payload?.consent_accepted ?? true,
-          consent_version: payload?.consent_version ?? 'guest-processing-v1',
-        }),
-      })
-      setCredentials({ guest: res.guest_token })
-      return res
-    } catch (err) {
-      if (isNetworkError(err)) {
-        console.warn('[VitaP API] Backend offline, falling back to mock guest session', err)
-        setCredentials({ guest: mockGuest.guest_token })
-        return mockGuest
-      }
-      throw err
-    }
+    const res = await api<GuestSessionResponse>('/guest-sessions', {
+      method: 'POST',
+      body: JSON.stringify({
+        consent_accepted: payload?.consent_accepted ?? true,
+        consent_version: payload?.consent_version ?? 'guest-processing-v1',
+      }),
+    })
+    setCredentials({ guest: res.guest_token })
+    return res
   },
 
   async getMe(): Promise<Identity> {
     if (mockMode) return MOCK_IDENTITY
-    try {
-      return await api<Identity>('/auth/me')
-    } catch (err) {
-      if (isNetworkError(err)) {
-        console.warn('[VitaP API] Backend offline, falling back to mock identity', err)
-        return MOCK_IDENTITY
-      }
-      throw err
-    }
+    return await api<Identity>('/auth/me')
   },
 
   async logout(refreshToken?: string): Promise<void> {
@@ -229,18 +203,7 @@ export const chatApi = {
         created_at: s.at,
       }))
     }
-    try {
-      return await api<ChatSession[]>('/ai/chat/sessions')
-    } catch (err) {
-      if (isNetworkError(err)) {
-        return CHAT_SESSIONS.map((s) => ({
-          id: s.id,
-          title: s.title,
-          created_at: s.at,
-        }))
-      }
-      throw err
-    }
+    return await api<ChatSession[]>('/ai/chat/sessions')
   },
 
   async sendMessage(sessionId: string, payload: SendMessagePayload): Promise<ChatMessage> {
@@ -253,23 +216,10 @@ export const chatApi = {
         created_at: new Date().toISOString(),
       }
     }
-    try {
-      return await api<ChatMessage>(`/ai/chat/sessions/${sessionId}/messages`, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      })
-    } catch (err) {
-      if (isNetworkError(err)) {
-        return {
-          id: `msg_${Date.now()}`,
-          role: 'assistant',
-          content: `Thông tin tham khảo từ Dược thư Quốc gia về câu hỏi: "${payload.content}". Vui lòng tham khảo ý kiến bác sĩ hoặc dược sĩ trước khi thay đổi liều dùng hoặc kết hợp thuốc.`,
-          sources: ['dtqg', 'stockley'],
-          created_at: new Date().toISOString(),
-        }
-      }
-      throw err
-    }
+    return await api<ChatMessage>(`/ai/chat/sessions/${sessionId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
   },
 }
 

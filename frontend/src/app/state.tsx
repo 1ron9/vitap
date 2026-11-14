@@ -2,6 +2,7 @@ import { createContext, type ReactNode, useCallback, useContext, useEffect, useM
 import { useLocation, useNavigate } from 'react-router-dom'
 import { CircleAlert, CircleCheck } from 'lucide-react'
 import type { AuthVariant, Route } from './variants'
+import { getCredentials, mockMode } from '@/shared/api'
 
 export type AuthRequest = { variant?: AuthVariant; gate?: string }
 type Toast = { id: number; msg: string; tone: 'success' | 'error' }
@@ -78,14 +79,23 @@ export function AppProvider({ children, initialGuest }: { children: ReactNode; i
     if (qRole === 'guest') return true
     if (qRole === 'member') return false
     if (typeof window === 'undefined') return true
-    return !localStorage.getItem('vitap-user-email')
+    if (mockMode) {
+      return !localStorage.getItem('vitap-user-email')
+    }
+    const hasToken = !!getCredentials().access || !!localStorage.getItem('vitap-refresh-token')
+    return !hasToken || !localStorage.getItem('vitap-user-email')
   })
 
   useEffect(() => {
     if (typeof window === 'undefined') return
     const onAuthChange = () => {
       const email = localStorage.getItem('vitap-user-email')
-      setGuest(!email)
+      if (mockMode) {
+        setGuest(!email)
+      } else {
+        const hasToken = !!getCredentials().access || !!localStorage.getItem('vitap-refresh-token')
+        setGuest(!hasToken || !email)
+      }
     }
     window.addEventListener('vitap-auth-change', onAuthChange)
     return () => window.removeEventListener('vitap-auth-change', onAuthChange)

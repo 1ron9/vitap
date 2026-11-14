@@ -260,6 +260,22 @@ export function loadUserFixture(email: string): UserFixtureData {
         // ignore
       }
     }
+    const savedRx = localStorage.getItem(`vitap-prescriptions-${email}`)
+    if (savedRx) {
+      try {
+        base.prescriptions = JSON.parse(savedRx)
+      } catch {
+        // ignore
+      }
+    }
+    const savedEntries = localStorage.getItem(`vitap-entries-${email}`)
+    if (savedEntries) {
+      try {
+        base.entries = JSON.parse(savedEntries)
+      } catch {
+        // ignore
+      }
+    }
   }
   return base
 }
@@ -341,8 +357,30 @@ export function DataProvider({ children, overrideEmail }: { children: ReactNode;
     }
   }, [overrideEmail])
 
-  const setEntries = useCallback((fn: (l: Entry[]) => Entry[]) => setEntriesState(fn), [])
-  const setPrescriptions = useCallback((fn: (l: Prescription[]) => Prescription[]) => setPrescriptionsState(fn), [])
+  const setEntries = useCallback(
+    (fn: (l: Entry[]) => Entry[]) => {
+      setEntriesState((prev) => {
+        const next = fn(prev)
+        if (typeof window !== 'undefined' && currentUserEmail) {
+          localStorage.setItem(`vitap-entries-${currentUserEmail}`, JSON.stringify(next))
+        }
+        return next
+      })
+    },
+    [currentUserEmail],
+  )
+  const setPrescriptions = useCallback(
+    (fn: (l: Prescription[]) => Prescription[]) => {
+      setPrescriptionsState((prev) => {
+        const next = fn(prev)
+        if (typeof window !== 'undefined' && currentUserEmail) {
+          localStorage.setItem(`vitap-prescriptions-${currentUserEmail}`, JSON.stringify(next))
+        }
+        return next
+      })
+    },
+    [currentUserEmail],
+  )
   const setProfile = useCallback(
     (p: UserProfileData) => {
       setProfileState(p)

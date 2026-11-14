@@ -27,7 +27,7 @@ export function Profile() {
 
 function ProfileInner() {
   const { setGuest, go, toast, origin } = useApp()
-  const { profile, prescriptions } = useData()
+  const { profile, setProfile, prescriptions, currentUserEmail } = useData()
   const empty = prescriptions.length === 0
   const backTo = origin && origin !== 'profile' && origin !== 'onboarding' ? origin : 'dashboard'
   const [conditions, setConditions] = useState<string[]>(() => profile.conditions ?? [])
@@ -37,14 +37,47 @@ function ProfileInner() {
   const [noAllergy, setNoAllergy] = useState(false)
   const [cInput, setCInput] = useState('')
   const [adding, setAdding] = useState(false)
-  const [perm, setPerm] = useState({ ai: true, alert: true })
+  const [perm, setPerm] = useState(() => {
+    if (typeof window !== 'undefined' && currentUserEmail) {
+      const saved = localStorage.getItem(`vitap-perm-${currentUserEmail}`)
+      if (saved) {
+        try {
+          return JSON.parse(saved)
+        } catch {
+          // ignore
+        }
+      }
+    }
+    return { ai: true, alert: true }
+  })
   const { gluUnit, setGluUnit } = useData()
+
+  const syncPerm = (next: { ai: boolean; alert: boolean }) => {
+    setPerm(next)
+    if (typeof window !== 'undefined' && currentUserEmail) {
+      localStorage.setItem(`vitap-perm-${currentUserEmail}`, JSON.stringify(next))
+    }
+  }
 
   const addCondition = (c: string) => {
     const t = c.trim()
     if (!t || conditions.includes(t)) return
-    setConditions((l) => [...l, t])
+    const next = [...conditions, t]
+    setConditions(next)
+    setProfile({ ...profile, conditions: next })
     setCInput('')
+  }
+
+  const removeCondition = (c: string) => {
+    const next = conditions.filter((x) => x !== c)
+    setConditions(next)
+    setProfile({ ...profile, conditions: next })
+  }
+
+  const removeAllergy = (id: string) => {
+    const next = allergies.filter((x) => x.id !== id)
+    setAllergies(next)
+    setProfile({ ...profile, allergies: next.map((a) => a.name) })
   }
 
   return (
@@ -64,7 +97,7 @@ function ProfileInner() {
                 {conditions.map((c) => (
                   <li key={c} className="inline-flex h-9 items-center gap-1 rounded-full border border-line-200 bg-bg-50 pr-1 pl-3.5 text-sm font-medium text-ink-900">
                     {c}
-                    <button onClick={() => setConditions((l) => l.filter((x) => x !== c))} aria-label={`Xóa ${c}`} className="flex h-7 w-7 items-center justify-center rounded-full text-ink-600 hover:bg-line-200">
+                    <button onClick={() => removeCondition(c)} aria-label={`Xóa ${c}`} className="flex h-7 w-7 items-center justify-center rounded-full text-ink-600 hover:bg-line-200">
                       <X size={14} />
                     </button>
                   </li>
@@ -117,7 +150,7 @@ function ProfileInner() {
                       <p className="text-[15px] font-semibold text-ink-900">{a.name}</p>
                       <p className="text-sm text-ink-600">Phản ứng: {a.reaction || 'Không rõ'}</p>
                     </div>
-                    <IconButton label={`Xóa dị ứng ${a.name}`} onClick={() => setAllergies((l) => l.filter((x) => x.id !== a.id))} className="-my-1.5 -mr-2 h-10 w-10">
+                    <IconButton label={`Xóa dị ứng ${a.name}`} onClick={() => removeAllergy(a.id)} className="-my-1.5 -mr-2 h-10 w-10">
                       <Trash2 size={18} />
                     </IconButton>
                   </li>
@@ -129,7 +162,9 @@ function ProfileInner() {
               <AllergyForm
                 onCancel={() => setAdding(false)}
                 onSave={(a) => {
-                  setAllergies((l) => [...l, a])
+                  const next = [...allergies, a]
+                  setAllergies(next)
+                  setProfile({ ...profile, allergies: next.map((x) => x.name) })
                   setAdding(false)
                   setNoAllergy(false)
                   toast('Đã thêm dị ứng')
@@ -153,7 +188,15 @@ function ProfileInner() {
                       <Button size="sm" icon={<Plus size={16} aria-hidden />} onClick={() => setAdding(true)}>
                         Thêm dị ứng
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={() => setNoAllergy(true)}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setNoAllergy(true)
+                          setAllergies([])
+                          setProfile({ ...profile, allergies: [] })
+                        }}
+                      >
                         Tôi không có dị ứng nào đã biết
                       </Button>
                     </>
@@ -174,21 +217,26 @@ function ProfileInner() {
                 </button>
               </div>
             ) : (
-              <>
-                <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-                  {SAMPLE_RX.drugs.map(({ name: n, strength: s, freq: f }) => (
-                    <li key={n} className="rounded-lg bg-bg-50 px-3 py-2.5">
-                      <p className="text-sm font-semibold text-ink-900">
-                        {n} <Mono className="font-normal text-ink-600">{s}</Mono>
-                      </p>
-                      <Mono className="text-[12px] text-ink-600">{f}</Mono>
-                    </li>
-                  ))}
-                </ul>
-                <Button variant="ghost" size="sm" className="mt-3 -ml-3" onClick={() => go('scan', SAMPLE_RX.scenario, 'profile')}>
-                  Xem đơn ngày {fmtDate(SAMPLE_RX.date)}
-                </Button>
-              </>
+              (() => {
+                const latestRx = prescriptions[0]
+                return (
+                  <>
+                    <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+                      {latestRx.drugs.map(({ name: n, strength: s, freq: f }) => (
+                        <li key={n} className="rounded-lg bg-bg-50 px-3 py-2.5">
+                          <p className="text-sm font-semibold text-ink-900">
+                            {n} <Mono className="font-normal text-ink-600">{s}</Mono>
+                          </p>
+                          <Mono className="text-[12px] text-ink-600">{f}</Mono>
+                        </li>
+                      ))}
+                    </ul>
+                    <Button variant="ghost" size="sm" className="mt-3 -ml-3" onClick={() => go('scan', latestRx.id, 'profile')}>
+                      Xem đơn ngày {fmtDate(latestRx.date)}
+                    </Button>
+                  </>
+                )
+              })()
             )}
           </Card>
         </div>
@@ -236,8 +284,8 @@ function ProfileInner() {
           <Card className="p-5">
             <p className="text-sm font-semibold text-ink-900">Quyền sử dụng hồ sơ</p>
             <div className="mt-3 space-y-1">
-              <Toggle label="Cho Trợ lý AI dùng hồ sơ này" desc="Hiển thị dưới dạng chip “Dị ứng” trong khung chat" on={perm.ai} onChange={(ai) => setPerm((p) => ({ ...p, ai }))} />
-              <Toggle label="Cảnh báo xung đột dị ứng" desc="Thêm thẻ cảnh báo ở bước Kết quả khi quét đơn" on={perm.alert} onChange={(alert) => setPerm((p) => ({ ...p, alert }))} />
+              <Toggle label="Cho Trợ lý AI dùng hồ sơ này" desc="Hiển thị dưới dạng chip “Dị ứng” trong khung chat" on={perm.ai} onChange={(ai) => syncPerm({ ...perm, ai })} />
+              <Toggle label="Cảnh báo xung đột dị ứng" desc="Thêm thẻ cảnh báo ở bước Kết quả khi quét đơn" on={perm.alert} onChange={(alert) => syncPerm({ ...perm, alert })} />
             </div>
           </Card>
 

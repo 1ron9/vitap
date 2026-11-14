@@ -49,16 +49,22 @@ function rowsFromDrugs(drugs: ResultDrug[]): Step3 {
 function resolveTargetPrescription(
   target: string | undefined,
   prescriptions: Array<{ id: string; scenario?: string; drugs: ResultDrug[] }>,
+  isGuest?: boolean,
 ): { drugs: ResultDrug[]; rxId?: string } | null {
   if (!target) return null;
-  const rx =
-    prescriptions.find((p) => p.id === target || p.scenario === target) ??
-    PRESCRIPTIONS.find((p) => p.id === target || p.scenario === target);
+  const rx = prescriptions.find((p) => p.id === target || p.scenario === target);
   if (rx) {
     return { drugs: rx.drugs, rxId: rx.id };
   }
-  if (RESULT_SCENARIOS[target]) {
-    return { drugs: RESULT_SCENARIOS[target], rxId: rxByScenario(target)?.id };
+  // Global sample fixtures are only accessible in guest or public trial flows
+  if (isGuest) {
+    const sampleRx = PRESCRIPTIONS.find((p) => p.id === target || p.scenario === target);
+    if (sampleRx) {
+      return { drugs: sampleRx.drugs, rxId: sampleRx.id };
+    }
+    if (RESULT_SCENARIOS[target]) {
+      return { drugs: RESULT_SCENARIOS[target], rxId: rxByScenario(target)?.id };
+    }
   }
   return null;
 }
@@ -82,7 +88,7 @@ function ScanInner({
   embedded?: boolean;
   allowLookup?: boolean;
 }) {
-  const { origin, go, variant } = useApp();
+  const { origin, go, variant, isGuest } = useApp();
   const location = useLocation();
   const locState = (location.state as { from?: Route; target?: string; rxId?: string; scenario?: string } | null) ?? null;
   const data = useDataSafe();
@@ -90,7 +96,7 @@ function ScanInner({
 
   const [mode, setMode] = useState<Mode>("scan");
   const targetId = locState?.target || locState?.rxId || locState?.scenario || (!embedded ? variant("scan") : undefined);
-  const initialResolved = resolveTargetPrescription(targetId, prescriptions);
+  const initialResolved = resolveTargetPrescription(targetId, prescriptions, isGuest || embedded);
   const [s, setS] = useState<ScanState>(
     initialResolved ? { step: 4, drugs: initialResolved.drugs, rxId: initialResolved.rxId } : { step: 1 }
   );
@@ -98,12 +104,12 @@ function ScanInner({
   useEffect(() => {
     const currentTarget = locState?.target || locState?.rxId || locState?.scenario;
     if (currentTarget) {
-      const resolved = resolveTargetPrescription(currentTarget, prescriptions);
+      const resolved = resolveTargetPrescription(currentTarget, prescriptions, isGuest || embedded);
       if (resolved) {
         setS({ step: 4, drugs: resolved.drugs, rxId: resolved.rxId });
       }
     }
-  }, [locState?.target, locState?.rxId, locState?.scenario, prescriptions]);
+  }, [locState?.target, locState?.rxId, locState?.scenario, prescriptions, isGuest, embedded]);
   const [confirmLeave, setConfirmLeave] = useState(false);
   const leaveId = useId();
   const tabs = useRef<Array<HTMLButtonElement | null>>([]);

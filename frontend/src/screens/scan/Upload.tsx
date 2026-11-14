@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { AlignCenterVertical, Camera, Clock, FileImage, History, ImagePlus, Keyboard, RotateCcw, ScanSearch, Sun } from 'lucide-react'
+import { AlertTriangle, AlignCenterVertical, Camera, Clock, FileImage, History, ImagePlus, Keyboard, RotateCcw, ScanSearch, Sun } from 'lucide-react'
 import { useApp } from '@/app/state'
 import { Banner, Button, Card } from '@/components/ui'
 import { StatusPill } from '@/components/status'
@@ -236,6 +236,10 @@ export function Processing({
             <>
               <p className="text-lg font-semibold text-ink-900">{phase === 'slow' && !waiting ? 'Hệ thống đang xử lý nền. Bạn có thể chờ thêm hoặc nhập tay.' : 'Đang đọc đơn thuốc…'}</p>
               <p className="mt-1 text-sm text-ink-600">{phase === 'slow' && !waiting ? 'Ảnh có nhiều chữ viết tay nên cần thêm thời gian.' : 'Thường mất khoảng 5–15 giây.'}</p>
+              <div className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs text-amber-900">
+                <AlertTriangle size={14} className="shrink-0 text-amber-600" />
+                <span>Chế độ thử nghiệm: Đang dùng dữ liệu mẫu minh họa trong khi chờ tích hợp M2 OCR backend.</span>
+              </div>
               <div className="mt-5 h-1.5 w-full overflow-hidden rounded-full bg-line-100" role="progressbar" aria-label="Tiến trình đọc đơn" aria-busy>
                 <div className="h-full w-2/5 animate-indeterminate rounded-full bg-brand-600" />
               </div>

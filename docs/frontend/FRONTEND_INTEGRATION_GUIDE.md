@@ -13,7 +13,7 @@ Tài liệu này ghi lại chi tiết toàn bộ quá trình di chuyển (migrat
 
 ### 1.1. Công nghệ sử dụng (Tech Stack)
 
-- **Frontend Framework:** React 19, TypeScript 5.7+, Vite 6
+- **Frontend Framework:** React 19, TypeScript 5.7+, Vite 8
 - **Styling:** Tailwind CSS v4 (`@tailwindcss/vite`), cấu hình design tokens chuẩn y tế (màu sắc, độ tương phản WCAG AA)
 - **Routing:** `react-router-dom` v7 (đồng bộ URL SPA: `/`, `/dashboard`, `/journal`, `/scan`, `/chat`, `/profile`)
 - **Iconography:** `lucide-react`

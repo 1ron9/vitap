@@ -105,7 +105,8 @@ function AuthInner({ onClose }: { onClose: () => void }) {
             const fieldErrs: typeof errors = {}
             let unmapped = false
             for (const d of err.details) {
-              const field = d.loc?.[d.loc.length - 1]
+              const rawField = d.field ? d.field.split('.').pop() : d.loc?.[d.loc.length - 1]
+              const field = String(rawField || '')
               if (field === 'password') {
                 fieldErrs.password = 'Mật khẩu cần ít nhất 12 ký tự'
               } else if (field === 'email') {
@@ -140,7 +141,7 @@ function AuthInner({ onClose }: { onClose: () => void }) {
     if (route === 'onboarding') go('dashboard')
   }
 
-  // Google sign-up still needs the health-data consent; point the user to it instead of failing silently.
+  // Google OAuth is pending integration; do not bypass authentication.
   const withGoogle = () => {
     if (tab === 'register' && !consent) {
       setConsentError(true)
@@ -151,12 +152,8 @@ function AuthInner({ onClose }: { onClose: () => void }) {
     setGoogle(true)
     setTimeout(() => {
       setGoogle(false)
-      if (tab === 'register') {
-        success('Đã đăng ký bằng Google')
-      } else {
-        success('Đã đăng nhập bằng Google')
-      }
-    }, 1100)
+      setFormError('Tính năng đăng nhập Google đang được phát triển. Vui lòng sử dụng email/mật khẩu.')
+    }, 400)
   }
 
   return (

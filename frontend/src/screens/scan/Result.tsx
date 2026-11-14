@@ -40,7 +40,7 @@ export function Result({
 }) {
   const { isGuest, openAuth, go } = useApp()
   const { rxStatus, prescriptions } = useData()
-  const rx = prescriptions.find((p) => p.id === rxId) ?? PRESCRIPTIONS.find((p) => p.id === rxId)
+  const rx = prescriptions.find((p) => p.id === rxId) ?? (isGuest ? PRESCRIPTIONS.find((p) => p.id === rxId) : undefined)
   const ended = !!rx && rxStatus(rx.id) === 'ended'
   const anyUnresolved = drugs.some((d) => d.unresolved)
   const resolved = drugs.filter((d) => !d.unresolved)

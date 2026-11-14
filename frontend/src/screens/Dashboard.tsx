@@ -361,6 +361,11 @@ function ChartCard({ def, range, loading, entries }: { def: ChartDef; range: Ran
             yRange={def.yRange ? def.yRange(entries) : undefined}
             label={`Biểu đồ ${def.title}`}
           />
+          {def.bands && (
+            <p className="mt-2 text-right text-[11px] text-ink-500 italic">
+              * Dải tham khảo định hướng chuyên môn (VNHA/ISH 2020, QĐ 5481/QĐ-BYT). Không thay thế chẩn đoán y khoa.
+            </p>
+          )}
           {single && <p className="mt-2 text-center text-xs text-ink-600">Cần thêm ghi chép để vẽ xu hướng</p>}
         </>
       )}
