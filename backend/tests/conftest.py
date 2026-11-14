@@ -1,6 +1,8 @@
+from datetime import datetime, timezone
+import uuid
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
@@ -17,6 +19,12 @@ def db_session():
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
+    @event.listens_for(engine, "connect")
+    def set_sqlite_functions(dbapi_connection, connection_record):
+        dbapi_connection.execute("PRAGMA foreign_keys=ON")
+        dbapi_connection.create_function("now", 0, lambda: datetime.now(timezone.utc).isoformat())
+        dbapi_connection.create_function("gen_random_uuid", 0, lambda: str(uuid.uuid4()))
+
     Base.metadata.create_all(bind=engine)
     # Legacy fuzzy tests use isolated prototype tables.
     LegacyBase.metadata.create_all(bind=engine)
