@@ -132,8 +132,8 @@ def build_default_engine(settings: AiAssistantSettings) -> LcelGenerationEngine:
     primary = ChatGoogleGenerativeAI(
         model=settings.primary_llm_model,
         temperature=settings.llm_temperature,
-        max_retries=1,
-        timeout=settings.primary_llm_timeout_s,
+        max_retries=2,
+        # timeout=settings.primary_llm_timeout_s,
         google_api_key=key,
     )
     fallback = None
