@@ -418,6 +418,171 @@
         "title": "OcrJobResponse",
         "type": "object"
       },
+      "OcrReviewItem": {
+        "additionalProperties": false,
+        "properties": {
+          "confidence": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "duration_days": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Days"
+          },
+          "extracted_dosage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extracted Dosage"
+          },
+          "extracted_name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Extracted Name",
+            "type": "string"
+          },
+          "extracted_strength": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extracted Strength"
+          },
+          "frequency": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Frequency"
+          },
+          "instructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instructions"
+          },
+          "item_order": {
+            "minimum": 1.0,
+            "title": "Item Order",
+            "type": "integer"
+          },
+          "route": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Route"
+          },
+          "source_ocr_item_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Ocr Item Id"
+          },
+          "unresolved": {
+            "default": false,
+            "title": "Unresolved",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "item_order",
+          "extracted_name"
+        ],
+        "title": "OcrReviewItem",
+        "type": "object"
+      },
+      "OcrReviewRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/OcrReviewItem"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "OcrReviewRequest",
+        "type": "object"
+      },
+      "OcrReviewResponse": {
+        "properties": {
+          "prescription_id": {
+            "format": "uuid",
+            "title": "Prescription Id",
+            "type": "string"
+          },
+          "saved_items": {
+            "title": "Saved Items",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "prescription_id",
+          "saved_items",
+          "status"
+        ],
+        "title": "OcrReviewResponse",
+        "type": "object"
+      },
       "PrescriptionUploadResponse": {
         "properties": {
           "expires_at": {
@@ -1027,6 +1192,92 @@
           }
         },
         "summary": "Lấy kết quả bóc tách từng dòng thuốc của tác vụ OCR",
+        "tags": [
+          "F2/M2 - Số hóa Đơn thuốc & Dược phẩm",
+          "F2/M2 - Số hóa Đơn thuốc & Dược phẩm"
+        ]
+      }
+    },
+    "/api/v1/ocr-jobs/{job_id}/review": {
+      "post": {
+        "operationId": "save_ocr_review_api_v1_ocr_jobs__job_id__review_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-guest-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Guest-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OcrReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OcrReviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Lưu các dòng thuốc người dùng đã xác nhận hoặc chỉnh sửa",
         "tags": [
           "F2/M2 - Số hóa Đơn thuốc & Dược phẩm",
           "F2/M2 - Số hóa Đơn thuốc & Dược phẩm"

@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 from uuid import UUID
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class OcrJobErrorDTO(BaseModel):
@@ -50,3 +50,29 @@ class PrescriptionUploadResponse(BaseModel):
     expires_at: Optional[datetime] = None
     poll_after_seconds: int = 2
     items: Optional[List[OcrJobItemDTO]] = None
+
+
+class OcrReviewItem(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    source_ocr_item_id: Optional[UUID] = None
+    item_order: int = Field(ge=1)
+    extracted_name: str = Field(min_length=1, max_length=255)
+    extracted_strength: Optional[str] = Field(default=None, max_length=100)
+    extracted_dosage: Optional[str] = None
+    frequency: Optional[str] = Field(default=None, max_length=255)
+    duration_days: Optional[int] = Field(default=None, ge=0)
+    route: Optional[str] = Field(default=None, max_length=100)
+    instructions: Optional[str] = None
+    confidence: Optional[float] = Field(default=None, ge=0, le=1)
+    unresolved: bool = False
+
+
+class OcrReviewRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    items: List[OcrReviewItem] = Field(min_length=1, max_length=100)
+
+
+class OcrReviewResponse(BaseModel):
+    prescription_id: UUID
+    saved_items: int
+    status: str

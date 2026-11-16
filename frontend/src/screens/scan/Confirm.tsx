@@ -8,9 +8,12 @@ import { type DrugRow, type Field, NAMES_KNOWN, SUGGESTIONS } from '@/data/drugs
 import { cn } from '@/lib/cn'
 import { canVerify, emptyRow, LOW_CONF, needsReview, pendingCount } from './model'
 import { OriginalPane, type PaperLine, ZoomableCrop } from './Prescription'
+import { saveOcrReview } from '@/api/ocr'
 
 type Props = {
   state: { rows: DrugRow[]; lines: PaperLine[]; manual: boolean; saveFailed?: boolean }
+  jobId?: string
+  image?: string
   onChange: (rows: DrugRow[]) => void
   onSaveFailed: (v: boolean) => void
   onDone: (drugs: ResultDrug[]) => void
@@ -20,7 +23,7 @@ type Props = {
 
 export const UNRESOLVED_BANNER = 'Đơn thuốc có thành phần chưa rõ tên, hệ thống không thể đảm bảo an toàn cho đến khi bạn sửa lại đúng tên thuốc'
 
-export function Confirm({ state, onChange, onSaveFailed, onDone, embedded = false }: Props) {
+export function Confirm({ state, jobId, image, onChange, onSaveFailed, onDone, embedded = false }: Props) {
   const { isGuest } = useApp()
   const { rows, lines, manual, saveFailed } = state
   const [focusLine, setFocusLine] = useState<number | null>(rows[0]?.line ?? null)
@@ -68,16 +71,32 @@ export function Confirm({ state, onChange, onSaveFailed, onDone, embedded = fals
     target.focus({ preventScroll: true })
   }
 
-  const submit = () => {
+  const submit = async () => {
     if (disabled) return
     const drugs = rows.map((r) => ({ name: r.name.trim(), strength: r.strength.trim(), unresolved: r.unresolved }))
-    if (isGuest) return onDone(drugs)
     setSaving(true)
-    setTimeout(() => {
-      setSaving(false)
+    try {
+      if (jobId) {
+        await saveOcrReview(jobId, rows.map((row, index) => ({
+          ...(jobId && /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(row.id) ? { source_ocr_item_id: row.id } : {}),
+          item_order: index + 1,
+          extracted_name: row.name.trim(),
+          ...(row.strength.trim() ? { extracted_strength: row.strength.trim() } : {}),
+          ...(row.dose.trim() ? { extracted_dosage: row.dose.trim() } : {}),
+          ...(row.freq.trim() ? { frequency: row.freq.trim() } : {}),
+          ...(Number.parseInt(row.duration, 10) > 0 ? { duration_days: Number.parseInt(row.duration, 10) } : {}),
+          confidence: (row.conf.name ?? 0) / 100,
+          unresolved: Boolean(row.unresolved),
+        })))
+      }
       onSaveFailed(false)
       onDone(drugs)
-    }, 900)
+    } catch (error) {
+      onSaveFailed(true)
+      console.error('Unable to save OCR review', error)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -101,7 +120,7 @@ export function Confirm({ state, onChange, onSaveFailed, onDone, embedded = fals
               className={cn('sticky max-h-[860px]', embedded ? 'top-6' : 'top-[88px]')}
               style={{ height: embedded ? 'calc(100dvh - 48px)' : 'calc(100dvh - 88px - var(--bar-h, 0px) - 16px)' }}
             >
-              <OriginalPane lines={lines} highlight={focusLine} />
+              {image ? <img src={image} alt="Ảnh đơn thuốc gốc" className="h-full w-full rounded-lg border border-line-200 bg-bg-50 object-contain" /> : <OriginalPane lines={lines} highlight={focusLine} />}
             </div>
           </div>
         )}
@@ -142,6 +161,7 @@ export function Confirm({ state, onChange, onSaveFailed, onDone, embedded = fals
                 index={i}
                 row={r}
                 lines={lines}
+                image={image}
                 focused={focusLine === r.line && r.line >= 0}
                 onFocus={() => {
                   setActiveId(r.id)
@@ -184,7 +204,7 @@ export function Confirm({ state, onChange, onSaveFailed, onDone, embedded = fals
         <Modal open onClose={() => setShowOriginalModal(false)} labelledBy="mobile-original-pane" width={720}>
           <ModalHeader id="mobile-original-pane" title="Ảnh đơn thuốc gốc" onClose={() => setShowOriginalModal(false)} />
           <div className="h-[75dvh] p-3 sm:p-4">
-            <OriginalPane lines={lines} highlight={focusLine} />
+            {image ? <img src={image} alt="Ảnh đơn thuốc gốc" className="h-full w-full rounded-lg bg-bg-50 object-contain" /> : <OriginalPane lines={lines} highlight={focusLine} />}
           </div>
         </Modal>
       )}
@@ -228,6 +248,7 @@ type CardProps = {
   index: number
   row: DrugRow
   lines: PaperLine[]
+  image?: string
   focused: boolean
   onFocus: () => void
   onChange: (p: Partial<DrugRow>) => void
@@ -235,9 +256,9 @@ type CardProps = {
   ref?: React.Ref<HTMLLIElement>
 }
 
-function DrugRowCard({ index, row, lines, focused, onFocus, onChange, onRemove, ref }: CardProps) {
+function DrugRowCard({ index, row, lines, image, focused, onFocus, onChange, onRemove, ref }: CardProps) {
   const hintId = useId()
-  const hasImage = row.line >= 0
+  const hasImage = Boolean(image) || row.line >= 0
   const confirm = (f: Field) => (row.confirmed.includes(f) ? row.confirmed : [...row.confirmed, f])
   const set = (f: Field, v: string) => onChange({ [f]: v, confirmed: confirm(f) } as Partial<DrugRow>)
   const keep = (f: Field) => onChange({ confirmed: confirm(f) })
@@ -272,7 +293,7 @@ function DrugRowCard({ index, row, lines, focused, onFocus, onChange, onRemove, 
       </div>
 
       <div className="space-y-4 px-4 pt-3 pb-4 sm:px-5 sm:pb-5">
-        {hasImage && <ZoomableCrop lines={lines} index={row.line} alt={`Dòng ${row.line + 1} của đơn: ${row.raw[0]}, ${row.raw[1]}`} />}
+        {hasImage && !image && <ZoomableCrop lines={lines} index={row.line} alt={`Dòng ${row.line + 1} của đơn: ${row.raw[0]}, ${row.raw[1]}`} />}
 
         {row.unresolved ? (
           <div className="space-y-3 rounded-xl border border-yellow-line bg-yellow-bg p-4">

@@ -1,12 +1,9 @@
 """M3. Vision-Language Model (VLM) for Handwriting & Mixed Prescription Recognition."""
 
-import base64
-import io
 import json
 import os
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
-import requests
 
 from .preprocessing import load_image
 
@@ -82,28 +79,34 @@ DEFAULT_MOCK_VLM_RESPONSE: Dict[str, Any] = {
 }
 
 
-def _image_to_base64(img) -> str:
-    buf = io.BytesIO()
-    img.save(buf, format="JPEG", quality=90)
-    return base64.b64encode(buf.getvalue()).decode("utf-8")
+def _resolve_gemini_api_key() -> str:
+    env_key = os.environ.get("GEMINI_API_KEY", "")
+    if env_key:
+        return env_key
+    try:
+        from app.core.config import settings
+        return settings.GEMINI_API_KEY
+    except Exception:
+        return ""
 
 
 class VisionModelEngine:
-    """Client for Qwen-VL (via Ollama/vLLM OpenAI-compatible API) or Gemini Vision."""
+    """Gemini Vision client for handwritten and mixed prescription images."""
 
     def __init__(
         self,
-        provider: str = "auto",
-        model_name: str = "qwen2.5-vl:7b",
-        api_base: str = "http://localhost:11434/v1/chat/completions",
+        provider: str = "gemini",
+        model_name: Optional[str] = None,
         api_key: Optional[str] = None,
         use_mock: bool = False,
     ):
-        self.provider = provider
-        self.model_name = model_name
-        self.api_base = api_base
-        self.api_key = api_key or os.environ.get("GEMINI_API_KEY", "")
+        from app.core.config import settings
+
+        self.provider = provider.lower()
+        self.model_name = model_name or settings.GEMINI_VISION_MODEL
+        self.api_key = api_key or _resolve_gemini_api_key()
         self.use_mock = use_mock
+        self.timeout_seconds = settings.OCR_TIMEOUT_SECONDS
 
     def analyze_image(self, image_source: Union[str, Path, Any]) -> Dict[str, Any]:
         """Send image to VLM and return parsed dictionary."""
@@ -112,48 +115,45 @@ class VisionModelEngine:
         if self.use_mock:
             return dict(DEFAULT_MOCK_VLM_RESPONSE)
 
-        if self.provider == "gemini" or (
-            self.provider == "auto" and self.api_key and self.api_key != "your_gemini_api_key_here"
-        ):
-            return self._call_gemini(img)
-
-        if self.provider in ("qwen", "auto"):
-            try:
-                return self._call_openai_compatible_vlm(img)
-            except Exception:
-                # Safe fallback to mock if local VLM server is not running
-                return dict(DEFAULT_MOCK_VLM_RESPONSE)
-
-        return dict(DEFAULT_MOCK_VLM_RESPONSE)
-
-    def _call_openai_compatible_vlm(self, img) -> Dict[str, Any]:
-        b64_img = _image_to_base64(img)
-        payload = {
-            "model": self.model_name,
-            "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": "Trích xuất thông tin đơn thuốc này sang JSON."},
-                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_img}"}},
-                    ],
-                },
-            ],
-            "temperature": 0.1,
-        }
-        resp = requests.post(self.api_base, json=payload, timeout=30)
-        resp.raise_for_status()
-        content = resp.json()["choices"][0]["message"]["content"]
-        return self._clean_and_parse_json(content)
+        provider = self.provider
+        if provider != "gemini":
+            raise ValueError(f"Unsupported OCR provider: {self.provider!r}. Only 'gemini' is supported.")
+        if not self.api_key or self.api_key == "your_gemini_api_key_here":
+            raise RuntimeError("GEMINI_API_KEY is required for handwritten and mixed OCR")
+        return self._call_gemini(img)
 
     def _call_gemini(self, img) -> Dict[str, Any]:
         import google.generativeai as genai
 
         genai.configure(api_key=self.api_key)
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        response = model.generate_content([SYSTEM_PROMPT, img])
-        return self._clean_and_parse_json(response.text)
+        candidates = []
+        for name in (
+            self.model_name,
+            "gemini-2.5-flash-lite",
+            "gemini-2.5-flash",
+            "gemini-flash-lite-latest",
+        ):
+            if name and name not in candidates:
+                candidates.append(name)
+
+        last_exc: Optional[Exception] = None
+        for candidate in candidates:
+            try:
+                model = genai.GenerativeModel(candidate)
+                response = model.generate_content(
+                    [SYSTEM_PROMPT, img],
+                    request_options={"timeout": self.timeout_seconds, "retry": None},
+                )
+                return self._clean_and_parse_json(response.text)
+            except Exception as exc:
+                last_exc = exc
+                msg = str(exc).lower()
+                if any(code in msg for code in ("429", "quota", "resourceexhausted", "404", "not found")):
+                    continue
+                raise
+        if last_exc is not None:
+            raise last_exc
+        raise RuntimeError("Gemini Vision call failed")
 
     @staticmethod
     def _clean_and_parse_json(raw_output: str) -> Dict[str, Any]:

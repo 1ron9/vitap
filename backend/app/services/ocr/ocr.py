@@ -9,7 +9,7 @@ from .preprocessing import load_image
 try:
     from paddleocr import PaddleOCR
     HAS_PADDLE = True
-except ImportError:
+except (ImportError, OSError):
     HAS_PADDLE = False
 
 
@@ -23,17 +23,35 @@ DEFAULT_MOCK_LINES = [
 ]
 
 
-class PrintedOCREngine:
-    """Wrapper for PaddleOCR to recognize printed prescription text."""
+_PADDLE_CACHE: Dict[tuple, Any] = {}
 
-    def __init__(self, lang: str = "vi", use_mock: bool = False):
+
+class PrintedOCREngine:
+    """Wrapper for PaddleOCR 3.x to recognize printed prescription text."""
+
+    def __init__(self, lang: str = "vi", device: str = "cpu", use_mock: bool = False):
         self.lang = lang
-        self.use_mock = use_mock or (not HAS_PADDLE)
+        self.device = device
+        self.use_mock = use_mock
+        if not self.use_mock and not HAS_PADDLE:
+            raise RuntimeError(
+                "PaddleOCR is unavailable. Install backend/requirements-ocr.txt "
+                "or explicitly enable USE_MOCK_AI for development."
+            )
         self._ocr = None
 
     def _init_paddle(self):
         if self._ocr is None and HAS_PADDLE and not self.use_mock:
-            self._ocr = PaddleOCR(use_angle_cls=True, lang=self.lang, show_log=False)
+            cache_key = (id(PaddleOCR), self.lang, self.device)
+            if cache_key not in _PADDLE_CACHE:
+                _PADDLE_CACHE[cache_key] = PaddleOCR(
+                    lang=self.lang,
+                    device=self.device,
+                    use_doc_orientation_classify=False,
+                    use_doc_unwarping=False,
+                    use_textline_orientation=False,
+                )
+            self._ocr = _PADDLE_CACHE[cache_key]
 
     def extract_lines(self, image_source: Union[str, Path, Any]) -> List[Dict[str, Any]]:
         """Run OCR on an image and return detected text lines with confidence scores."""
@@ -44,20 +62,27 @@ class PrintedOCREngine:
 
         self._init_paddle()
         img_np = np.array(img)
-        result = self._ocr.ocr(img_np, cls=True)
+        result = self._ocr.predict(input=img_np)
 
         lines: List[Dict[str, Any]] = []
-        if not result or not result[0]:
+        if not result:
             return lines
 
-        for item in result[0]:
-            bbox, (text, conf) = item[0], item[1]
-            if text and text.strip():
-                lines.append({
-                    "text": text.strip(),
-                    "confidence": round(float(conf), 4),
-                    "bbox": bbox,
-                })
+        for page in result:
+            page_json = page.json
+            page_result = page_json.get("res", page_json)
+            texts = page_result.get("rec_texts", [])
+            confidences = page_result.get("rec_scores", [])
+            boxes = page_result.get("rec_polys", page_result.get("rec_boxes", []))
+            for index, text in enumerate(texts):
+                conf = confidences[index] if index < len(confidences) else 0.0
+                bbox = boxes[index].tolist() if index < len(boxes) and hasattr(boxes[index], "tolist") else (boxes[index] if index < len(boxes) else None)
+                if text and str(text).strip():
+                    lines.append({
+                        "text": str(text).strip(),
+                        "confidence": round(float(conf), 4),
+                        "bbox": bbox,
+                    })
         return lines
 
     def extract_text(self, image_source: Union[str, Path, Any]) -> str:

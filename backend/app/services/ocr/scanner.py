@@ -12,14 +12,18 @@ from .schemas import MedicationItem, PrescriptionData
 
 def extract_full_prescription(
     image_bytes: bytes,
-    mode: str = "vlm",
+    mode: Optional[str] = None,
     use_mock: Optional[bool] = None,
 ) -> PrescriptionData:
     """End-to-end extraction from image bytes to validated PrescriptionData."""
     if use_mock is None:
-        # Tự động bật mock nếu không có API key để đảm bảo test CI / offline luôn an toàn
-        api_key = os.environ.get("GEMINI_API_KEY", "")
-        use_mock = not bool(api_key and api_key != "your_gemini_api_key_here")
+        from app.core.config import settings
+        env_mock = os.environ.get("USE_MOCK_AI")
+        use_mock = (
+            env_mock.strip().lower() in {"1", "true", "yes", "on"}
+            if env_mock is not None
+            else settings.USE_MOCK_AI
+        )
 
     return extract_prescription(
         image_source=image_bytes,
@@ -31,7 +35,7 @@ def extract_full_prescription(
 
 def extract_drugs_from_image(
     image_bytes: bytes,
-    mode: str = "vlm",
+    mode: Optional[str] = None,
     use_mock: Optional[bool] = None,
 ) -> List[Dict[str, Any]]:
     """Legacy compatibility interface returning list of raw drug items."""

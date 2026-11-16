@@ -4,17 +4,31 @@ import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from .ocr import PrintedOCREngine
+from .ocr import HAS_PADDLE, PrintedOCREngine
 from .preprocessing import preprocess_image
 from .schemas import MedicationItem, PrescriptionData
-from .vision_model import VisionModelEngine
+from .vision_model import VisionModelEngine, _resolve_gemini_api_key
+from app.core.config import settings
 
-STRENGTH_PATTERN = re.compile(r"\b(\d+(?:[.,]\d+)?\s*(?:mg|g|mcg|ml|iu|ui|%))\b", re.IGNORECASE)
+STRENGTH_PATTERN = re.compile(
+    r"\b(\d+(?:[.,]\d+)?\s*(?:mg|g|mcg|ml|iu|ui|%)(?:\s*[\+/]\s*\d+(?:[.,]\d+)?\s*(?:mg|g|mcg|ml|iu|ui|%)?)*)",
+    re.IGNORECASE,
+)
 QTY_UNIT_PATTERN = re.compile(
     r"(?:số lượng|sl|x|:)?\s*(\d+)\s*(viên|hộp|gói|ống|lọ|chai|tuýp|vỉ)\b",
     re.IGNORECASE,
 )
-LINE_PREFIX_PATTERN = re.compile(r"^\s*\d+[\.\)\-]\s*")
+DOSAGE_SCHEDULE_KEYWORDS = ("sáng", "trưa", "chiều", "chiu", "tối", "uống", "ngày", "lần", "trước", "sau", "ghi chú")
+LINE_PREFIX_PATTERN = re.compile(r"^\s*\d+\s*(?:[\.\)\-]\s*|\s+(?=[A-Za-zÀ-ỹ]{3,}))")
+
+
+def _is_pure_quantity_part(part: str) -> bool:
+    low = part.lower()
+    if "số lượng" in low or low.startswith("sl:") or low.startswith("sl "):
+        return True
+    if any(kw in low for kw in DOSAGE_SCHEDULE_KEYWORDS):
+        return False
+    return bool(QTY_UNIT_PATTERN.search(part))
 
 
 def parse_medication_line(text: str, confidence: float = 1.0) -> Optional[MedicationItem]:
@@ -23,14 +37,18 @@ def parse_medication_line(text: str, confidence: float = 1.0) -> Optional[Medica
     if not cleaned:
         return None
 
+    parts = [p.strip() for p in re.split(r"\s+-\s+", cleaned) if p.strip()]
+    drug_part = parts[0]
+
     strength = None
-    strength_match = STRENGTH_PATTERN.search(cleaned)
+    strength_match = STRENGTH_PATTERN.search(drug_part) or STRENGTH_PATTERN.search(cleaned)
     if strength_match:
-        strength = strength_match.group(1).replace(" ", "")
+        strength = re.sub(r"\s+", "", strength_match.group(1))
 
     quantity = None
     unit = None
-    qty_match = QTY_UNIT_PATTERN.search(cleaned)
+    qty_source = next((p for p in parts if _is_pure_quantity_part(p)), cleaned)
+    qty_match = QTY_UNIT_PATTERN.search(qty_source)
     if qty_match:
         quantity = int(qty_match.group(1))
         unit = qty_match.group(2).capitalize()
@@ -41,16 +59,14 @@ def parse_medication_line(text: str, confidence: float = 1.0) -> Optional[Medica
     if paren_match:
         instructions = paren_match.group(1).strip()
 
-    parts = [p.strip() for p in re.split(r"\s+-\s+", cleaned) if p.strip()]
-    drug_part = parts[0]
     drug_part = re.sub(r"\([^)]*\)", "", drug_part)
     if strength_match:
-        drug_part = drug_part.replace(strength_match.group(0), "")
-    drug_name = re.sub(r"\s+", " ", drug_part).strip(" -:,")
+        drug_part = STRENGTH_PATTERN.sub("", drug_part)
+    drug_name = re.sub(r"\s+", " ", drug_part).strip(" -:,+")
 
     if not instructions and len(parts) > 1:
         extra_parts = [
-            p for p in parts[1:] if not QTY_UNIT_PATTERN.search(p) and "số lượng" not in p.lower()
+            p for p in parts[1:] if not _is_pure_quantity_part(p)
         ]
         if extra_parts:
             instructions = "; ".join(extra_parts)
@@ -89,7 +105,7 @@ def parse_ocr_lines_to_prescription(lines: List[Dict[str, Any]]) -> Prescription
             medications.append(med)
         current_block.clear()
 
-    stop_keywords = ("lời dặn", "ngày hẹn", "bệnh nhân ký", "bác sĩ điều trị", "tái khám")
+    stop_keywords = ("cộng khoản", "lời dặn", "ngày hẹn", "bệnh nhân ký", "bác sĩ điều trị", "tái khám")
 
     for item in lines:
         text = str(item.get("text", "")).strip()
@@ -143,15 +159,25 @@ def parse_ocr_lines_to_prescription(lines: List[Dict[str, Any]]) -> Prescription
 
 def extract_prescription(
     image_source: Union[str, Path, Any],
-    mode: str = "vlm",
+    mode: Optional[str] = None,
     preprocess: bool = True,
     use_mock: bool = False,
 ) -> PrescriptionData:
     """End-to-end M2 -> M3 -> M4 pipeline returning validated PrescriptionData."""
+    mode = (mode or settings.OCR_MODE).lower()
     img = preprocess_image(image_source) if preprocess else image_source
 
+    if mode == "printed" and not use_mock and not HAS_PADDLE:
+        api_key = _resolve_gemini_api_key()
+        if api_key and api_key != "your_gemini_api_key_here":
+            mode = "vlm"
+
     if mode == "printed":
-        ocr_engine = PrintedOCREngine(use_mock=use_mock)
+        ocr_engine = PrintedOCREngine(
+            lang=settings.OCR_LANG,
+            device=settings.OCR_PADDLE_DEVICE,
+            use_mock=use_mock,
+        )
         lines = ocr_engine.extract_lines(img)
         return parse_ocr_lines_to_prescription(lines)
 

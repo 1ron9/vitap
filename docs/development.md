@@ -50,8 +50,41 @@ docker compose logs -f worker
 ```
 
 Worker dùng background_jobs, SKIP LOCKED, lease/retry và at-least-once delivery;
-handler cần idempotent. Hiện hỗ trợ DELETE_FILE; không enqueue kind chưa có handler.
-OCR/TTL/deletion orchestration vẫn thuộc task phát triển tiếp theo.
+handler cần idempotent. Hiện hỗ trợ DELETE_FILE và PROCESS_OCR. Upload lưu ảnh riêng tư,
+tạo job PENDING rồi trả về; worker cập nhật PROCESSING/COMPLETED/FAILED để API poll đọc.
+Worker enqueues xóa ảnh đơn hết hạn; cần giữ worker hoạt động để xử lý cả OCR lẫn cleanup.
+
+## OCR thật
+
+Ảnh in được xử lý bằng PaddleOCR trên worker CPU. OCR luôn chạy inference thật trên
+ảnh người dùng; cờ `USE_MOCK_AI` chỉ ảnh hưởng module khác. Frontend cần
+`VITE_USE_MOCK=false` và người dùng phải đồng ý gửi ảnh lên máy chủ:
+
+```env
+USE_MOCK_AI=true
+OCR_MODE=printed
+OCR_PADDLE_DEVICE=cpu
+```
+
+Khởi động worker sau khi migration:
+
+```bash
+docker compose --profile worker up --build -d
+docker compose logs -f worker
+```
+
+Worker image cài PaddlePaddle 3.2.0 và PaddleOCR 3.3.0; image API không mang dependency
+nặng này. Lần inference đầu tải model Paddle vào cache worker. `OCR_PADDLE_DEVICE=gpu:0`
+cần image Paddle GPU khớp driver; Dockerfile.worker mặc định cài CPU. Để chạy Paddle,
+sau khi migration bật worker:
+
+```bash
+docker compose --profile worker up --build -d worker
+```
+
+Lỗi engine sẽ retry rồi đánh job FAILED, không trả mock thành kết quả thật. POST trả job
+PENDING; GET `/api/v1/ocr-jobs/{job_id}` dùng để poll trạng thái/kết quả. Chỉ xử lý ảnh
+sức khỏe khi có consent và quyền phù hợp.
 
 Volume private_storage giữ file riêng tư, không phục vụ như static public. Raw/cleaned
 dataset và dữ liệu sức khỏe thật không commit vào Git. Fixture nhỏ ở data/fixtures,
@@ -63,9 +96,9 @@ Kiểm tra JSONL từ backend:
 python -m app.modules.ai_assistant.rag.ingestion.cli --input ../data/fixtures/corpus_demo.jsonl --validate-only
 ```
 
-Lệnh chỉ kiểm tra corpus, không tạo embedding. Dependency tùy chọn tách trong
-requirements-ai.txt, requirements-ocr.txt, requirements-data.txt; chỉ cài khi module cần
-và chốt phiên bản sau kiểm thử provider. Requirements sandbox cũ chỉ để tham khảo.
+Lệnh chỉ kiểm tra corpus, không tạo embedding. Dependency AI và data tùy chọn được tách
+trong requirements-ai.txt và requirements-data.txt. Dockerfile.worker cài
+requirements-ocr.txt. Requirements sandbox cũ chỉ để tham khảo.
 
 ## Kiểm thử
 

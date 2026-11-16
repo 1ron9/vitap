@@ -32,6 +32,12 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
       SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
       USE_MOCK_AI: ${USE_MOCK_AI:-true}
+      OCR_MODE: ${OCR_MODE:-printed}
+      OCR_LANG: ${OCR_LANG:-vi}
+      OCR_PADDLE_DEVICE: ${OCR_PADDLE_DEVICE:-cpu}
+      OCR_TIMEOUT_SECONDS: ${OCR_TIMEOUT_SECONDS:-180}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_VISION_MODEL: ${GEMINI_VISION_MODEL:-gemini-3.8-flash}
     volumes:
       - private_storage:/app/storage
     ports:
@@ -48,9 +54,10 @@ services:
 
   worker:
     profiles: [worker]
+    restart: unless-stopped
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.worker
     command: ["python", "-m", "app.workers.runner"]
     environment:
       POSTGRES_HOST: db
@@ -60,8 +67,16 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
       SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY}
       STORAGE_ROOT: /app/storage
+      USE_MOCK_AI: ${USE_MOCK_AI:-true}
+      OCR_MODE: ${OCR_MODE:-printed}
+      OCR_LANG: ${OCR_LANG:-vi}
+      OCR_PADDLE_DEVICE: ${OCR_PADDLE_DEVICE:-cpu}
+      OCR_TIMEOUT_SECONDS: ${OCR_TIMEOUT_SECONDS:-180}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_VISION_MODEL: ${GEMINI_VISION_MODEL:-gemini-3.8-flash}
     volumes:
       - private_storage:/app/storage
+      - paddlex_cache:/home/appuser/.paddlex
     depends_on:
       db:
         condition: service_healthy
@@ -69,3 +84,4 @@ services:
 volumes:
   private_storage:
   postgres_data:
+  paddlex_cache:

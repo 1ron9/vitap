@@ -1,0 +1,23 @@
+# Worker image carries PaddleOCR dependencies; the API image stays lightweight.
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libgl1 \
+    libglib2.0-0 \
+    libgomp1 \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY backend/requirements-ocr.txt /app/requirements-ocr.txt
+RUN pip install --no-cache-dir -r requirements-ocr.txt
+
+COPY backend/ /app/
+
+RUN useradd --create-home appuser && mkdir -p /app/storage /home/appuser/.paddlex \
+    && chown -R appuser:appuser /app /home/appuser/.paddlex
+USER appuser
+
+CMD ["python", "-m", "app.workers.runner"]

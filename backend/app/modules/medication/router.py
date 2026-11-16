@@ -5,7 +5,7 @@ from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.modules.medication.schemas import OcrJobResponse, PrescriptionUploadResponse
+from app.modules.medication.schemas import OcrJobResponse, OcrReviewRequest, OcrReviewResponse, PrescriptionUploadResponse
 from app.modules.medication.service import MAX_UPLOAD_BYTES, MedicationOcrService
 from app.shared.principal import Principal, get_principal
 
@@ -70,3 +70,17 @@ def get_ocr_job_status(
         )
 
     return ocr_service.get_ocr_job(job_id=job_id, principal=principal, db=db)
+
+
+@router.post(
+    "/ocr-jobs/{job_id}/review",
+    response_model=OcrReviewResponse,
+    summary="Lưu các dòng thuốc người dùng đã xác nhận hoặc chỉnh sửa",
+)
+def save_ocr_review(
+    job_id: UUID,
+    request: OcrReviewRequest,
+    principal: Principal = Depends(get_principal),
+    db: Session = Depends(get_db),
+):
+    return ocr_service.save_ocr_review(job_id, principal, request, db)
