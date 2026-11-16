@@ -107,9 +107,11 @@ def test_ocr_upload_with_guest_and_polling(client, db_session):
     assert "prescription_id" in body
     assert "job_id" in body
     assert body["job_status"] == "COMPLETED"
+    assert body["expires_at"] is not None
     assert len(body["items"]) >= 4
 
     job_id = body["job_id"]
+    assert upload_res.headers.get("location") == f"/api/v1/ocr-jobs/{job_id}"
 
     # Poll OCR job result
     poll_res = client.get(
@@ -119,7 +121,12 @@ def test_ocr_upload_with_guest_and_polling(client, db_session):
     assert poll_res.status_code == 200
     poll_body = poll_res.json()
     assert poll_body["status"] == "COMPLETED"
+    assert poll_body["started_at"] is not None
+    assert poll_body["completed_at"] is not None
+    assert poll_body["created_at"] is not None
+    assert poll_body["error"] is None
     assert len(poll_body["items"]) >= 4
+    assert "route" in poll_body["items"][0]
 
     # Verify drug candidate resolution
     omeprazole_item = next(
@@ -286,3 +293,16 @@ def test_failed_ocr_cleans_storage_persists_failed_job_and_hides_internal_error(
     assert failed_job.status == "FAILED"
     assert failed_job.error_message == "OCR_PROCESSING_FAILED"
     assert "INTERNAL_SECRET_DB_PASSWORD_LEAK" not in (failed_job.error_message or "")
+
+    # Polling failed job must return 200 with structured error object
+    poll_failed = client.get(
+        f"/api/v1/ocr-jobs/{failed_job.id}",
+        headers={"X-Guest-Token": token},
+    )
+    assert poll_failed.status_code == 200
+    failed_payload = poll_failed.json()
+    assert failed_payload["status"] == "FAILED"
+    assert failed_payload["error"] == {
+        "code": "OCR_PROCESSING_FAILED",
+        "message": "Không thể xử lý nhận dạng đơn thuốc",
+    }

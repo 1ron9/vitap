@@ -1,6 +1,6 @@
 """Router endpoints for Medication and Prescription OCR."""
 from uuid import UUID
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile, status
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 
@@ -21,6 +21,7 @@ _READ_CHUNK_BYTES = 64 * 1024
     summary="Upload ảnh đơn thuốc và chạy nhận dạng OCR/VLM",
 )
 async def upload_prescription_ocr(
+    response: Response,
     image_file: UploadFile = File(..., description="Tệp ảnh đơn thuốc JPEG/PNG (tối đa 10 MiB)"),
     principal: Principal = Depends(get_principal),
     db: Session = Depends(get_db),
@@ -42,12 +43,14 @@ async def upload_prescription_ocr(
             detail="INVALID_IMAGE: Tệp ảnh tải lên bị rỗng",
         )
 
-    return await run_in_threadpool(
+    result = await run_in_threadpool(
         ocr_service.process_prescription_upload,
         image_bytes=bytes(buf),
         principal=principal,
         db=db,
     )
+    response.headers["Location"] = f"/api/v1/ocr-jobs/{result.job_id}"
+    return result
 
 
 @router.get(

@@ -132,6 +132,24 @@
         "title": "LoginRequest",
         "type": "object"
       },
+      "OcrJobErrorDTO": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "OcrJobErrorDTO",
+        "type": "object"
+      },
       "OcrJobItemDTO": {
         "properties": {
           "bounding_box": {
@@ -268,6 +286,17 @@
             "default": "UNRESOLVED_DRUG",
             "title": "Resolution Status",
             "type": "string"
+          },
+          "route": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Route"
           }
         },
         "required": [
@@ -280,6 +309,18 @@
       },
       "OcrJobResponse": {
         "properties": {
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
           "confidence": {
             "anyOf": [
               {
@@ -291,16 +332,27 @@
             ],
             "title": "Confidence"
           },
-          "error_message": {
+          "created_at": {
             "anyOf": [
               {
+                "format": "date-time",
                 "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Error Message"
+            "title": "Created At"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OcrJobErrorDTO"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "id": {
             "format": "uuid",
@@ -341,6 +393,18 @@
             "title": "Prescription Id",
             "type": "string"
           },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
           "status": {
             "title": "Status",
             "type": "string"
@@ -356,6 +420,18 @@
       },
       "PrescriptionUploadResponse": {
         "properties": {
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
           "items": {
             "anyOf": [
               {

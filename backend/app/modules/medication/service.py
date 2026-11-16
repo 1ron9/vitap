@@ -1,5 +1,5 @@
 """Medication and Prescription OCR domain service."""
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import io
 import logging
 from typing import Any, Dict, List, Optional, Tuple
@@ -13,13 +13,45 @@ from app.integrations.storage import LocalPrivateStorage
 from app.modules.auth.models import GuestSession, User
 from app.modules.auth.router import AuthError, Principal
 from app.modules.medication.models import Drugs, OcrJobItems, OcrJobs, Prescriptions
-from app.modules.medication.schemas import OcrJobItemDTO, OcrJobResponse, PrescriptionUploadResponse
+from app.modules.medication.schemas import (
+    OcrJobErrorDTO,
+    OcrJobItemDTO,
+    OcrJobResponse,
+    PrescriptionUploadResponse,
+)
 from app.services.fuzzy_matcher import calculate_similarity
 from app.services.ocr.scanner import extract_full_prescription
 from app.shared.principal import require_ai_consent
 
 logger = logging.getLogger(__name__)
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+DEFAULT_DRAFT_TTL_HOURS = 24
+
+
+def _to_utc(value: Optional[datetime]) -> Optional[datetime]:
+    if value is None:
+        return None
+    return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+
+
+def _to_item_dto(item: OcrJobItems) -> OcrJobItemDTO:
+    return OcrJobItemDTO(
+        id=item.id,
+        item_order=item.item_order,
+        extracted_name=item.extracted_name,
+        extracted_strength=item.extracted_strength,
+        extracted_dosage=item.extracted_dosage,
+        frequency=item.frequency,
+        duration_days=item.duration_days,
+        route=item.route,
+        instructions=item.instructions,
+        confidence=float(item.confidence) if item.confidence is not None else None,
+        bounding_box=item.bounding_box,
+        candidate_drug_id=item.candidate_drug_id,
+        resolution_status=item.resolution_status,
+        field_confidences=item.field_confidences,
+        candidates=item.candidates,
+    )
 
 
 class MedicationOcrService:
@@ -86,6 +118,11 @@ class MedicationOcrService:
         now = datetime.now(timezone.utc)
         is_user = (principal.kind.upper() == "USER")
         is_guest = (principal.kind.upper() == "GUEST")
+        expires_at = now + timedelta(hours=DEFAULT_DRAFT_TTL_HOURS)
+        if is_guest:
+            guest_session = db.get(GuestSession, principal.id)
+            if guest_session and guest_session.expires_at:
+                expires_at = min(expires_at, _to_utc(guest_session.expires_at))
         prescription_id = uuid4()
         job_id = uuid4()
 
@@ -98,6 +135,7 @@ class MedicationOcrService:
             file_type=file_type,
             status="UPLOADED",
             source_type="IMAGE_UPLOAD",
+            expires_at=expires_at,
             created_at=now,
         )
 
@@ -188,27 +226,14 @@ class MedicationOcrService:
 
             db.commit()
 
-            items_dto = [
-                OcrJobItemDTO(
-                    id=item.id,
-                    item_order=item.item_order,
-                    extracted_name=item.extracted_name,
-                    extracted_strength=item.extracted_strength,
-                    extracted_dosage=item.extracted_dosage,
-                    instructions=item.instructions,
-                    confidence=float(item.confidence) if item.confidence is not None else None,
-                    candidate_drug_id=item.candidate_drug_id,
-                    resolution_status=item.resolution_status,
-                    candidates=item.candidates,
-                )
-                for item in job_items
-            ]
+            items_dto = [_to_item_dto(item) for item in job_items]
 
             return PrescriptionUploadResponse(
                 prescription_id=prescription.id,
                 job_id=job.id,
                 prescription_status=prescription.status,
                 job_status=job.status,
+                expires_at=_to_utc(prescription.expires_at),
                 poll_after_seconds=2,
                 items=items_dto,
             )
@@ -273,21 +298,14 @@ class MedicationOcrService:
 
         items = db.query(OcrJobItems).filter(OcrJobItems.ocr_job_id == job.id).order_by(OcrJobItems.item_order).all()
 
-        items_dto = [
-            OcrJobItemDTO(
-                id=item.id,
-                item_order=item.item_order,
-                extracted_name=item.extracted_name,
-                extracted_strength=item.extracted_strength,
-                extracted_dosage=item.extracted_dosage,
-                instructions=item.instructions,
-                confidence=float(item.confidence) if item.confidence is not None else None,
-                candidate_drug_id=item.candidate_drug_id,
-                resolution_status=item.resolution_status,
-                candidates=item.candidates,
+        items_dto = [_to_item_dto(item) for item in items]
+
+        error_dto = None
+        if job.status == "FAILED" and job.error_message:
+            error_dto = OcrJobErrorDTO(
+                code=job.error_message,
+                message="Không thể xử lý nhận dạng đơn thuốc",
             )
-            for item in items
-        ]
 
         return OcrJobResponse(
             id=job.id,
@@ -296,6 +314,9 @@ class MedicationOcrService:
             model_name=job.model_name,
             model_version=job.model_version,
             confidence=float(job.confidence) if job.confidence is not None else None,
-            error_message=job.error_message,
+            started_at=_to_utc(job.started_at),
+            completed_at=_to_utc(job.completed_at),
+            created_at=_to_utc(job.created_at),
+            error=error_dto,
             items=items_dto,
         )
