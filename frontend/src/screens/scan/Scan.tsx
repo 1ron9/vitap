@@ -1,9 +1,11 @@
 import { useEffect, useId, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { Check, ScanLine, Search } from "lucide-react";
 import { useApp } from "@/app/state";
+import type { Route } from "@/app/variants";
 import { SCREEN_LABEL } from "@/app/variants";
 import { BackButton, Button, Modal, PageHeader } from "@/components/ui";
-import { OCR_ROWS, type ResultDrug } from "@/data/db";
+import { OCR_ROWS, PRESCRIPTIONS, RESULT_SCENARIOS, type ResultDrug, rxByScenario, useDataSafe } from "@/data/db";
 import type { DrugRow } from "@/data/drugs";
 import { cn } from "@/lib/cn";
 import { Confirm } from "./Confirm";
@@ -69,6 +71,28 @@ function rowsFromDrugs(drugs: ResultDrug[]): Step3 {
   return { step: 3, rows, lines: [], manual: true };
 }
 
+function resolveTargetPrescription(
+  target: string | undefined,
+  prescriptions: Array<{ id: string; scenario?: string; drugs: ResultDrug[] }>,
+  isGuest?: boolean,
+): { drugs: ResultDrug[]; rxId?: string } | null {
+  if (!target) return null;
+  const rx = prescriptions.find((p) => p.id === target || p.scenario === target);
+  if (rx) {
+    return { drugs: rx.drugs, rxId: rx.id };
+  }
+  if (isGuest) {
+    const sampleRx = PRESCRIPTIONS.find((p) => p.id === target || p.scenario === target);
+    if (sampleRx) {
+      return { drugs: sampleRx.drugs, rxId: sampleRx.id };
+    }
+    if (RESULT_SCENARIOS[target]) {
+      return { drugs: RESULT_SCENARIOS[target], rxId: rxByScenario(target)?.id };
+    }
+  }
+  return null;
+}
+
 const STEPS = ["Tải ảnh", "Đọc đơn", "Xác nhận", "Kết quả"];
 type Mode = "scan" | "lookup";
 
@@ -88,11 +112,29 @@ function ScanInner({
   embedded?: boolean;
   allowLookup?: boolean;
 }) {
-  const { origin, go, isGuest } = useApp();
+  const { origin, go, variant, isGuest } = useApp();
+  const location = useLocation();
+  const locState = (location.state as { from?: Route; target?: string; rxId?: string; scenario?: string } | null) ?? null;
+  const data = useDataSafe();
+  const prescriptions = data?.prescriptions ?? [];
 
   const [mode, setMode] = useState<Mode>("scan");
-  const [s, setS] = useState<ScanState>({ step: 1 });
+  const targetId = locState?.target || locState?.rxId || locState?.scenario || (!embedded ? variant("scan") : undefined);
+  const initialResolved = resolveTargetPrescription(targetId, prescriptions, isGuest || embedded);
+  const [s, setS] = useState<ScanState>(
+    initialResolved ? { step: 4, drugs: initialResolved.drugs, rxId: initialResolved.rxId } : { step: 1 }
+  );
   const ocrTask = useRef<{ file: File; promise: Promise<OcrJob> } | null>(null);
+
+  useEffect(() => {
+    const currentTarget = locState?.target || locState?.rxId || locState?.scenario;
+    if (currentTarget) {
+      const resolved = resolveTargetPrescription(currentTarget, prescriptions, isGuest || embedded);
+      if (resolved) {
+        setS({ step: 4, drugs: resolved.drugs, rxId: resolved.rxId });
+      }
+    }
+  }, [locState?.target, locState?.rxId, locState?.scenario, prescriptions, isGuest, embedded]);
 
   useEffect(() => {
     if (s.step !== 2 || s.phase !== "running" || !s.file) return;

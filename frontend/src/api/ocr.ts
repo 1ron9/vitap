@@ -15,7 +15,7 @@ export type OcrItem = {
   resolution_status: string
 }
 
-type OcrJob = { id: string; prescription_id: string; status: string; error?: { message: string }; items: OcrItem[] }
+export type OcrJob = { id: string; prescription_id: string; status: string; error?: { message: string }; items: OcrItem[] }
 type Upload = { job_id: string; poll_after_seconds: number }
 
 async function ensureRealSession(isGuest: boolean) {
