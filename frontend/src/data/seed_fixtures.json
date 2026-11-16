@@ -1,0 +1,637 @@
+{
+  "patient.chronic@vitap.vn": {
+    "profile": {
+      "fullName": "Nguyễn Văn An",
+      "dob": "1971-04-12",
+      "gender": "Nam",
+      "phone": "0912345678",
+      "conditions": [
+        "Đái tháo đường Type 2 (E11)",
+        "Tăng huyết áp vô căn (I10)"
+      ],
+      "allergies": [
+        "Penicillin (Phát ban, mề đay)"
+      ]
+    },
+    "entries": [
+      {
+        "id": "e-chronic-29",
+        "at": "2026-10-16T07:30",
+        "bp": [
+          130,
+          87
+        ],
+        "hr": 73,
+        "wt": 68.1,
+        "glu": {
+          "mmol": 7.0,
+          "entered": {
+            "v": 7.0,
+            "unit": "mmol/L"
+          }
+        },
+        "note": ""
+      },
+      {
+        "id": "e-chronic-28",
+        "at": "2026-10-17T07:30",
+        "bp": [
+          129,
+          86
+        ],
+        "hr": 72,
+        "wt": 68.0,
+        "glu": {
+          "mmol": 6.8,
+          "entered": {
+            "v": 6.8,
+            "unit": "mmol/L"
+          }
+        },
+        "note": ""
+      },
+      {
+        "id": "e-chronic-27",
+        "at": "2026-10-18T07:30",
+        "bp": [
+          128,
+          85
+        ],
+        "hr": 78,
+        "wt": 67.8,
+        "glu": {
+          "mmol": 6.7,
+          "entered": {
+            "v": 6.7,
+            "unit": "mmol/L"
+          }
+        },
+        "note": ""
+      },
+      {
+        "id": "e-chronic-26",
+        "at": "2026-10-19T07:30",
+        "bp": [
+          136,
+          84
+        ],
+        "hr": 77,
+        "wt": 67.7,
+        "glu": {
+          "mmol": 6.5,
+          "entered": {
+            "v": 6.5,
+            "unit": "mmol/L"
+          }
+        },
+        "note": ""
+      },
+      {
+        "id": "e-chronic-25",
+        "at": "2026-10-20T07:30",
+        "bp": [
+          135,
+          83
+        ],
+        "hr": 76,
+        "wt": 67.5,
+        "glu": {
+          "mmol": 6.4,
+          "entered": {
+            "v": 6.4,
+            "unit": "mmol/L"
+          }
+        },
+        "note": "Đo buổi sáng trước khi ăn sáng."
+      },
+      {
+        "id": "e-chronic-24",
+        "at": "2026-10-21T07:30",
+        "bp": [
+          134,
+          82
+        ],
+        "hr": 75,
+        "wt": 68.1,
+        "glu": {
+          "mmol": 6.2,
+          "entered": {
+            "v": 6.2,
+            "unit": "mmol/L"
+          }
+        },
+        "note": ""
+      },
+      {
+        "id": "e-chronic-23",
+        "at": "2026-10-22T07:30",
+        "bp": [
+          133,
+          87
+        ],
+        "hr": 74,
+        "wt": 68.0,
+        "glu": {
+          "mmol": 7.0,
+          "entered": {
+            "v": 7.0,
+            "unit": "mmol/L"
+          }
+        },
+        "note": ""
+      },
+      {
+        "id": "e-chronic-22",
+        "at": "2026-10-23T07:30",
+        "bp": [
+          132,
+          86
+        ],
+        "hr": 73,
+        "wt": 67.8,
+        "glu": {
+          "mmol": 6.8,
+          "entered": {
+            "v": 6.8,
+            "unit": "mmol/L"
+          }
+        },
+        "note": ""
+      },
+      {
+        "id": "e-chronic-21",
+        "at": "2026-10-24T07:30",
+        "bp": [
+          131,
+          85
+        ],
+        "hr": 72,
+        "wt": 67.7,
+        "glu": {
+          "mmol": 6.7,
+          "entered": {
+            "v": 6.7,
+            "unit": "mmol/L"
+          }
+        },
+        "note": ""
+      },
+      {
+        "id": "e-chronic-20",
+        "at": "2026-10-25T07:30",
+        "bp": [
+          130,
+          84
+        ],
+        "hr": 78,
+        "wt": 67.5,
+        "glu": {
+          "mmol": 6.5,
+          "entered": {
+            "v": 6.5,
+            "unit": "mmol/L"
+          }
+        },
+        "note": "Đo buổi sáng trước khi ăn sáng."
+      },
+      {
+        "id": "e-chronic-19",
+        "at": "2026-10-26T07:30",
+        "bp": [
+          129,
+          83
+        ],
+        "hr": 77,
+        "wt": 68.1,
+        "glu": {
+          "mmol": 6.4,
+          "entered": {
+            "v": 6.4,
+            "unit": "mmol/L"
+          }
+        },
+        "note": ""
+      },
+      {
+        "id": "e-chronic-18",
+        "at": "2026-10-27T07:30",
+        "bp": [
+          128,
+          82
+        ],
+        "hr": 76,
+        "wt": 68.0,
+        "glu": {
+          "mmol": 6.2,
+          "entered": {
+            "v": 6.2,
+            "unit": "mmol/L"
+          }
+        },
+        "note": ""
+      },
+      {
+        "id": "e-chronic-17",
+        "at": "2026-10-28T07:30",
+        "bp": [
+          136,
+          87
+        ],
+        "hr": 75,
+        "wt": 67.8,
+        "glu": {
+          "mmol": 7.0,
+          "entered": {
+            "v": 7.0,
+            "unit": "mmol/L"
+          }
+        },
+        "note": ""
+      },
+      {
+        "id": "e-chronic-16",
+        "at": "2026-10-29T07:30",
+        "bp": [
+          135,
+          86
+        ],
+        "hr": 74,
+        "wt": 67.7,
+        "glu": {
+          "mmol": 6.8,
+          "entered": {
+            "v": 6.8,
+            "unit": "mmol/L"
+          }
+        },
+        "note": ""
+      },
+      {
+        "id": "e-chronic-15",
+        "at": "2026-10-30T07:30",
+        "bp": [
+          134,
+          85
+        ],
+        "hr": 73,
+        "wt": 67.5,
+        "glu": {
+          "mmol": 6.7,
+          "entered": {
+            "v": 6.7,
+            "unit": "mmol/L"
+          }
+        },
+        "note": "Đo buổi sáng trước khi ăn sáng."
+      },
+      {
+        "id": "e-chronic-14",
+        "at": "2026-10-31T07:30",
+        "bp": [
+          133,
+          84
+        ],
+        "hr": 72,
+        "wt": 68.1,
+        "glu": {
+          "mmol": 6.5,
+          "entered": {
+            "v": 6.5,
+            "unit": "mmol/L"
+          }
+        },
+        "note": ""
+      },
+      {
+        "id": "e-chronic-13",
+        "at": "2026-11-01T07:30",
+        "bp": [
+          132,
+          83
+        ],
+        "hr": 78,
+        "wt": 68.0,
+        "glu": {
+          "mmol": 6.4,
+          "entered": {
+            "v": 6.4,
+            "unit": "mmol/L"
+          }
+        },
+        "note": ""
+      },
+      {
+        "id": "e-chronic-12",
+        "at": "2026-11-02T07:30",
+        "bp": [
+          131,
+          82
+        ],
+        "hr": 77,
+        "wt": 67.8,
+        "glu": {
+          "mmol": 6.2,
+          "entered": {
+            "v": 6.2,
+            "unit": "mmol/L"
+          }
+        },
+        "note": ""
+      },
+      {
+        "id": "e-chronic-11",
+        "at": "2026-11-03T07:30",
+        "bp": [
+          130,
+          87
+        ],
+        "hr": 76,
+        "wt": 67.7,
+        "glu": {
+          "mmol": 7.0,
+          "entered": {
+            "v": 7.0,
+            "unit": "mmol/L"
+          }
+        },
+        "note": ""
+      },
+      {
+        "id": "e-chronic-10",
+        "at": "2026-11-04T07:30",
+        "bp": [
+          129,
+          86
+        ],
+        "hr": 75,
+        "wt": 67.5,
+        "glu": {
+          "mmol": 6.8,
+          "entered": {
+            "v": 6.8,
+            "unit": "mmol/L"
+          }
+        },
+        "note": "Đo buổi sáng trước khi ăn sáng."
+      },
+      {
+        "id": "e-chronic-9",
+        "at": "2026-11-05T07:30",
+        "bp": [
+          128,
+          85
+        ],
+        "hr": 74,
+        "wt": 68.1,
+        "glu": {
+          "mmol": 6.7,
+          "entered": {
+            "v": 6.7,
+            "unit": "mmol/L"
+          }
+        },
+        "note": ""
+      },
+      {
+        "id": "e-chronic-8",
+        "at": "2026-11-06T07:30",
+        "bp": [
+          136,
+          84
+        ],
+        "hr": 73,
+        "wt": 68.0,
+        "glu": {
+          "mmol": 6.5,
+          "entered": {
+            "v": 6.5,
+            "unit": "mmol/L"
+          }
+        },
+        "note": ""
+      },
+      {
+        "id": "e-chronic-7",
+        "at": "2026-11-07T07:30",
+        "bp": [
+          135,
+          83
+        ],
+        "hr": 72,
+        "wt": 67.8,
+        "glu": {
+          "mmol": 6.4,
+          "entered": {
+            "v": 6.4,
+            "unit": "mmol/L"
+          }
+        },
+        "note": ""
+      },
+      {
+        "id": "e-chronic-6",
+        "at": "2026-11-08T07:30",
+        "bp": [
+          134,
+          82
+        ],
+        "hr": 78,
+        "wt": 67.7,
+        "glu": {
+          "mmol": 6.2,
+          "entered": {
+            "v": 6.2,
+            "unit": "mmol/L"
+          }
+        },
+        "note": ""
+      },
+      {
+        "id": "e-chronic-5",
+        "at": "2026-11-09T07:30",
+        "bp": [
+          133,
+          87
+        ],
+        "hr": 77,
+        "wt": 67.5,
+        "glu": {
+          "mmol": 7.0,
+          "entered": {
+            "v": 7.0,
+            "unit": "mmol/L"
+          }
+        },
+        "note": "Đo buổi sáng trước khi ăn sáng."
+      },
+      {
+        "id": "e-chronic-4",
+        "at": "2026-11-10T07:30",
+        "bp": [
+          132,
+          86
+        ],
+        "hr": 76,
+        "wt": 68.1,
+        "glu": {
+          "mmol": 6.8,
+          "entered": {
+            "v": 6.8,
+            "unit": "mmol/L"
+          }
+        },
+        "note": ""
+      },
+      {
+        "id": "e-chronic-3",
+        "at": "2026-11-11T07:30",
+        "bp": [
+          131,
+          85
+        ],
+        "hr": 75,
+        "wt": 68.0,
+        "glu": {
+          "mmol": 6.7,
+          "entered": {
+            "v": 6.7,
+            "unit": "mmol/L"
+          }
+        },
+        "note": ""
+      },
+      {
+        "id": "e-chronic-2",
+        "at": "2026-11-12T07:30",
+        "bp": [
+          130,
+          84
+        ],
+        "hr": 74,
+        "wt": 67.8,
+        "glu": {
+          "mmol": 6.5,
+          "entered": {
+            "v": 6.5,
+            "unit": "mmol/L"
+          }
+        },
+        "note": ""
+      },
+      {
+        "id": "e-chronic-1",
+        "at": "2026-11-13T07:30",
+        "bp": [
+          129,
+          83
+        ],
+        "hr": 73,
+        "wt": 67.7,
+        "glu": {
+          "mmol": 6.4,
+          "entered": {
+            "v": 6.4,
+            "unit": "mmol/L"
+          }
+        },
+        "note": ""
+      },
+      {
+        "id": "e-chronic-0",
+        "at": "2026-11-14T07:30",
+        "bp": [
+          128,
+          82
+        ],
+        "hr": 72,
+        "wt": 67.5,
+        "glu": {
+          "mmol": 6.2,
+          "entered": {
+            "v": 6.2,
+            "unit": "mmol/L"
+          }
+        },
+        "note": "Đo buổi sáng trước khi ăn sáng."
+      }
+    ],
+    "prescriptions": [
+      {
+        "id": "rx-chronic-01",
+        "date": "2026-10-30",
+        "place": "Bệnh viện Chợ Rẫy",
+        "scenario": "resultNoKnown",
+        "drugs": [
+          {
+            "name": "Metformin",
+            "strength": "500mg",
+            "freq": "2 lần/ngày sau ăn"
+          },
+          {
+            "name": "Amlodipine",
+            "strength": "5mg",
+            "freq": "1 lần/ngày sáng"
+          }
+        ]
+      }
+    ]
+  },
+  "patient.ddi@vitap.vn": {
+    "profile": {
+      "fullName": "Trần Thị Bình",
+      "dob": "1968-08-20",
+      "gender": "Nữ",
+      "phone": "0987654321",
+      "conditions": [
+        "Bệnh tim thiếu máu cục bộ (I25)",
+        "Trào ngược dạ dày (K21)"
+      ],
+      "allergies": []
+    },
+    "entries": [
+      {
+        "id": "e-ddi-01",
+        "at": "2026-11-13T09:15",
+        "bp": [
+          135,
+          85
+        ],
+        "hr": 80,
+        "wt": 58.0,
+        "note": "Hơi đau rát thượng vị sau bữa ăn"
+      }
+    ],
+    "prescriptions": [
+      {
+        "id": "rx-ddi-01",
+        "date": "2026-11-11",
+        "place": "Bệnh viện Thống Nhất",
+        "scenario": "resultSevere",
+        "drugs": [
+          {
+            "name": "Clopidogrel",
+            "strength": "75mg",
+            "freq": "1 lần/ngày sáng"
+          },
+          {
+            "name": "Omeprazole",
+            "strength": "20mg",
+            "freq": "1 lần/ngày trước ăn"
+          }
+        ]
+      }
+    ]
+  },
+  "patient.empty@vitap.vn": {
+    "profile": {
+      "fullName": "Lê Hoàng Long",
+      "dob": "1995-11-03",
+      "gender": "Nam",
+      "phone": "0901122334",
+      "conditions": [],
+      "allergies": []
+    },
+    "entries": [],
+    "prescriptions": []
+  }
+}

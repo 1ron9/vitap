@@ -1,2 +1,26 @@
 <!doctype html>
-<html lang="vi"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>VitaP — Dev</title></head><body><div id="root"></div><script type="module" src="/src/app/main.tsx"></script></body></html>
+<html lang="vi">
+  <head>
+    <script>
+      // Apply theme before first paint to avoid a light flash in dark mode.
+      ;(function () {
+        try {
+          var q = new URLSearchParams(location.search).get('theme')
+          var t = q || localStorage.getItem('vitap-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          if (t === 'dark') document.documentElement.classList.add('dark')
+        } catch (e) {}
+      })()
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VitaP - Sổ Tay Y Tế & Trợ Lý Sức Khỏe</title>
+    <meta name="description" content="Sổ tay sức khỏe cá nhân, tra cứu và kiểm tra tương tác thuốc, trợ lý y tế có trích dẫn nguồn." />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

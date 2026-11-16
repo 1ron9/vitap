@@ -32,6 +32,7 @@ docs/_exports/
 
 # Generated/private local state
 .pytest_cache/
+.superpowers/
 *.tsbuildinfo
 backend/storage/
 .setup_build.py

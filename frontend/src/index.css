@@ -1,0 +1,371 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --default-font-family: "Be Vietnam Pro", system-ui, sans-serif;
+  --font-sans: "Be Vietnam Pro", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-brand-50: #eaf0fc;
+  --color-brand-100: #d6e2f8;
+  --color-brand-600: #2457c5;
+  --color-brand-700: #1c46a0;
+  --color-brand-fg: #2457c5;
+  --color-brand-ink: #1c46a0;
+  --color-surface: #ffffff;
+  --color-night: #1b2430;
+  --color-chart-1: #2457c5;
+  --color-aqua: #0ea5e9;
+  --color-chart-2: #7c5ac7;
+  --color-chart-3: #0e7490;
+  --color-chart-4: #475569;
+  --color-chart-5: #ec4899;
+  --color-ink-900: #1b2430;
+  --color-ink-600: #5b6673;
+  --color-ink-400: #57606a;
+  --color-line-200: #e3e7eb;
+  --color-line-100: #eef1f4;
+  --color-bg-50: #f6f8fa;
+
+  --color-lc-bg: #fff1e3;
+  --color-lc-line: #d9730d;
+  --color-lc-ink: #7a3b00;
+
+  --color-red-bg: #fdecea;
+  --color-red-line: #c62828;
+  --color-red-ink: #8e1b1b;
+  --color-slate-bg: #e9effa;
+  --color-slate-line: #3f5f99;
+  --color-slate-ink: #263f6e;
+  --color-gray-bg: #eef0f2;
+  --color-gray-line: #6b7785;
+  --color-gray-ink: #3f4a55;
+  --color-yellow-bg: #fff3c4;
+  --color-yellow-line: #e0a800;
+  --color-yellow-ink: #5c4300;
+  --color-sev-major: #c83232;
+  --color-sev-moderate: #f2a900;
+  --color-sev-moderate-ink: #1a1200;
+  --color-sev-moderate-line: #8a6100;
+
+  --shadow-e1: 0 1px 2px rgba(27, 36, 48, 0.06);
+  --shadow-e2: 0 8px 24px rgba(27, 36, 48, 0.12);
+
+  --animate-fade-in: fade-in 200ms ease-out;
+  --animate-sheet-in: sheet-in 200ms ease-out;
+  --animate-panel-in: panel-in 200ms ease-out;
+  --animate-panel-in-left: panel-in-left 200ms ease-out;
+  --animate-shimmer: shimmer 1.4s ease-in-out infinite;
+  --animate-indeterminate: indeterminate 1.4s ease-in-out infinite;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes sheet-in {
+    from {
+      transform: translateY(24px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  @keyframes panel-in {
+    from {
+      transform: translateX(24px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  @keyframes panel-in-left {
+    from {
+      transform: translateX(-24px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  @keyframes shimmer {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.55;
+    }
+  }
+  @keyframes indeterminate {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(250%);
+    }
+  }
+  @keyframes scanline {
+    0% {
+      transform: translateY(-100%);
+    }
+    100% {
+      transform: translateY(300%);
+    }
+  }
+}
+
+html,
+body {
+  font-family: var(--font-sans);
+}
+
+/* Dark mode: same token names, re-pointed values. Paper (prescription photo) stays light on purpose. */
+.dark {
+  color-scheme: dark;
+  --color-brand-50: #16233d;
+  --color-brand-100: #22375e;
+  --color-brand-600: #3b6bd6;
+  --color-brand-700: #2f5bbf;
+  --color-brand-fg: #8eaff5;
+  --color-brand-ink: #b5cbfa;
+  --color-surface: #161b22;
+  --color-night: #2b3442;
+  --color-chart-1: #6e97f0;
+  --color-aqua: #38bdf8;
+  --color-chart-2: #a88bea;
+  --color-chart-3: #2bb0c9;
+  --color-chart-4: #94a3b8;
+  --color-chart-5: #f472b6;
+  --color-ink-900: #e6eaf0;
+  --color-ink-600: #9ea9b5;
+  --color-ink-400: #8b949e;
+  --color-line-200: #2b333d;
+  --color-line-100: #222a33;
+  --color-bg-50: #0e1217;
+
+  --color-lc-bg: #3a2410;
+  --color-lc-line: #f08a2b;
+  --color-lc-ink: #ffcc99;
+
+  --color-red-bg: #3b1717;
+  --color-red-line: #d84343;
+  --color-red-ink: #ffb4ab;
+  --color-slate-bg: #1b2434;
+  --color-slate-line: #8ea6cf;
+  --color-slate-ink: #c9d7ef;
+  --color-gray-bg: #232a33;
+  --color-gray-line: #8a96a3;
+  --color-gray-ink: #c8d0d9;
+  --color-yellow-bg: #3a3005;
+  --color-yellow-line: #e0a800;
+  --color-yellow-ink: #ffe08a;
+
+  --shadow-e1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-e2: 0 8px 24px rgba(0, 0, 0, 0.55);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--color-bg-50);
+    color: var(--color-ink-900);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-brand-fg);
+    outline-offset: 2px;
+  }
+  button {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.grid-soft {
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--color-brand-fg) 12%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--color-brand-fg) 12%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 24px 24px;
+}
+
+.paper {
+  background-color: #fdfcf8;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 39px,
+    rgba(27, 36, 48, 0.07) 39px,
+    rgba(27, 36, 48, 0.07) 40px
+  );
+}
+
+.hand {
+  font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+}
+
+/* Onboarding: the gradient spans the whole page track, so paging reveals it. Blue dominates; white/black only at the very end. */
+.onb-track {
+  background: linear-gradient(
+    180deg,
+    #7aa7ff 0%,
+    #93b8ff 16%,
+    #a9c6ff 34%,
+    #bfd4ff 54%,
+    #d3e2ff 72%,
+    #e6eeff 88%,
+    #f7f9ff 100%
+  );
+}
+.dark .onb-track {
+  background: linear-gradient(
+    180deg,
+    #1d4fc4 0%,
+    #163f9e 16%,
+    #10307c 34%,
+    #0b2259 54%,
+    #07163b 72%,
+    #030a1e 88%,
+    #000 100%
+  );
+}
+
+/* Focus boxes: soft blue shadow in light mode, emitted light in dark mode. */
+.glow {
+  box-shadow:
+    0 1px 2px rgba(27, 36, 48, 0.06),
+    0 18px 48px -12px rgba(36, 87, 197, 0.35);
+}
+.dark .glow {
+  box-shadow:
+    0 0 0 1px rgba(142, 175, 245, 0.18),
+    0 0 32px -4px rgba(76, 130, 255, 0.45),
+    0 0 90px -20px rgba(56, 189, 248, 0.35);
+}
+
+/* One-shot reveal, triggered by [data-revealed] on the section. */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  will-change: transform, opacity;
+}
+[data-revealed="anim"] .reveal {
+  animation: reveal-up 720ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: var(--d, 0ms);
+}
+/* Already seen before this mount (e.g. coming back from the app): show without replaying. */
+[data-revealed="static"] .reveal {
+  opacity: 1;
+  transform: none;
+}
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Two reserved lines; the scramble only swaps glyph overlays, so geometry never changes. */
+.onboarding-title {
+  --scramble: var(--color-brand-fg);
+  display: block;
+  line-height: 1.2;
+  min-height: 2.4em;
+}
+.dark .onboarding-title,
+.onboarding-title[data-tone="inverse"] {
+  --scramble: var(--color-aqua);
+}
+.onboarding-title-line {
+  display: block;
+  min-height: 1.2em;
+}
+.onboarding-title [data-c] {
+  position: relative;
+}
+.onboarding-title [data-c][data-g] {
+  -webkit-text-fill-color: transparent;
+}
+.onboarding-title [data-c][data-g]::after {
+  content: attr(data-g);
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  -webkit-text-fill-color: var(--scramble);
+  opacity: 0.85;
+}
+.onboarding-title [data-c][data-hot] {
+  -webkit-text-fill-color: var(--scramble);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--scramble) 70%, transparent);
+}
+.onboarding-text-reveal {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+.onboarding-text-reveal[data-play="true"] {
+  animation-name: reveal-up;
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+}
+@media (min-width: 1024px) {
+  .onboarding-title-line {
+    white-space: nowrap;
+    height: 1.2em;
+  }
+  .onboarding-title {
+    height: 2.4em;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
