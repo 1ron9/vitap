@@ -29,9 +29,13 @@ def extract_full_prescription(
     )
 
 
-def extract_drugs_from_image(image_bytes: bytes) -> List[Dict[str, Any]]:
+def extract_drugs_from_image(
+    image_bytes: bytes,
+    mode: str = "vlm",
+    use_mock: Optional[bool] = None,
+) -> List[Dict[str, Any]]:
     """Legacy compatibility interface returning list of raw drug items."""
-    prescription = extract_full_prescription(image_bytes)
+    prescription = extract_full_prescription(image_bytes, mode=mode, use_mock=use_mock)
     results = []
     for med in prescription.medications:
         name_with_strength = med.drug_name

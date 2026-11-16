@@ -15,7 +15,7 @@ class PrescriptionOcrProvider:
 
     def extract(self, image: bytes) -> list[dict]:
         from app.services.ocr.scanner import extract_drugs_from_image
-        return extract_drugs_from_image(image)
+        return extract_drugs_from_image(image, mode=self.mode, use_mock=self.use_mock)
 
 class EmbeddingProvider(Protocol):
     def embed_documents(self, texts: list[str]) -> list[list[float]]: ...

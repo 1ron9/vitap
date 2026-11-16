@@ -1,17 +1,25 @@
 """Medication and Prescription OCR domain service."""
 from datetime import datetime, timezone
+import io
+import logging
 from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID, uuid4
+from PIL import Image, UnidentifiedImageError
 from sqlalchemy.orm import Session
 from starlette.exceptions import HTTPException
 
 from app.core.config import settings
 from app.integrations.storage import LocalPrivateStorage
-from app.modules.auth.router import Principal
+from app.modules.auth.models import GuestSession, User
+from app.modules.auth.router import AuthError, Principal
 from app.modules.medication.models import Drugs, OcrJobItems, OcrJobs, Prescriptions
 from app.modules.medication.schemas import OcrJobItemDTO, OcrJobResponse, PrescriptionUploadResponse
 from app.services.fuzzy_matcher import calculate_similarity
 from app.services.ocr.scanner import extract_full_prescription
+from app.shared.principal import require_ai_consent
+
+logger = logging.getLogger(__name__)
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
 
 class MedicationOcrService:
@@ -19,16 +27,49 @@ class MedicationOcrService:
         self.storage = LocalPrivateStorage(storage_root or settings.STORAGE_ROOT)
 
     @staticmethod
+    def verify_ocr_consent(principal: Principal, db: Session) -> None:
+        """Ensure USER has active AI-processing consent or GUEST accepted consent."""
+        kind = principal.kind.upper()
+        if kind == "USER":
+            user = db.get(User, principal.id)
+            if user is None:
+                raise AuthError(401, "INVALID_TOKEN", "Token không hợp lệ")
+            require_ai_consent(user, db)
+        elif kind == "GUEST":
+            session = db.get(GuestSession, principal.id)
+            if session is None or not session.consent_accepted:
+                raise AuthError(403, "CONSENT_REQUIRED", "Cần đồng ý xử lý dữ liệu AI")
+        else:
+            raise AuthError(401, "AUTH_REQUIRED", "Cần đăng nhập hoặc cung cấp phiên Guest để quét đơn thuốc")
+
+    @staticmethod
     def validate_image_bytes(image_bytes: bytes) -> str:
-        """Validate mime type and size (<= 10 MiB) using magic bytes."""
-        max_bytes = 10 * 1024 * 1024
-        if len(image_bytes) > max_bytes:
+        """Validate size (<= 10 MiB), magic bytes, and full image decode integrity."""
+        if not image_bytes:
+            raise HTTPException(status_code=422, detail="INVALID_IMAGE: Tệp ảnh tải lên bị rỗng")
+        if len(image_bytes) > MAX_UPLOAD_BYTES:
             raise HTTPException(status_code=413, detail="Tệp quá lớn, tối đa 10 MiB")
+
         if image_bytes.startswith(b"\xff\xd8\xff"):
-            return "image/jpeg"
-        if image_bytes.startswith(b"\x89PNG\r\n\x1a\n"):
-            return "image/png"
-        raise HTTPException(status_code=415, detail="Định dạng tệp không được hỗ trợ (chỉ nhận JPEG/PNG)")
+            expected_format = "JPEG"
+            mime_type = "image/jpeg"
+        elif image_bytes.startswith(b"\x89PNG\r\n\x1a\n"):
+            expected_format = "PNG"
+            mime_type = "image/png"
+        else:
+            raise HTTPException(status_code=415, detail="Định dạng tệp không được hỗ trợ (chỉ nhận JPEG/PNG)")
+
+        try:
+            with Image.open(io.BytesIO(image_bytes)) as img:
+                if img.format != expected_format:
+                    raise HTTPException(status_code=415, detail="Định dạng tệp không khớp (chỉ nhận JPEG/PNG)")
+                img.load()
+        except HTTPException:
+            raise
+        except (UnidentifiedImageError, OSError, ValueError):
+            raise HTTPException(status_code=422, detail="INVALID_IMAGE: Tệp ảnh bị hỏng hoặc không thể giải mã")
+
+        return mime_type
 
     def process_prescription_upload(
         self,
@@ -38,15 +79,18 @@ class MedicationOcrService:
         use_mock: Optional[bool] = None,
     ) -> PrescriptionUploadResponse:
         """Upload prescription image, persist records, run OCR and match drug entities."""
+        self.verify_ocr_consent(principal, db)
         file_type = self.validate_image_bytes(image_bytes)
         storage_key = self.storage.put(image_bytes)
 
         now = datetime.now(timezone.utc)
         is_user = (principal.kind.upper() == "USER")
         is_guest = (principal.kind.upper() == "GUEST")
+        prescription_id = uuid4()
+        job_id = uuid4()
 
         prescription = Prescriptions(
-            id=uuid4(),
+            id=prescription_id,
             user_id=principal.id if is_user else None,
             guest_session_id=principal.id if is_guest else None,
             is_guest=is_guest,
@@ -56,22 +100,22 @@ class MedicationOcrService:
             source_type="IMAGE_UPLOAD",
             created_at=now,
         )
-        db.add(prescription)
-        db.flush()
 
         job = OcrJobs(
-            id=uuid4(),
-            prescription_id=prescription.id,
+            id=job_id,
+            prescription_id=prescription_id,
             model_name="Gemini-1.5-Flash-Vision",
             model_version="v1",
             status="PROCESSING",
             started_at=now,
             created_at=now,
         )
-        db.add(job)
-        db.flush()
 
         try:
+            db.add(prescription)
+            db.flush()
+            db.add(job)
+            db.flush()
             parsed = extract_full_prescription(image_bytes, use_mock=use_mock)
             prescription.raw_ocr_text = parsed.raw_text
             prescription.healthcare_facility = parsed.facility_name
@@ -169,14 +213,45 @@ class MedicationOcrService:
                 items=items_dto,
             )
 
-        except Exception as e:
+        except Exception:
+            logger.exception("Prescription OCR processing failed for prescription_id=%s job_id=%s", prescription_id, job_id)
             db.rollback()
-            job.status = "FAILED"
-            job.error_message = str(e)
-            job.completed_at = datetime.now(timezone.utc)
-            prescription.status = "FAILED"
-            db.commit()
-            raise HTTPException(status_code=500, detail=f"Lỗi khi xử lý nhận dạng đơn thuốc: {str(e)}")
+            self.storage.delete(storage_key)
+
+            failed_at = datetime.now(timezone.utc)
+            try:
+                failed_prescription = Prescriptions(
+                    id=prescription_id,
+                    user_id=principal.id if is_user else None,
+                    guest_session_id=principal.id if is_guest else None,
+                    is_guest=is_guest,
+                    original_file_url=None,
+                    file_type=file_type,
+                    status="FAILED",
+                    source_type="IMAGE_UPLOAD",
+                    created_at=now,
+                    updated_at=failed_at,
+                )
+                failed_job = OcrJobs(
+                    id=job_id,
+                    prescription_id=prescription_id,
+                    model_name="Gemini-1.5-Flash-Vision",
+                    model_version="v1",
+                    status="FAILED",
+                    error_message="OCR_PROCESSING_FAILED",
+                    started_at=now,
+                    completed_at=failed_at,
+                    created_at=now,
+                )
+                db.add(failed_prescription)
+                db.flush()
+                db.add(failed_job)
+                db.commit()
+            except Exception:
+                logger.exception("Failed to persist FAILED status for job_id=%s", job_id)
+                db.rollback()
+
+            raise HTTPException(status_code=500, detail="Không thể xử lý nhận dạng đơn thuốc lúc này")
 
     def get_ocr_job(self, job_id: UUID, principal: Principal, db: Session) -> OcrJobResponse:
         """Fetch OCR job details ensuring ownership boundary."""
