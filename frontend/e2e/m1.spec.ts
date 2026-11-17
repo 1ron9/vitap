@@ -70,7 +70,8 @@ test("real PostgreSQL: profile, declarations, Journal atomic edit, courses and A
     .getByRole("button", { name: "Xác nhận xóa" })
     .click();
   await expect(page.getByText("Chưa khai báo tình trạng dị ứng.")).toBeVisible();
-  await page.getByRole("switch", { name: "Cho Trợ lý AI dùng hồ sơ này" }).uncheck();
+  // The switch keeps the server value while PATCH/refetch is pending.
+  await page.getByRole("switch", { name: "Cho Trợ lý AI dùng hồ sơ này" }).click();
   await expect(
     page.getByRole("switch", { name: "Cho Trợ lý AI dùng hồ sơ này" }),
   ).not.toBeChecked();
