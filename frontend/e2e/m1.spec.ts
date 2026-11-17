@@ -5,6 +5,7 @@ const password = "M1-synthetic-test-password";
 async function login(page: Page, email: string) {
   await page.getByRole("button", { name: "Đăng ký / Đăng nhập", exact: true }).click();
   const dialog = page.getByRole("dialog");
+  await dialog.getByRole("tab", { name: "Đăng nhập", exact: true }).click();
   await dialog.getByLabel("Email", { exact: true }).fill(email);
   await dialog.getByLabel("Mật khẩu", { exact: true }).fill(password);
   await dialog.getByRole("button", { name: "Đăng nhập", exact: true }).last().click();
