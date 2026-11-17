@@ -22,7 +22,11 @@ class Settings(BaseSettings):
     USE_MOCK_AI: bool = os.getenv("USE_MOCK_AI", "True").lower() == "true"
     CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
     STORAGE_ROOT: str = "./storage"
-    OLLAMA_BASE_URL: str = "http://localhost:11434"
+    OCR_MODE: str = "printed"
+    OCR_LANG: str = "vi"
+    OCR_PADDLE_DEVICE: str = "cpu"
+    OCR_TIMEOUT_SECONDS: float = 180.0
+    GEMINI_VISION_MODEL: str = "gemini-3.8-flash"
     EMBEDDING_MODEL: str = "nomic-embed-text-v2-moe"
     GEMINI_MODEL: str = "gemini-3.1-flash-lite"
     GEMINI_TIMEOUT_SECONDS: float = 1.5

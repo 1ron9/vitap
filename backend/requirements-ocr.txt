@@ -1,4 +1,5 @@
 -r requirements-runtime.txt
-# Heavy OCR dependencies belong to the worker environment.
-paddleocr
-opencv-python-headless
+# PaddleOCR 3.x API used by app.services.ocr.ocr; keep in sync with that wrapper.
+--extra-index-url https://www.paddlepaddle.org.cn/packages/stable/cpu/
+paddlepaddle==3.2.0
+paddleocr==3.3.0

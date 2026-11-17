@@ -14,7 +14,7 @@ với pgvector. Các module gọi service Python nội bộ.
 | backend/app/modules/ai_assistant | M3: hội thoại, citations, kho tri thức, RAG |
 | backend/app/shared | Principal/consent, lỗi, enum và interface service |
 | backend/app/integrations | Private storage và provider OCR/embedding/generation |
-| backend/app/workers | Durable jobs với lease/retry trên PostgreSQL |
+| backend/app/workers | Durable jobs với lease/retry trên PostgreSQL; xóa file và OCR |
 | backend/migrations | Lịch sử Alembic, nguồn tạo/nâng cấp schema |
 | frontend/src/app | Entry, routing, cấu hình ứng dụng |
 | frontend/src/features | Components/hooks theo chức năng |
@@ -36,8 +36,8 @@ phục vụ code chưa chuyển sang module.
 - Hồ sơ giữ height_cm; observations phải thuộc entry. Bệnh nền/dị ứng tự khai mới
   mặc định verified=false. Prescription tách OCR output khỏi dữ liệu review bằng
   provenance; lưu đơn không tự tạo medication course ACTIVE.
-- Storage dùng khóa opaque, service kiểm tra owner trước truy cập. Worker hiện hỗ trợ
-  DELETE_FILE; các handler OCR/TTL/deletion orchestration đang phát triển.
+- Storage dùng khóa opaque, service kiểm tra owner trước truy cập. Worker hỗ trợ
+  DELETE_FILE và PROCESS_OCR; TTL/deletion orchestration còn đang phát triển.
 
 Các interface ở `backend/app/shared/contracts.py`: HealthContextProvider, DrugResolver,
 InteractionChecker. M3 dùng context từ M1 và rule result M2; LLM không quyết định

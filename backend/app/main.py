@@ -6,6 +6,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from app.core.database import engine
 from app.modules.auth import router as m0_auth
+from app.modules.medication.router import router as medication_router
 from app.core.config import settings
 from app.shared.errors import install_error_handlers
 
@@ -27,6 +28,7 @@ app.add_middleware(
 # Gắn các Routers phân hệ VitaP
 app.include_router(m0_auth.router, prefix="/api/v1/auth", tags=["F1/E0 - Tài khoản & Hồ sơ"])
 app.include_router(m0_auth.guest_router, prefix="/api/v1", tags=["F1/E0 - Phiên Guest"])
+app.include_router(medication_router, prefix="/api/v1", tags=["F2/M2 - Số hóa Đơn thuốc & Dược phẩm"])
 
 
 install_error_handlers(app)

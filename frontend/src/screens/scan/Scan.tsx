@@ -14,6 +14,7 @@ import { emptyRow, ocrResult } from "./model";
 import type { PaperLine } from "./Prescription";
 import { Result } from "./Result";
 import { Processing, Upload } from "./Upload";
+import { processPrescriptionImage, type OcrItem, type OcrJob } from "@/api/ocr";
 
 type Step3 = {
   step: 3;
@@ -21,12 +22,36 @@ type Step3 = {
   lines: PaperLine[];
   manual: boolean;
   saveFailed?: boolean;
+  jobId?: string;
+  image?: string;
 };
 export type ScanState =
   | { step: 1; error?: "invalid" | "expired" }
-  | { step: 2; phase: "running" | "slow" | "failed"; image?: string }
+  | { step: 2; phase: "running" | "slow" | "failed"; image?: string; file?: File; error?: string }
   | Step3
-  | { step: 4; drugs: ResultDrug[]; prev?: Step3; rxId?: string };
+  | { step: 4; drugs: ResultDrug[]; prev?: Step3; rxId?: string; realOcr?: boolean };
+
+function rowsFromOcrItems(items: OcrItem[]): DrugRow[] {
+  return items.map((item) => {
+    const confidence = Math.max(0, Math.min(100, Math.round((item.confidence ?? 0) * 100)));
+    const row = emptyRow();
+    return {
+      ...row,
+      id: item.id,
+      name: item.extracted_name ?? "",
+      strength: item.extracted_strength ?? "",
+      dose: item.extracted_dosage ?? "",
+      freq: item.frequency ?? item.instructions ?? "",
+      duration: item.duration_days ? `${item.duration_days} ngày` : "",
+      conf: { name: confidence, strength: confidence, dose: confidence, freq: confidence },
+      verified: false,
+      confirmed: [],
+      line: item.item_order - 1,
+      raw: [item.extracted_name ?? "", item.extracted_strength ?? ""],
+      unresolved: item.resolution_status === "UNRESOLVED_DRUG",
+    };
+  });
+}
 
 /** Rebuild editable rows from a saved result so "Quay lại chỉnh sửa" works for history items too. */
 function rowsFromDrugs(drugs: ResultDrug[]): Step3 {
@@ -56,7 +81,6 @@ function resolveTargetPrescription(
   if (rx) {
     return { drugs: rx.drugs, rxId: rx.id };
   }
-  // Global sample fixtures are only accessible in guest or public trial flows
   if (isGuest) {
     const sampleRx = PRESCRIPTIONS.find((p) => p.id === target || p.scenario === target);
     if (sampleRx) {
@@ -100,6 +124,7 @@ function ScanInner({
   const [s, setS] = useState<ScanState>(
     initialResolved ? { step: 4, drugs: initialResolved.drugs, rxId: initialResolved.rxId } : { step: 1 }
   );
+  const ocrTask = useRef<{ file: File; promise: Promise<OcrJob> } | null>(null);
 
   useEffect(() => {
     const currentTarget = locState?.target || locState?.rxId || locState?.scenario;
@@ -110,6 +135,29 @@ function ScanInner({
       }
     }
   }, [locState?.target, locState?.rxId, locState?.scenario, prescriptions, isGuest, embedded]);
+
+  useEffect(() => {
+    if (s.step !== 2 || s.phase !== "running" || !s.file) return;
+    if (ocrTask.current?.file !== s.file) {
+      ocrTask.current = { file: s.file, promise: processPrescriptionImage(s.file, isGuest, () => undefined) };
+    }
+    if (!ocrTask.current) return;
+    const task = ocrTask.current;
+    task.promise
+      .then((job) => {
+        if (ocrTask.current?.file !== s.file) return;
+        if (!job.items.length) {
+          setS({ ...s, phase: "failed", error: "PaddleOCR hoàn tất nhưng không tìm thấy dòng thuốc trong ảnh." });
+          return;
+        }
+        setS({ step: 3, rows: rowsFromOcrItems(job.items), lines: [], manual: false, jobId: job.id, image: s.image });
+        window.scrollTo({ top: 0 });
+      })
+      .catch((error: unknown) => {
+        if (ocrTask.current?.file === s.file) setS({ ...s, phase: "failed", error: error instanceof Error ? error.message : "Lỗi xử lý OCR." });
+      });
+  }, [s, isGuest]);
+
   const [confirmLeave, setConfirmLeave] = useState(false);
   const leaveId = useId();
   const tabs = useRef<Array<HTMLButtonElement | null>>([]);
@@ -226,10 +274,9 @@ function ScanInner({
           {s.step === 1 && (
             <Upload
               error={s.error}
-              onImage={(image) => set({ step: 2, phase: "running", image })}
+              onImage={(file, image) => set({ step: 2, phase: "running", image, file })}
               onManual={() => set({ step: 3, rows: [emptyRow()], lines: [], manual: true })}
               onError={(error) => set({ step: 1, error })}
-              onSelectRx={(rx) => set({ step: 4, drugs: rx.drugs, rxId: rx.id })}
             />
           )}
           {s.step === 2 && (
@@ -241,8 +288,7 @@ function ScanInner({
                 key={s.phase}
                 phase={s.phase}
                 image={s.image}
-                onDone={() => set({ step: 3, ...ocrResult("mixed"), manual: false })}
-                onSlow={() => setS({ ...s, phase: "slow" })}
+                error={s.error}
                 onRetake={() => set({ step: 1 })}
                 onManual={() => set({ step: 3, rows: [emptyRow()], lines: [], manual: true })}
               />
@@ -257,12 +303,21 @@ function ScanInner({
                 state={s}
                 onChange={(rows) => setS({ ...s, rows })}
                 onSaveFailed={(saveFailed) => setS({ ...s, saveFailed })}
-                onDone={(drugs) => set({ step: 4, drugs, prev: { ...s, saveFailed: false } })}
+                jobId={s.jobId}
+                image={s.image}
+                onDone={(drugs) => set({ step: 4, drugs, prev: { ...s, saveFailed: false }, realOcr: Boolean(s.jobId) })}
                 embedded={embedded}
               />
             </>
           )}
-          {s.step === 4 && (
+          {s.step === 4 && s.realOcr ? (
+            <div className="rounded-xl border border-line-200 bg-surface p-6">
+              <h2 className="text-lg font-semibold text-ink-900">Đã lưu các thuốc bạn xác nhận</h2>
+              <p className="mt-1 text-sm text-ink-600">Kết quả dưới đây lấy từ ảnh bạn tải lên và các chỉnh sửa vừa xác nhận.</p>
+              <ul className="mt-4 space-y-2">{s.drugs.map((drug, index) => <li key={`${drug.name}-${index}`} className="rounded-lg bg-bg-50 p-3 text-sm"><b>{drug.name}</b>{drug.strength && ` · ${drug.strength}`}</li>)}</ul>
+              <Button className="mt-5" onClick={() => set({ step: 1 })}>Quét ảnh khác</Button>
+            </div>
+          ) : s.step === 4 && (
             <Result
               drugs={s.drugs}
               rxId={s.rxId}

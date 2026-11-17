@@ -10,7 +10,7 @@ thuốc và trợ lý thông tin y tế có dẫn nguồn.
 |---|---|---|
 | Tài khoản | Đăng ký email, JWT, refresh rotation, logout, danh tính và Guest session | Giao diện đăng ký và tự refresh phiên frontend |
 | M1 — Sức khỏe | Model/migration hồ sơ, bệnh nền, dị ứng, nhật ký, chỉ số, đợt dùng thuốc | API và giao diện nghiệp vụ |
-| M2 — Thuốc | Model/migration danh mục, prescription/OCR, private storage và worker xóa file | Upload/review/save, OCR thật, tra cứu và rule engine DDI |
+| M2 — Thuốc | Prescription OCR queue, PaddleOCR/VLM providers, private storage | UI review/save, tra cứu và rule engine DDI; chất lượng OCR cần benchmark |
 | M3 — Trợ lý | Model/migration hội thoại, vector 768 chiều, CLI kiểm tra JSONL | Ingestion, retrieval, guardrails và generation thật |
 
 Frontend dùng React/TypeScript/Vite, có đăng nhập email và routing. Các trang M1/M2/M3
@@ -40,6 +40,9 @@ docker compose exec backend python -m data_seed.seed_dev
 Seed là bước tùy chọn, nạp fixture tổng hợp và có thể chạy lặp. Với DB có sẵn,
 đọc [hướng dẫn migration](docs/development.md#database-và-migration) trước khi nâng cấp.
 
+OCR mặc định dùng PaddleOCR cho ảnh đơn in. OCR luôn chạy trên ảnh tải lên thật,
+không lấy output mẫu; xem [hướng dẫn OCR](docs/development.md#ocr-thật-local).
+
 Mở terminal thứ hai để chạy frontend:
 
 ```powershell
@@ -49,8 +52,8 @@ npm ci
 npm run dev
 ```
 
-Linux/macOS dùng `cp .env.example .env`. Frontend mặc định dùng mock; đặt
-`VITE_USE_MOCK=false` rồi khởi động lại Vite để đăng nhập backend thật. Tạo tài khoản
+Linux/macOS dùng `cp .env.example .env`. Frontend mẫu đặt `VITE_USE_MOCK=false`;
+khởi động lại Vite để gọi backend thật. Tạo tài khoản
 qua `POST /api/v1/auth/register` trong Swagger; mẫu request có trong OpenAPI.
 
 | Địa chỉ | Mục đích |
