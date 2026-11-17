@@ -93,5 +93,25 @@ và bàn giao; việc review/merge vào dev vẫn theo CONTRIBUTING.
 - DOM tests dùng real transport với HTTP được kiểm soát để kiểm chứng submit/422 giữ draft/aggregate/session races; API và PostgreSQL tests kiểm chứng persistence/ownership phía server. Browser QA mock không được coi là browser E2E với PostgreSQL.
 - Máy triển khai không có Docker/PostgreSQL local. Các kiểm tra DB/Compose dùng CI; chưa áp migration lên database người dùng.
 
+Kiểm tra local cuối đợt: backend **87 passed, 10 PostgreSQL skipped**; frontend **48 passed**,
+TypeScript, production build và OpenAPI check đạt. CI chạy thêm `frontend/e2e/m1.spec.ts`
+trên desktop/mobile Chromium với Vite real mode, API và PostgreSQL đã migrate/seed.
+Luồng E2E gồm login A → profile/condition/allergy/preferences → catalog course → Journal
+đủ 4 metric, 2 readings GLUCOSE → aggregate edit giữ IDs → reload → logout/login B với
+response A bị giữ lại. Kết quả của commit hiện hành nằm ở Checks của PR #15.
+
+Để chạy E2E thủ công, kích hoạt Python environment có backend dependencies, tạo **DB thử
+nghiệm có thể bỏ**, đặt `DATABASE_URL`/`TEST_POSTGRES_URL` tới DB đó và chạy Alembic + seed
+scenarios như trên. Từ frontend:
+
+```bash
+pnpm exec playwright install chromium
+pnpm test:e2e
+```
+
+Runner tự khởi chạy API port 8000 và Vite port 5174, buộc API dùng TEST_POSTGRES_URL;
+không tái sử dụng server đang chạy. Thử nghiệm tạo accounts/dữ liệu tổng hợp, không dùng
+database cần giữ. `pnpm test` chạy riêng unit/DOM trong src; `pnpm typecheck` kiểm tra cả E2E.
+
 Theo phạm vi đã chốt, real Dashboard charts để Đợt B; M3/rule engine cần nối policy khi triển khai
 module tương ứng. Courses không gồm medication logs/reminders. ADR vẫn Proposed cho đến khi review repo.

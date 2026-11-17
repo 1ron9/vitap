@@ -30,7 +30,7 @@ export default defineConfig({
       command: "python -m uvicorn app.main:app --host 127.0.0.1 --port 8000",
       cwd: fileURLToPath(new URL("../backend/", import.meta.url)),
       url: "http://127.0.0.1:8000/ready",
-      env: { DATABASE_URL: process.env.TEST_POSTGRES_URL },
+      env: { DATABASE_URL: process.env.TEST_POSTGRES_URL, POSTGRES_HOST: "" },
     },
     {
       command: "pnpm dev --host 127.0.0.1 --port 5174 --strictPort",
