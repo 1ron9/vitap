@@ -5,6 +5,7 @@ from starlette.exceptions import HTTPException
 from app.modules.auth.router import AuthError
 
 def install_error_handlers(app):
+    from app.modules.health.errors import HealthError
     @app.middleware("http")
     async def request_id(request, call_next):
         request.state.request_id = str(uuid4())
@@ -20,6 +21,10 @@ def install_error_handlers(app):
     @app.exception_handler(AuthError)
     async def auth(request, exc):
         return error(request, exc.status_code, exc.code, exc.message)
+
+    @app.exception_handler(HealthError)
+    async def health_error(request, exc):
+        return error(request, exc.status_code, exc.code, exc.message, exc.details)
 
     @app.exception_handler(RequestValidationError)
     async def validation(request, exc):

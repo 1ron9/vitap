@@ -31,7 +31,7 @@ if BACKEND_DIR not in sys.path:
 from app.core.database import SessionLocal, engine, Base
 from app.core.security import get_password_hash
 from app.modules.auth.models import User, UserProfile, UserConsent
-from app.modules.health.models import HealthConditions, Allergies, HealthEntries, HealthObservations
+from app.modules.health.models import HealthConditions, Allergies, HealthEntries, HealthObservations, UserHealthSettings, MedicationCourses
 from app.modules.medication.models import (
     DrugSources,
     Ingredients,
@@ -53,7 +53,8 @@ def seed_test_scenarios(db: Session) -> dict[str, str]:
     created_user_ids: dict[str, str] = {}
     password_hash = get_password_hash(STANDARD_PASSWORD)
     now_utc = datetime.now(timezone.utc)
-    today = now_utc.date()
+    vietnam = timezone(timedelta(hours=7))
+    today = now_utc.astimezone(vietnam).date()
 
     # 1. Seed Drug Source & Canonical Ingredients
     source_id = deterministic_uuid("source.synthetic")
@@ -200,7 +201,7 @@ def seed_test_scenarios(db: Session) -> dict[str, str]:
                 description="Đái tháo đường không phụ thuộc insulin, theo dõi định kỳ",
                 diagnosed_at=date(2022, 6, 15),
                 status="ACTIVE",
-                verified=True,
+                verified=False,
             )
         )
         db.add(
@@ -212,7 +213,7 @@ def seed_test_scenarios(db: Session) -> dict[str, str]:
                 description="Tăng huyết áp độ 1, kiểm soát bằng thuốc",
                 diagnosed_at=date(2021, 3, 10),
                 status="ACTIVE",
-                verified=True,
+                verified=False,
             )
         )
         db.add(
@@ -221,16 +222,18 @@ def seed_test_scenarios(db: Session) -> dict[str, str]:
                 user_id=chronic_user.id,
                 ingredient_id=ing_penicillin_id,
                 allergen_name="Penicillin",
+                allergen_type="DRUG",
                 reaction="Phát ban ngứa, mề đay toàn thân",
                 severity="MODERATE",
-                verified=True,
+                verified=False,
             )
         )
 
         # 30 days of health journal entries
         for day_offset in range(29, -1, -1):
             entry_date = today - timedelta(days=day_offset)
-            entry_dt = datetime(entry_date.year, entry_date.month, entry_date.day, 7, 30, tzinfo=timezone.utc)
+            entry_dt = min(datetime(entry_date.year, entry_date.month, entry_date.day, 7, 30, tzinfo=vietnam).astimezone(timezone.utc),
+                           now_utc - timedelta(minutes=5))
             entry_id = deterministic_uuid(f"entry.chronic.day{day_offset}")
 
             entry = HealthEntries(
@@ -287,7 +290,7 @@ def seed_test_scenarios(db: Session) -> dict[str, str]:
                 )
             )
             # Glucose
-            glu_val = 6.2 + round((day_offset % 6) * 0.16, 2)
+            glu_val = round(6.2 + (day_offset % 6) * 0.16, 2)
             db.add(
                 HealthObservations(
                     id=deterministic_uuid(f"obs.glu.day{day_offset}"),
@@ -295,19 +298,9 @@ def seed_test_scenarios(db: Session) -> dict[str, str]:
                     entry_id=entry_id,
                     observation_type="GLUCOSE",
                     value=Decimal(str(glu_val)),
+                    entered_value=Decimal(str(glu_val)) * 18 if day_offset % 2 else Decimal(str(glu_val)),
+                    entered_unit="mg/dL" if day_offset % 2 else "mmol/L",
                     unit="mmol/L",
-                    measured_at=entry_dt,
-                )
-            )
-            # SpO2
-            db.add(
-                HealthObservations(
-                    id=deterministic_uuid(f"obs.spo2.day{day_offset}"),
-                    user_id=chronic_user.id,
-                    entry_id=entry_id,
-                    observation_type="SPO2",
-                    value=Decimal("98.0"),
-                    unit="%",
                     measured_at=entry_dt,
                 )
             )
@@ -408,7 +401,7 @@ def seed_test_scenarios(db: Session) -> dict[str, str]:
                 condition_name="Bệnh tim thiếu máu cục bộ mãn tính",
                 icd10_code="I25",
                 status="ACTIVE",
-                verified=True,
+                verified=False,
                 created_at=now_utc,
                 updated_at=now_utc,
             )
@@ -420,7 +413,7 @@ def seed_test_scenarios(db: Session) -> dict[str, str]:
                 condition_name="Trào ngược dạ dày thực quản (GERD)",
                 icd10_code="K21",
                 status="ACTIVE",
-                verified=True,
+                verified=False,
                 created_at=now_utc,
                 updated_at=now_utc,
             )
@@ -518,6 +511,32 @@ def seed_test_scenarios(db: Session) -> dict[str, str]:
         # Intentionally zero conditions, zero entries, zero prescriptions
     created_user_ids[empty_email] = str(empty_user.id)
 
+    db.flush()
+    for email, user_id in created_user_ids.items():
+        owner_id = UUID(user_id)
+        if db.get(UserHealthSettings, owner_id) is None:
+            db.add(UserHealthSettings(user_id=owner_id, created_at=now_utc,
+                   allow_ai_health_context=email != ddi_email, enable_allergy_alerts=email != ddi_email,
+                   no_known_allergies_confirmed_at=now_utc if email == ddi_email else None))
+    # Explicit synthetic fixtures; never infer active medication or confirmation from an OCR save.
+    for status in ('ACTIVE', 'COMPLETED', 'STOPPED'):
+        course_id = deterministic_uuid('course.phase-a.chronic' + ('' if status == 'ACTIVE' else '.' + status))
+        if db.get(MedicationCourses, course_id) is None:
+            db.add(MedicationCourses(id=course_id, user_id=UUID(created_user_ids[chronic_email]),
+                   drug_id=drug_met_id, status=status, start_date=today - timedelta(days=7),
+                   end_date=None if status == 'ACTIVE' else today - timedelta(days=1),
+                   dosage='SYNTHETIC FIXTURE — theo đơn demo', created_at=now_utc))
+    repeated_entry_id = deterministic_uuid('entry.phase-a.multiple')
+    if db.get(HealthEntries, repeated_entry_id) is None:
+        owner_id = UUID(created_user_ids[chronic_email])
+        recorded = now_utc - timedelta(minutes=5)
+        db.add(HealthEntries(id=repeated_entry_id, user_id=owner_id, title='SYNTHETIC FIXTURE — đo lặp',
+                            recorded_at=recorded, entry_type='DAILY'))
+        db.flush()
+        for index in range(2):
+            db.add(HealthObservations(id=deterministic_uuid(f'observation.phase-a.multiple.{index}'),
+                   user_id=owner_id, entry_id=repeated_entry_id, observation_type='HEART_RATE',
+                   value=72 + index, unit='bpm', measured_at=recorded + timedelta(minutes=index), source_type='MANUAL'))
     db.commit()
     return created_user_ids
 
@@ -647,7 +666,7 @@ def main():
             user_ids = seed_test_scenarios(db)
             print(f"Successfully seeded {len(user_ids)} test personas into database: {list(user_ids.keys())}")
     except Exception as e:
-        print(f"Database seed note: Could not connect to Postgres database ({e}). Fixtures export completed.")
+        raise SystemExit('Database seed failed. Check connection, migration head and source data; no successful seed is asserted.') from e
 
 if __name__ == "__main__":
     main()

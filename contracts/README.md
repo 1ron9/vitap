@@ -1,7 +1,7 @@
 # Hợp đồng API VitaP
 
-openapi.json mô tả endpoint backend hiện triển khai: Auth, Guest và kiểm tra hạ tầng.
-Model M1/M2/M3 không đồng nghĩa API nghiệp vụ đã có; xem trạng thái trong
+openapi.json mô tả endpoint backend hiện triển khai: Auth, Guest, M1 Đợt A, OCR M2 và hạ tầng.
+Phạm vi M1 và delta với API draft: [m1-phase-a.md](../docs/m1-phase-a.md). Xem trạng thái trong
 [README](../README.md) và ranh giới module trong [ARCHITECTURE](../docs/architecture.md).
 
 ## Cập nhật
