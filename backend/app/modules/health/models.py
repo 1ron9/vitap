@@ -25,6 +25,7 @@ class Allergies(Base):
     user_id = Column(Uuid, ForeignKey("users.id"), nullable=False)
     ingredient_id = Column(Uuid, ForeignKey("ingredients.id"))
     allergen_name = Column(String(255), nullable=False)
+    allergen_type = Column(String(20))
     reaction = Column(Text)
     severity = Column(String(30))
     source_type = Column(String(30), server_default=text("'MANUAL'"))
@@ -51,6 +52,8 @@ class HealthObservations(Base):
     entry_id = Column(Uuid, ForeignKey("health_entries.id", ondelete="CASCADE"), nullable=False)
     observation_type = Column(String(50), nullable=False)
     value = Column(Numeric(12,4), nullable=False)
+    entered_value = Column(Numeric(12,4))
+    entered_unit = Column(String(30))
     secondary_value = Column(Numeric(12,4))
     unit = Column(String(30), nullable=False)
     measured_at = Column(DateTime(timezone=True), nullable=False)
@@ -90,3 +93,13 @@ class MedicationLogs(Base):
     status = Column(String(30), nullable=False)
     notes = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=text('now()'))
+
+
+class UserHealthSettings(Base):
+    __tablename__ = 'user_health_settings'
+    user_id = Column(Uuid, ForeignKey('users.id'), primary_key=True)
+    allow_ai_health_context = Column(Boolean, nullable=False, default=True, server_default=text('true'))
+    enable_allergy_alerts = Column(Boolean, nullable=False, default=True, server_default=text('true'))
+    no_known_allergies_confirmed_at = Column(DateTime(timezone=True))
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=text('now()'))
+    updated_at = Column(DateTime(timezone=True))

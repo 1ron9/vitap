@@ -31,7 +31,7 @@ if BACKEND_DIR not in sys.path:
 from app.core.database import SessionLocal, engine, Base
 from app.core.security import get_password_hash
 from app.modules.auth.models import User, UserProfile, UserConsent
-from app.modules.health.models import HealthConditions, Allergies, HealthEntries, HealthObservations
+from app.modules.health.models import HealthConditions, Allergies, HealthEntries, HealthObservations, UserHealthSettings, MedicationCourses
 from app.modules.medication.models import (
     DrugSources,
     Ingredients,
@@ -221,6 +221,7 @@ def seed_test_scenarios(db: Session) -> dict[str, str]:
                 user_id=chronic_user.id,
                 ingredient_id=ing_penicillin_id,
                 allergen_name="Penicillin",
+                allergen_type="DRUG",
                 reaction="Phát ban ngứa, mề đay toàn thân",
                 severity="MODERATE",
                 verified=True,
@@ -295,19 +296,9 @@ def seed_test_scenarios(db: Session) -> dict[str, str]:
                     entry_id=entry_id,
                     observation_type="GLUCOSE",
                     value=Decimal(str(glu_val)),
+                    entered_value=Decimal(str(glu_val)) * 18 if day_offset % 2 else Decimal(str(glu_val)),
+                    entered_unit="mg/dL" if day_offset % 2 else "mmol/L",
                     unit="mmol/L",
-                    measured_at=entry_dt,
-                )
-            )
-            # SpO2
-            db.add(
-                HealthObservations(
-                    id=deterministic_uuid(f"obs.spo2.day{day_offset}"),
-                    user_id=chronic_user.id,
-                    entry_id=entry_id,
-                    observation_type="SPO2",
-                    value=Decimal("98.0"),
-                    unit="%",
                     measured_at=entry_dt,
                 )
             )
@@ -518,6 +509,32 @@ def seed_test_scenarios(db: Session) -> dict[str, str]:
         # Intentionally zero conditions, zero entries, zero prescriptions
     created_user_ids[empty_email] = str(empty_user.id)
 
+    db.flush()
+    for email, user_id in created_user_ids.items():
+        owner_id = UUID(user_id)
+        if db.get(UserHealthSettings, owner_id) is None:
+            db.add(UserHealthSettings(user_id=owner_id, created_at=now_utc,
+                   allow_ai_health_context=email != ddi_email, enable_allergy_alerts=email != ddi_email,
+                   no_known_allergies_confirmed_at=now_utc if email == ddi_email else None))
+    # Explicit synthetic fixtures; never infer active medication or confirmation from an OCR save.
+    for status in ('ACTIVE', 'COMPLETED', 'STOPPED'):
+        course_id = deterministic_uuid('course.phase-a.chronic' + ('' if status == 'ACTIVE' else '.' + status))
+        if db.get(MedicationCourses, course_id) is None:
+            db.add(MedicationCourses(id=course_id, user_id=UUID(created_user_ids[chronic_email]),
+                   drug_id=drug_met_id, status=status, start_date=today - timedelta(days=7),
+                   end_date=None if status == 'ACTIVE' else today - timedelta(days=1),
+                   dosage='SYNTHETIC FIXTURE — theo đơn demo', created_at=now_utc))
+    repeated_entry_id = deterministic_uuid('entry.phase-a.multiple')
+    if db.get(HealthEntries, repeated_entry_id) is None:
+        owner_id = UUID(created_user_ids[chronic_email])
+        recorded = now_utc - timedelta(minutes=5)
+        db.add(HealthEntries(id=repeated_entry_id, user_id=owner_id, title='SYNTHETIC FIXTURE — đo lặp',
+                            recorded_at=recorded, entry_type='DAILY'))
+        db.flush()
+        for index in range(2):
+            db.add(HealthObservations(id=deterministic_uuid(f'observation.phase-a.multiple.{index}'),
+                   user_id=owner_id, entry_id=repeated_entry_id, observation_type='HEART_RATE',
+                   value=72 + index, unit='bpm', measured_at=recorded + timedelta(minutes=index), source_type='MANUAL'))
     db.commit()
     return created_user_ids
 
@@ -647,7 +664,7 @@ def main():
             user_ids = seed_test_scenarios(db)
             print(f"Successfully seeded {len(user_ids)} test personas into database: {list(user_ids.keys())}")
     except Exception as e:
-        print(f"Database seed note: Could not connect to Postgres database ({e}). Fixtures export completed.")
+        raise SystemExit('Database seed failed. Check connection, migration head and source data; no successful seed is asserted.') from e
 
 if __name__ == "__main__":
     main()

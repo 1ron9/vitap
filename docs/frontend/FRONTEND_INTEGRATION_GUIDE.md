@@ -1,5 +1,8 @@
 # HƯỚNG DẪN KIỂM THỬ, VẬN HÀNH VÀ BÀN GIAO FRONTEND UI (VITAP WEB APP)
 
+> **Cập nhật M1 Đợt A (17/11/2026):** hướng dẫn hiện hành ở [m1-phase-a.md](../m1-phase-a.md).
+> M1 đã có backend module `app/modules/health`, phone/type/declaration/preferences/courses và Journal atomic theo quyết định người dùng. Các mục “chưa làm” M1, đề xuất `app/routers/profile.py` hoặc `/health/metrics` bên dưới là lịch sử bàn giao UI cũ, đã được contract mới thay thế. Chạy pnpm; real mode không lấy health data từ localStorage.
+
 > **Vị trí file:** `docs/frontend/FRONTEND_INTEGRATION_GUIDE.md`  
 > **Nhánh Git phụ trách:** `feat/fe-figma-migration`  
 > **Phiên bản:** v1.0.0 (Cập nhật ngày 14/11/2026)  

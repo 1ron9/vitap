@@ -20,7 +20,7 @@ def test_migration_matches_model_columns(engine):
         actual={c['name'] for c in inspector.get_columns(table.name)}
         assert actual == set(table.columns.keys()), table.name
     with engine.connect() as db:
-        assert db.scalar(text('SELECT version_num FROM alembic_version')) == '20261111_dev_v3_1'
+        assert db.scalar(text('SELECT version_num FROM alembic_version')) == '20261117_m1_phase_a'
         assert db.scalar(text("SELECT atttypmod FROM pg_attribute WHERE attrelid='knowledge_chunks'::regclass AND attname='embedding'")) == 768
 
 def test_constraints_on_real_database(engine):

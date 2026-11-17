@@ -7,6 +7,7 @@
 | Giới thiệu, trạng thái chức năng và khởi động nhanh | [README dự án](../README.md) |
 | Tìm tài liệu nhóm trên Drive, đọc theo module, cập nhật khi upload | [DRIVE_GUIDE.md](DRIVE_GUIDE.md) |
 | Kiến trúc và ranh giới module | [architecture.md](architecture.md) |
+| M1 Đợt A, contract và kịch bản nghiệm thu | [m1-phase-a.md](m1-phase-a.md) |
 | Cấu hình, migration, worker và kiểm thử | [development.md](development.md) |
 | Làm task và mở PR theo quy trình dev → main | [CONTRIBUTING](../CONTRIBUTING.md) |
 | Hợp đồng API đã triển khai | [Hướng dẫn contract](../contracts/README.md), [OpenAPI](../contracts/openapi.json) |

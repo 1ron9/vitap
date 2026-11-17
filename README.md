@@ -8,19 +8,19 @@ thuốc và trợ lý thông tin y tế có dẫn nguồn.
 
 | Phân hệ | Hiện có | Đang phát triển |
 |---|---|---|
-| Tài khoản | Đăng ký email, JWT, refresh rotation, logout, danh tính và Guest session | Giao diện đăng ký và tự refresh phiên frontend |
-| M1 — Sức khỏe | Model/migration hồ sơ, bệnh nền, dị ứng, nhật ký, chỉ số, đợt dùng thuốc | API và giao diện nghiệp vụ |
+| Tài khoản | Đăng ký/đăng nhập UI, JWT, refresh rotation, logout, Guest và khôi phục phiên | Bảo mật nâng cao ngoài MVP |
+| M1 — Sức khỏe | API/UI hồ sơ, bệnh nền/dị ứng, 4 chỉ số Journal, lưu atomic, preferences và medication courses | Biểu đồ dữ liệu thật ở Đợt B |
 | M2 — Thuốc | Prescription OCR queue, PaddleOCR/VLM providers, private storage | UI review/save, tra cứu và rule engine DDI; chất lượng OCR cần benchmark |
 | M3 — Trợ lý | Model/migration hội thoại, vector 768 chiều, CLI kiểm tra JSONL | Ingestion, retrieval, guardrails và generation thật |
 
-Frontend dùng React/TypeScript/Vite, có đăng nhập email và routing. Các trang M1/M2/M3
-hiện thông báo đang phát triển. Fixture và prototype sandbox chỉ phục vụ thử nghiệm,
+Frontend dùng React/TypeScript/Vite. M1 chạy API thật hoặc mock adapter tách riêng;
+đọc [hướng dẫn Đợt A](docs/m1-phase-a.md). Fixture và prototype sandbox chỉ phục vụ thử nghiệm,
 không phải bằng chứng y khoa.
 
 ## Chạy dự án
 
 Yêu cầu Git, Docker Engine/Desktop với Linux containers và Compose v2 hỗ trợ `up --wait`.
-Frontend dùng Node >=22.12 và npm; CI dùng Python 3.11 và Node 22.13.
+Frontend dùng Node >=22.12 và pnpm theo package.json; CI dùng Python 3.11 và Node 22.13.
 
 Tại gốc repo, tạo cấu hình local:
 
@@ -48,13 +48,13 @@ Mở terminal thứ hai để chạy frontend:
 ```powershell
 cd frontend
 Copy-Item .env.example .env
-npm ci
-npm run dev
+pnpm install --frozen-lockfile
+pnpm dev
 ```
 
 Linux/macOS dùng `cp .env.example .env`. Frontend mẫu đặt `VITE_USE_MOCK=false`;
-khởi động lại Vite để gọi backend thật. Tạo tài khoản
-qua `POST /api/v1/auth/register` trong Swagger; mẫu request có trong OpenAPI.
+đổi true và khởi động lại Vite để dùng offline preview. Tạo tài khoản trên UI
+hoặc `POST /api/v1/auth/register` trong Swagger; mẫu request có trong OpenAPI.
 
 | Địa chỉ | Mục đích |
 |---|---|
@@ -63,8 +63,8 @@ qua `POST /api/v1/auth/register` trong Swagger; mẫu request có trong OpenAPI.
 | http://localhost:8000/health | Kiểm tra process backend |
 | http://localhost:8000/ready | Kiểm tra PostgreSQL/pgvector |
 
-`/ready` không xác nhận schema nghiệp vụ đã migrate. PostgreSQL trong Compose không
-publish cổng host; backend kết nối bằng hostname `db`.
+`/ready` không xác nhận schema nghiệp vụ đã migrate. PostgreSQL trong Compose publish
+`127.0.0.1:5432`; backend kết nối bằng hostname `db`.
 
 ## Tài liệu
 

@@ -23,7 +23,8 @@ với pgvector. Các module gọi service Python nội bộ.
 | data/fixtures, data/manifests | Fixture nhỏ và metadata nguồn/coverage |
 
 Bổ sung router, schemas, services và repositories trong từng module theo nhu cầu.
-Model M1/M2/M3 đã có nhưng API nghiệp vụ vẫn đang phát triển. Prototype trong legacy
+M1 Đợt A có API/UI, transaction và policy server theo [m1-phase-a.md](m1-phase-a.md).
+M2/M3 còn các phần tích hợp tiếp theo. Prototype trong legacy
 và sandbox không được đăng ký làm API thật; compatibility imports ở đường dẫn cũ
 phục vụ code chưa chuyển sang module.
 

@@ -35,6 +35,7 @@ docs/_exports/
 .superpowers/
 *.tsbuildinfo
 backend/storage/
+/storage/
 .setup_build.py
 .repo_admin.py
 data/raw/
