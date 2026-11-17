@@ -107,6 +107,18 @@ def test_atomic_rollback_precision_and_cascade(pg):
             assert db.scalar(text('SELECT count(*) FROM health_observations WHERE id=:id'),{'id':UUID(rid)})==0
 
 
+def test_phase_a_persona_seed_on_postgres(pg):
+    from data_seed.seed_test_scenarios import seed_test_scenarios
+    engine, _, _ = pg
+    with Session(engine) as db:
+        ids = seed_test_scenarios(db)
+        readings = db.query(HealthObservations).filter_by(user_id=UUID(ids['patient.chronic@vitap.vn'])).all()
+        before = len(readings)
+        assert {r.entered_unit for r in readings if r.observation_type == 'GLUCOSE'} == {'mmol/L','mg/dL'}
+        seed_test_scenarios(db)
+        assert db.query(HealthObservations).filter_by(user_id=UUID(ids['patient.chronic@vitap.vn'])).count() == before
+
+
 def test_declaration_races_with_add(pg):
     engine,owner,h=pg
     barrier=Barrier(2)

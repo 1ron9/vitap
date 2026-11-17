@@ -36,6 +36,8 @@ docs/_exports/
 *.tsbuildinfo
 backend/storage/
 /storage/
+frontend/playwright-report/
+frontend/test-results/
 .setup_build.py
 .repo_admin.py
 data/raw/

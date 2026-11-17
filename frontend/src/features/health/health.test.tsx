@@ -15,6 +15,7 @@ import { authApi } from "@/api/client";
 import { api, setCredentials, getCredentials } from "@/shared/api";
 import { RealProfile } from "./Profile";
 import { RealJournal, aggregateCommand } from "./Journal";
+import { Courses } from "./courses";
 import { dayBounds, localDateTime, toUtc } from "./time";
 import type { Entry } from "./types";
 
@@ -114,6 +115,85 @@ describe("M1 real UI", () => {
     await screen.findByText("Đăng nhập để quản lý sức khỏe");
     expect(fetcher).not.toHaveBeenCalled();
     expect(screen.queryByRole("button", { name: "Chỉnh sửa thông tin cá nhân" })).toBeNull();
+  });
+
+  it("keeps a new entry draft and warns about uncertain saves without replaying POST on connection loss", async () => {
+    const posts: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (url.endsWith("/auth/me")) return json(user);
+        if (init?.method === "POST") {
+          posts.push(url);
+          throw new TypeError("Failed to fetch");
+        }
+        return json(empty);
+      }),
+    );
+    await establishSession(pair);
+    mount(<RealJournal />);
+    await userEvent.click(screen.getByRole("button", { name: "Thêm ghi chép" }));
+    await userEvent.type(screen.getByLabelText("Tiêu đề"), "Giữ bản nháp này");
+    await userEvent.click(screen.getByRole("button", { name: "Lưu ghi chép" }));
+    await screen.findByText(/chưa xác định yêu cầu đã được lưu/);
+    expect(posts).toHaveLength(1);
+    expect((screen.getByLabelText("Tiêu đề") as HTMLInputElement).value).toBe("Giữ bản nháp này");
+  });
+
+  it("confirms a catalog course, completes it and reads terminal history from API", async () => {
+    const writes: { method: string; body: any }[] = [];
+    let course: any;
+    const drug = {
+      drug_id: "drug-id",
+      brand_name: "QA Catalog",
+      strength: "5 mg",
+      prescription_item_id: null,
+      dosage: null,
+      frequency: null,
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (url.endsWith("/auth/me")) return json(user);
+        if (url.includes("/medication-course-options")) return json({ ...empty, items: [drug] });
+        if (init?.method === "POST" || init?.method === "PATCH") {
+          const body = JSON.parse(String(init.body));
+          writes.push({ method: init.method, body });
+          course = {
+            ...drug,
+            ...course,
+            ...body,
+            id: "course-id",
+            status: body.status || "ACTIVE",
+          };
+          return json(course, init.method === "POST" ? 201 : 200);
+        }
+        const status = new URL(url, "http://test").searchParams.get("status");
+        const items = course?.status === status ? [course] : [];
+        return json({ items, pagination: { page: 1, page_size: 20, total: items.length } });
+      }),
+    );
+    await establishSession(pair);
+    mount(<Courses />);
+    await userEvent.click(screen.getByRole("button", { name: "Bắt đầu đợt dùng thuốc" }));
+    await userEvent.click(await screen.findByRole("radio", { name: "QA Catalog 5 mg" }));
+    await userEvent.type(screen.getByLabelText("Liều dùng đã được chỉ định"), "Theo đơn QA");
+    await userEvent.click(screen.getByRole("checkbox"));
+    await userEvent.click(screen.getByRole("button", { name: "Xác nhận đang dùng" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Ghi nhận kết thúc / dừng" }));
+    await userEvent.click(screen.getByRole("button", { name: "Xác nhận kết thúc" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("button", { name: "Ghi nhận kết thúc / dừng" })).toBeNull(),
+    );
+    await userEvent.selectOptions(screen.getByLabelText("Lịch sử đợt dùng"), "COMPLETED");
+    await screen.findByText("QA Catalog 5 mg");
+    expect(writes).toEqual([
+      {
+        method: "POST",
+        body: expect.objectContaining({ drug_id: "drug-id", dosage: "Theo đơn QA" }),
+      },
+      { method: "PATCH", body: expect.objectContaining({ status: "COMPLETED" }) },
+    ]);
   });
 
   it("edits a journal with exactly one aggregate request; preserves input on rollback", async () => {

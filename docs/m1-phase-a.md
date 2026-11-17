@@ -81,3 +81,17 @@ Courses không tự tạo từ OCR/save. UI yêu cầu chọn thuốc và xác n
 9. Check mobile/desktop, labels/focus và thao tác bàn phím. Browser QA thực tế ghi riêng, DOM tests không thay thế visual QA.
 
 Lệnh kiểm tra: Pytest backend; PostgreSQL integration trên DB disposable đã migrate; `python scripts/export_openapi.py --check`; frontend `pnpm typecheck`, `pnpm test`, `pnpm build`. CI có thêm Compose smoke. Ghi rõ tests skip nếu thiếu TEST_POSTGRES_URL, không coi SQLite là kiểm chứng PostgreSQL.
+
+## Bằng chứng triển khai
+
+Nhánh `codex/m1-phase-a`, [PR #15 vào dev](https://github.com/1ron9/vitap/pull/15). Base triển khai: `a0b6c35a`.
+M1-01…M1-14 và M1-A17…M1-A19 đã có code, contract và kiểm thử. M1-15/16 gồm nghiệm thu
+và bàn giao; việc review/merge vào dev vẫn theo CONTRIBUTING.
+
+- [CI của commit triển khai đầu tiên](https://github.com/1ron9/vitap/actions/runs/44132045257): cả 4 job đạt, gồm PostgreSQL 16 + pgvector, Alembic upgrade chạy lặp, migration/backfill giữ legacy, transaction/row-lock/cascade/precision, OpenAPI và Compose persistence/recovery.
+- Browser QA 18/11/2026: Chrome headless, viewport 1440×1000 và 390×844. Profile và Journal không tràn ngang; kiểm tra form, labels, focus và navigation. Lưu/reload Profile, confirm/add/delete allergy, toggle/reload preferences, thêm condition, Journal title-only/reload, catalog course ACTIVE→COMPLETED/reload đều đạt trong mock mode riêng. Ảnh QA ở `docs/_exports/qa-*.png` (không commit dữ liệu trình duyệt).
+- DOM tests dùng real transport với HTTP được kiểm soát để kiểm chứng submit/422 giữ draft/aggregate/session races; API và PostgreSQL tests kiểm chứng persistence/ownership phía server. Browser QA mock không được coi là browser E2E với PostgreSQL.
+- Máy triển khai không có Docker/PostgreSQL local. Các kiểm tra DB/Compose dùng CI; chưa áp migration lên database người dùng.
+
+Theo phạm vi đã chốt, real Dashboard charts để Đợt B; M3/rule engine cần nối policy khi triển khai
+module tương ứng. Courses không gồm medication logs/reminders. ADR vẫn Proposed cho đến khi review repo.

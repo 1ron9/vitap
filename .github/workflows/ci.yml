@@ -121,3 +121,25 @@ jobs:
       - run: pytest tests/integration -q
         working-directory: backend
       - run: python scripts/export_openapi.py --check
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Install browser test dependencies
+        working-directory: frontend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+      - name: M1 browser E2E against real PostgreSQL
+        working-directory: frontend
+        run: pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: m1-browser-failure
+          path: frontend/test-results/
+          retention-days: 7

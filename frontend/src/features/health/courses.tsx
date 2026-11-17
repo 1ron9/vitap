@@ -197,8 +197,8 @@ function CourseForm({ onClose }: { onClose: () => void }) {
         {!options.data?.items.length && (
           <p>
             {source === "items"
-              ? "Chưa có khoản mục thuộc đơn CONFIRMED và đã nhận diện. Bạn có thể chọn từ danh mục thuốc."
-              : "Không có thuốc phù hợp trong danh mục backend."}
+              ? "Chưa có thuốc đủ thông tin từ đơn đã xác nhận. Bạn có thể chọn từ danh mục thuốc."
+              : "Không có thuốc phù hợp trong danh mục."}
           </p>
         )}
         {(page > 1 || (options.data?.pagination.total || 0) > 20) && (

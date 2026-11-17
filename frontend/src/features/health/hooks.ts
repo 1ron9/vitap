@@ -12,14 +12,23 @@ export function invalidateHealth(path: string) {
   subscribers.forEach((fn) => fn());
 }
 export async function healthMutation<T>(path: string, method: string, body?: unknown): Promise<T> {
-  const result = mockMode
-    ? await mockHealthApi<T>(path, method, body)
-    : await api<T>(`/health${path}`, {
-        method,
-        body: body === undefined ? undefined : JSON.stringify(body),
-      });
-  invalidateHealth(path);
-  return result;
+  try {
+    const result = mockMode
+      ? await mockHealthApi<T>(path, method, body)
+      : await api<T>(`/health${path}`, {
+          method,
+          body: body === undefined ? undefined : JSON.stringify(body),
+        });
+    invalidateHealth(path);
+    return result;
+  } catch (error) {
+    if (error instanceof TypeError && !mockMode) {
+      throw new Error(
+        "Mất kết nối nên chưa xác định yêu cầu đã được lưu hay chưa. Dữ liệu nhập vẫn được giữ; hãy kiểm tra lại danh sách trước khi gửi lại.",
+      );
+    }
+    throw error;
+  }
 }
 export function useHealthQuery<T>(path: string | null) {
   const session = useSession();

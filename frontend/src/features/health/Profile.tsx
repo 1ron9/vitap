@@ -13,6 +13,12 @@ function dataOf(event: FormEvent<HTMLFormElement>) {
   return Object.fromEntries(new FormData(event.currentTarget)) as Record<string, string>;
 }
 const nullable = (x: string) => x.trim() || null;
+const sexLabels: Record<string, string> = {
+  MALE: "Nam",
+  FEMALE: "Nữ",
+  OTHER: "Khác",
+  UNKNOWN: "Không rõ",
+};
 
 function PersonalProfile() {
   const query = useHealthQuery<Profile>("/profile"),
@@ -110,7 +116,7 @@ function PersonalProfile() {
               <p>{query.data.full_name || "Chưa cập nhật họ tên"}</p>
               <p>
                 Ngày sinh: {query.data.date_of_birth || "—"} · Giới tính:{" "}
-                {query.data.biological_sex || "—"}
+                {sexLabels[query.data.biological_sex || ""] || "—"}
               </p>
               <p>
                 Số điện thoại: {query.data.phone || "—"} · Chiều cao: {query.data.height_cm ?? "—"}{" "}
@@ -455,8 +461,7 @@ function HealthPreferences() {
           ))}
       </QueryState>
       <p className="text-sm text-ink-600">
-        Thiết lập ngữ cảnh hồ sơ không thay đổi consent xử lý OCR. Kết nối chatbot/rule engine được
-        hoàn thiện ở phân hệ tương ứng.
+        Bạn có thể thay đổi quyền sử dụng hồ sơ và cảnh báo dị ứng bất cứ lúc nào.
       </p>
       <Failure error={action.error} />
     </Card>

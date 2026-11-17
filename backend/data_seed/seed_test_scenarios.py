@@ -53,7 +53,8 @@ def seed_test_scenarios(db: Session) -> dict[str, str]:
     created_user_ids: dict[str, str] = {}
     password_hash = get_password_hash(STANDARD_PASSWORD)
     now_utc = datetime.now(timezone.utc)
-    today = now_utc.date()
+    vietnam = timezone(timedelta(hours=7))
+    today = now_utc.astimezone(vietnam).date()
 
     # 1. Seed Drug Source & Canonical Ingredients
     source_id = deterministic_uuid("source.synthetic")
@@ -200,7 +201,7 @@ def seed_test_scenarios(db: Session) -> dict[str, str]:
                 description="Đái tháo đường không phụ thuộc insulin, theo dõi định kỳ",
                 diagnosed_at=date(2022, 6, 15),
                 status="ACTIVE",
-                verified=True,
+                verified=False,
             )
         )
         db.add(
@@ -212,7 +213,7 @@ def seed_test_scenarios(db: Session) -> dict[str, str]:
                 description="Tăng huyết áp độ 1, kiểm soát bằng thuốc",
                 diagnosed_at=date(2021, 3, 10),
                 status="ACTIVE",
-                verified=True,
+                verified=False,
             )
         )
         db.add(
@@ -224,14 +225,15 @@ def seed_test_scenarios(db: Session) -> dict[str, str]:
                 allergen_type="DRUG",
                 reaction="Phát ban ngứa, mề đay toàn thân",
                 severity="MODERATE",
-                verified=True,
+                verified=False,
             )
         )
 
         # 30 days of health journal entries
         for day_offset in range(29, -1, -1):
             entry_date = today - timedelta(days=day_offset)
-            entry_dt = datetime(entry_date.year, entry_date.month, entry_date.day, 7, 30, tzinfo=timezone.utc)
+            entry_dt = min(datetime(entry_date.year, entry_date.month, entry_date.day, 7, 30, tzinfo=vietnam).astimezone(timezone.utc),
+                           now_utc - timedelta(minutes=5))
             entry_id = deterministic_uuid(f"entry.chronic.day{day_offset}")
 
             entry = HealthEntries(
@@ -288,7 +290,7 @@ def seed_test_scenarios(db: Session) -> dict[str, str]:
                 )
             )
             # Glucose
-            glu_val = 6.2 + round((day_offset % 6) * 0.16, 2)
+            glu_val = round(6.2 + (day_offset % 6) * 0.16, 2)
             db.add(
                 HealthObservations(
                     id=deterministic_uuid(f"obs.glu.day{day_offset}"),
@@ -399,7 +401,7 @@ def seed_test_scenarios(db: Session) -> dict[str, str]:
                 condition_name="Bệnh tim thiếu máu cục bộ mãn tính",
                 icd10_code="I25",
                 status="ACTIVE",
-                verified=True,
+                verified=False,
                 created_at=now_utc,
                 updated_at=now_utc,
             )
@@ -411,7 +413,7 @@ def seed_test_scenarios(db: Session) -> dict[str, str]:
                 condition_name="Trào ngược dạ dày thực quản (GERD)",
                 icd10_code="K21",
                 status="ACTIVE",
-                verified=True,
+                verified=False,
                 created_at=now_utc,
                 updated_at=now_utc,
             )
