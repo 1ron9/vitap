@@ -12,10 +12,10 @@ class AiAssistantSettings(BaseSettings):
 
     # --- Hạ tầng ---
     database_url: str | None = None  # chỉ dùng cho CLI nạp dữ liệu, dạng postgresql+asyncpg://...
-    ollama_base_url: str = "http://localhost:11434"
+    ollama_base_url: str = "https://vowel-clerk-elope.ngrok-free.dev"
 
     # --- Embedding (§4.2) ---
-    embedding_model: str = "nomic-embed-text-v2"
+    embedding_model: str = "nomic-embed-text-v2-moe"
     embedding_dim: int = 768
 
     # --- Hybrid retrieval (§5.1) ---
@@ -27,7 +27,7 @@ class AiAssistantSettings(BaseSettings):
 
     # --- Reranker (§5.2) ---
     reranker_url: str | None = Field(
-        default=None, validation_alias=AliasChoices("KAGGLE_RERANKER_NGROK_URL", "RERANKER_URL")
+        default=None, validation_alias=AliasChoices("OLLAMA_BASE_URL", "RERANKER_URL")
     )
     reranker_timeout_s: float = 3.0
     min_rerank_score: float = 0.35  # (cần benchmark — Phong)
@@ -40,15 +40,15 @@ class AiAssistantSettings(BaseSettings):
         default=None, validation_alias=AliasChoices("GEMINI_API_KEY", "GOOGLE_API_KEY")
     )
     primary_llm_model: str = "gemini-3.1-flash-lite"
-    primary_llm_timeout_s: float = 8.0
+    primary_llm_timeout_s: float = 15.0
     fallback_llm_model: str = "medgemma"
-    fallback_llm_timeout_s: float = 15.0
+    fallback_llm_timeout_s: float = 25.0
     kaggle_medgemma_ngrok_url: str | None = None
     llm_temperature: float = 0.1
 
     # --- API / an toàn ---
     max_message_chars: int = 2000
-    rate_limit_per_minute: int = 15
+    rate_limit_per_minute: int = 5
     history_turns: int = 6
     max_selected_drugs: int = 10
     max_drug_candidates: int = 12
