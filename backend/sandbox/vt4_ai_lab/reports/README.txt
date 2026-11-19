@@ -1,0 +1,1 @@
+Field `answer_relevance` by default generated as `NaN`, it was replaced by `null` instead for JSON file

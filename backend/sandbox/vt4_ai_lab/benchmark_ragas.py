@@ -249,6 +249,8 @@ async def run_benchmark_async(input_path: Path, output_path: Path, limit: int | 
         print(f"[{idx}/{len(qa_items)}] Evaluating {item['id']} ({item['category']})...", flush=True)
         rec = await _evaluate_single_item(item, input_guard, output_guard, engine)
         rec["status_match"] = rec["predicted_status"] == rec["expected_status"]
+
+        time.sleep(60 / get_settings().rate_limit_per_minute)  # politeness
         evaluated_records.append(rec)
 
     ragas_scores = _evaluate_with_ragas(evaluated_records, settings)

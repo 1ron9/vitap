@@ -1,8 +1,8 @@
 {
   "milestone": "Milestone 3 – RAG Golden QA Dataset & Ragas Benchmark",
-  "generated_at": "2026-11-15T16:19:28.199105+00:00",
+  "generated_at": "2026-11-19T06:25:49.434781+00:00",
   "evaluation_engine": "ragas_llm_judge (gemini-3.1-flash-lite)",
-  "dataset_path": "sandbox/vt4_ai_lab/golden_qa_50.json",
+  "dataset_path": "backend/sandbox/vt4_ai_lab/golden_qa_50.json",
   "total_samples": 50,
   "targets": {
     "faithfulness": 0.9,
@@ -12,11 +12,11 @@
     "emergency_max_latency_ms": 20.0
   },
   "summary_metrics": {
-    "faithfulness": 0.5255,
-    "answer_relevance": 0.7223,
+    "faithfulness": 0.615,
+    "answer_relevance": 0.8148,
     "context_precision": 0.9333,
     "abstention_accuracy": 1.0,
-    "emergency_max_latency_ms": 0.208
+    "emergency_max_latency_ms": 0.353
   },
   "acceptance_checks": {
     "faithfulness_pass": false,
@@ -30,8 +30,8 @@
   "category_breakdown": {
     "GROUNDED_MEDLINEPLUS": {
       "total": 20,
-      "status_matched": 16,
-      "accuracy": 0.8
+      "status_matched": 19,
+      "accuracy": 0.95
     },
     "OUT_OF_KB": {
       "total": 10,
@@ -54,7 +54,7 @@
       "id": "GQA-01",
       "category": "GROUNDED_MEDLINEPLUS",
       "question": "Xét nghiệm HbA1c là gì và chỉ số bao nhiêu được coi là tiền tiểu đường?",
-      "answer": "Xét nghiệm HbA1c (còn gọi là A1C hoặc Glycohemoglobin) là xét nghiệm máu dùng để chẩn đoán bệnh tiểu đường loại 2 và tiền tiểu đường [1]. Xét nghiệm này đo lường mức đường huyết trung bình của bạn trong khoảng thời gian 3 tháng qua [1].\n\nTheo các tiêu chuẩn y khoa, chỉ số HbA1c được phân loại như sau:\n- Bình thường: dưới 5,7% [1].\n- Tiền tiểu đường: từ 5,7% đến 6,4% [1].\n- Tiểu đường loại 2: từ 6,5% trở lên [1].\n\nNếu bạn có kết quả xét nghiệm nằm trong ngưỡng tiền tiểu đường hoặc tiểu đường, hãy tham vấn bác sĩ chuyên khoa để được tư vấn về chế độ ăn uống, lối sống hoặc các biện pháp can thiệp y tế phù hợp.",
+      "answer": "Xét nghiệm HbA1c (còn gọi là A1C hoặc Glycohemoglobin) là xét nghiệm máu dùng để chẩn đoán bệnh tiểu đường loại 2 và tiền tiểu đường [1]. Xét nghiệm này giúp đo lường mức đường huyết trung bình của bạn trong khoảng thời gian 3 tháng gần nhất [1].\n\nTheo các tiêu chuẩn y khoa, chỉ số HbA1c được phân loại như sau:\n- Bình thường: dưới 5,7% [1].\n- Tiền tiểu đường: từ 5,7% đến 6,4% [1].\n- Tiểu đường loại 2: từ 6,5% trở lên [1].\n\nNếu bạn nhận được kết quả nằm trong ngưỡng tiền tiểu đường hoặc tiểu đường, hãy tham vấn bác sĩ chuyên khoa để được tư vấn về kế hoạch theo dõi và quản lý sức khỏe phù hợp.",
       "contexts": [
         "[Tài liệu: A1C | Tên khác: HbA1C, Glycohemoglobin | Nhóm: Diabetes Mellitus]\nNội dung: A1C is a blood test for type 2 diabetes and prediabetes. It measures your average blood glucose over the past 3 months. Normal: below 5.7%. Prediabetes: 5.7% to 6.4%. Type 2 diabetes: 6.5% or above."
       ],
@@ -64,20 +64,20 @@
       "predicted_warning_level": "INFO",
       "expected_warning_level": "INFO",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 6218.132,
+      "latency_ms": 3269.099,
       "violations": [],
       "status_match": true,
       "faithfulness": 0.75,
-      "answer_relevance": 0.8032,
+      "answer_relevance": 0.8791,
       "context_precision": 1.0
     },
     {
       "id": "GQA-02",
       "category": "GROUNDED_MEDLINEPLUS",
       "question": "Những đối tượng nào tuyệt đối không nên uống rượu bia theo khuyến cáo y tế?",
-      "answer": "Theo các khuyến cáo y tế, một số đối tượng không nên uống rượu bia bao gồm [1]:\n\n- Phụ nữ đang mang thai hoặc đang có kế hoạch mang thai [1].\n- Những người đang sử dụng các loại thuốc có khả năng tương tác với rượu [1].\n- Những người mắc một số tình trạng bệnh lý nhất định [1].\n- Những người có kế hoạch lái xe hoặc vận hành máy móc [1].\n\nNếu bạn thuộc các nhóm đối tượng trên hoặc đang lo ngại về việc sử dụng rượu bia, hãy tham vấn ý kiến bác sĩ hoặc dược sĩ để được tư vấn cụ thể cho tình trạng sức khỏe của bạn.",
+      "answer": "Theo các khuyến cáo y tế, một số nhóm đối tượng không nên sử dụng rượu bia để đảm bảo an toàn sức khỏe, bao gồm [1]:\n\n- Phụ nữ đang mang thai hoặc đang có kế hoạch mang thai [1].\n- Những người đang sử dụng các loại thuốc có khả năng tương tác với rượu [1].\n- Những người đang mắc một số tình trạng bệnh lý nhất định [1].\n- Những người có kế hoạch lái xe hoặc vận hành máy móc [1].\n\nNếu bạn thuộc một trong các nhóm trên hoặc đang lo ngại về việc sử dụng rượu bia ảnh hưởng đến sức khỏe cá nhân, hãy tham vấn ý kiến của bác sĩ hoặc dược sĩ để được tư vấn cụ thể.",
       "contexts": [
-        "[Tài liệu: Alcohol | Tên khác: Drinking | Nhóm: General Nutrition, Substance Use and Disorders]\nNội dung: ## Who should not drink alcohol?\nSome people should not drink alcohol at all, including those who:\n- Are pregnullt or trying to become pregnullt\n- Are taking medicines that can interact with alcohol\n- Have certain medical conditions\n- Plan to drive or operate machinery"
+        "[Tài liệu: Alcohol | Tên khác: Drinking | Nhóm: General Nutrition, Substance Use and Disorders]\nNội dung: ## Who should not drink alcohol?\nSome people should not drink alcohol at all, including those who:\n- Are pregnant or trying to become pregnant\n- Are taking medicines that can interact with alcohol\n- Have certain medical conditions\n- Plan to drive or operate machinery"
       ],
       "ground_truth": "Những người không nên uống rượu bia bao gồm: phụ nữ đang mang thai hoặc cố gắng mang thai, người dưới 21 tuổi, người đang dùng thuốc có tương tác với cồn, người chuẩn bị lái xe hoặc vận hành máy móc, và người có bệnh lý nền bị nặng thêm do rượu.",
       "predicted_status": "ANSWERED",
@@ -85,18 +85,18 @@
       "predicted_warning_level": "WARNING",
       "expected_warning_level": "INFO",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 4339.338,
+      "latency_ms": 2044.155,
       "violations": [],
       "status_match": true,
-      "faithfulness": 0.75,
-      "answer_relevance": 0.9693,
+      "faithfulness": 0.7778,
+      "answer_relevance": 0.915,
       "context_precision": 0.0
     },
     {
       "id": "GQA-03",
       "category": "GROUNDED_MEDLINEPLUS",
       "question": "Tại sao không nên uống rượu bia khi đang sử dụng thuốc giảm ho Dextromethorphan?",
-      "answer": "Khi bạn đang sử dụng thuốc giảm ho chứa Dextromethorphan, việc sử dụng rượu bia được xếp vào mức cảnh báo ĐỎ [1]. Các khuyến cáo lâm sàng yêu cầu bạn nên tránh hoặc hạn chế tối đa việc tiêu thụ rượu bia trong thời gian dùng thuốc này [1]. Theo bằng chứng từ FDA, người bệnh cần tránh hoặc giới hạn lượng rượu bia ở mức dưới 3 đơn vị mỗi ngày khi đang điều trị bằng sản phẩm này [1]. Bạn nên tuân thủ nghiêm ngặt hướng dẫn này để đảm bảo an toàn cho sức khỏe. Vui lòng tham khảo ý kiến bác sĩ hoặc dược sĩ nếu bạn có bất kỳ thắc mắc nào về việc sử dụng thuốc.",
+      "answer": "Khi bạn đang sử dụng thuốc giảm ho chứa Dextromethorphan, việc sử dụng rượu bia được xếp vào mức cảnh báo ĐỎ (RED) [1]. Các khuyến cáo lâm sàng yêu cầu bạn nên tránh hoặc hạn chế tối đa việc tiêu thụ rượu bia trong thời gian dùng thuốc này [1]. Theo bằng chứng từ FDA, người bệnh cần tránh hoặc giới hạn lượng rượu bia xuống dưới 3 đơn vị mỗi ngày khi đang điều trị với sản phẩm này [1]. Bạn nên tuân thủ nghiêm ngặt hướng dẫn này để đảm bảo an toàn cho sức khỏe. Vui lòng tham khảo ý kiến bác sĩ hoặc dược sĩ nếu bạn có bất kỳ thắc mắc nào về việc sử dụng thuốc.",
       "contexts": [
         "[Tài liệu: Dextromethorphan – rượu bia | Tên khác: Dextromethorphan | Nhóm: rượu bia]\nNội dung: Mức độ cảnh báo: ĐỎ (RED). Khuyến cáo lâm sàng: Tránh hoặc hạn chế tối đa rượu bia khi đang dùng Dextromethorphan. Bằng chứng FDA (mục warnings): Avoid alcoholic beverages or limit to less than 3 alcoholic drinks daily while taking this product."
       ],
@@ -106,7 +106,7 @@
       "predicted_warning_level": "WARNING",
       "expected_warning_level": "WARNING",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 5579.259,
+      "latency_ms": 1619.811,
       "violations": [],
       "status_match": true,
       "faithfulness": 0.6,
@@ -117,23 +117,21 @@
       "id": "GQA-04",
       "category": "GROUNDED_MEDLINEPLUS",
       "question": "Kháng sinh Cefpodoxim nên uống vào thời điểm nào so với bữa ăn để hấp thu tốt nhất?",
-      "answer": "Hệ thống AI đang bận nên mình chưa thể trả lời lúc này. Vui lòng thử lại sau ít phút. Nếu câu hỏi liên quan đến sức khỏe của bạn và cần gấp, hãy liên hệ bác sĩ hoặc dược sĩ.",
+      "answer": "Chào bạn, đối với kháng sinh Cefpodoxim, bạn nên uống thuốc cùng với bữa ăn [1]. Việc sử dụng thuốc trong bữa ăn giúp tăng sinh khả dụng và cải thiện mức độ hấp thu hoạt chất vào cơ thể [1]. Bạn nên tuân thủ đúng hướng dẫn này để đạt hiệu quả điều trị tốt nhất. Nếu bạn gặp khó khăn trong việc duy trì lịch uống thuốc cùng bữa ăn, hãy tham khảo ý kiến bác sĩ hoặc dược sĩ để được tư vấn cụ thể hơn.",
       "contexts": [
         "[Tài liệu: Cefpodoxime – thời điểm uống thuốc so với bữa ăn | Tên khác: Cefpodoxim, Cefpodoxime | Nhóm: thời điểm uống thuốc so với bữa ăn]\nNội dung: Mức độ: XANH (GREEN). Nên uống viên nén Cefpodoxim cùng thức ăn để tăng sinh khả dụng và mức độ hấp thu hoạt chất."
       ],
       "ground_truth": "Viên nén Cefpodoxim nên được uống cùng bữa ăn (trong hoặc ngay sau khi ăn) vì thức ăn giúp tăng khả năng hấp thu của thuốc qua đường tiêu hóa.",
-      "predicted_status": "INSUFFICIENT_EVIDENCE",
+      "predicted_status": "ANSWERED",
       "expected_status": "ANSWERED",
       "predicted_warning_level": "INFO",
       "expected_warning_level": "INFO",
-      "model_used": "unavailable",
-      "latency_ms": 8647.784,
-      "violations": [
-        "ALL_LLM_ROUTES_FAILED"
-      ],
-      "status_match": false,
-      "faithfulness": 0.0,
-      "answer_relevance": 0.0,
+      "model_used": "gemini-3.1-flash-lite",
+      "latency_ms": 1538.148,
+      "violations": [],
+      "status_match": true,
+      "faithfulness": 0.6,
+      "answer_relevance": 0.8132,
       "context_precision": 1.0
     },
     {
@@ -150,7 +148,7 @@
       "predicted_warning_level": "WARNING",
       "expected_warning_level": "INFO",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 5125.271,
+      "latency_ms": 1214.971,
       "violations": [],
       "status_match": true,
       "faithfulness": 0.625,
@@ -161,23 +159,21 @@
       "id": "GQA-06",
       "category": "GROUNDED_MEDLINEPLUS",
       "question": "Thuốc Metformin điều trị đái tháo đường tuýp 2 thường gây ra những tác dụng phụ nào trên đường tiêu hóa?",
-      "answer": "Hệ thống AI đang bận nên mình chưa thể trả lời lúc này. Vui lòng thử lại sau ít phút. Nếu câu hỏi liên quan đến sức khỏe của bạn và cần gấp, hãy liên hệ bác sĩ hoặc dược sĩ.",
+      "answer": "Các tác dụng phụ thường gặp của thuốc Metformin trên đường tiêu hóa bao gồm: tiêu chảy, đầy hơi, đau dạ dày, chướng bụng, khó tiêu và táo bón [1]. Ngoài ra, người dùng cũng có thể gặp tình trạng có vị kim loại trong miệng [1]. Để giúp giảm bớt các tác dụng phụ liên quan đến dạ dày, bạn có thể cân nhắc việc uống thuốc cùng với bữa ăn [1]. Nếu các triệu chứng này kéo dài hoặc gây khó chịu, bạn nên tham vấn ý kiến của bác sĩ hoặc dược sĩ để được tư vấn cụ thể hơn.",
       "contexts": [
         "[Tài liệu: Metformin | Tên khác: Glucophage | Nhóm: Antidiabetic Agents]\nNội dung: Common side effects of metformin include diarrhea, bloating, stomach pain, gas, indigestion, constipation, and metallic taste in mouth. Taking metformin with meals can help reduce stomach side effects."
       ],
       "ground_truth": "Metformin thường gây các tác dụng phụ tiêu hóa như buồn nôn, tiêu chảy, đầy hơi, đau bụng và chán ăn, đặc biệt trong giai đoạn đầu mới dùng thuốc. Uống thuốc cùng bữa ăn giúp giảm các triệu chứng này.",
-      "predicted_status": "INSUFFICIENT_EVIDENCE",
+      "predicted_status": "ANSWERED",
       "expected_status": "ANSWERED",
       "predicted_warning_level": "INFO",
       "expected_warning_level": "INFO",
-      "model_used": "unavailable",
-      "latency_ms": 8522.033,
-      "violations": [
-        "ALL_LLM_ROUTES_FAILED"
-      ],
-      "status_match": false,
-      "faithfulness": 0.0,
-      "answer_relevance": null,
+      "model_used": "gemini-3.1-flash-lite",
+      "latency_ms": 1800.177,
+      "violations": [],
+      "status_match": true,
+      "faithfulness": 0.8889,
+      "answer_relevance": 0.6734,
       "context_precision": 0.0
     },
     {
@@ -194,41 +190,39 @@
       "predicted_warning_level": "WARNING",
       "expected_warning_level": "INFO",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 4172.167,
+      "latency_ms": 1515.143,
       "violations": [],
       "status_match": true,
       "faithfulness": 0.6667,
-      "answer_relevance": 0.8038,
+      "answer_relevance": NaN,
       "context_precision": 1.0
     },
     {
       "id": "GQA-08",
       "category": "GROUNDED_MEDLINEPLUS",
       "question": "Chỉ số huyết áp bình thường ở người trưởng thành là bao nhiêu và khi nào được gọi là tăng huyết áp?",
-      "answer": "Hệ thống AI đang bận nên mình chưa thể trả lời lúc này. Vui lòng thử lại sau ít phút. Nếu câu hỏi liên quan đến sức khỏe của bạn và cần gấp, hãy liên hệ bác sĩ hoặc dược sĩ.",
+      "answer": "Theo thông tin y khoa, chỉ số huyết áp bình thường ở người trưởng thành là dưới 120/80 mmHg [1]. Tình trạng tăng huyết áp được xác định khi các chỉ số đo được duy trì ổn định ở mức 130/80 mmHg hoặc cao hơn [1].\n\nLưu ý rằng việc chẩn đoán tăng huyết áp cần được thực hiện bởi bác sĩ thông qua các lần đo kiểm tra định kỳ. Bạn nên tham vấn ý kiến bác sĩ nếu các chỉ số đo được của bạn thường xuyên nằm trong ngưỡng cao.",
       "contexts": [
         "[Tài liệu: High Blood Pressure | Tên khác: Hypertension | Nhóm: Cardiovascular Diseases]\nNội dung: Normal blood pressure is less than 120/80 mmHg. High blood pressure (hypertension) is diagnosed when blood pressure readings are consistently 130/80 mmHg or higher."
       ],
       "ground_truth": "Huyết áp bình thường ở người trưởng thành là dưới 120/80 mmHg. Tăng huyết áp thường được xác định khi huyết áp tâm thu từ 130 mmHg trở lên hoặc huyết áp tâm trương từ 80 mmHg trở lên qua nhiều lần đo.",
-      "predicted_status": "INSUFFICIENT_EVIDENCE",
+      "predicted_status": "ANSWERED",
       "expected_status": "ANSWERED",
       "predicted_warning_level": "INFO",
       "expected_warning_level": "INFO",
-      "model_used": "unavailable",
-      "latency_ms": 8485.774,
-      "violations": [
-        "ALL_LLM_ROUTES_FAILED"
-      ],
-      "status_match": false,
-      "faithfulness": 0.0,
-      "answer_relevance": 0.0,
+      "model_used": "gemini-3.1-flash-lite",
+      "latency_ms": 1821.781,
+      "violations": [],
+      "status_match": true,
+      "faithfulness": 0.5,
+      "answer_relevance": NaN,
       "context_precision": 1.0
     },
     {
       "id": "GQA-09",
       "category": "GROUNDED_MEDLINEPLUS",
       "question": "Cách tính chỉ số khối cơ thể BMI và ngưỡng phân loại thừa cân theo chuẩn quốc tế là gì?",
-      "answer": "Chỉ số khối cơ thể (BMI) được tính bằng công thức: trọng lượng (kg) chia cho bình phương chiều cao (m) [1].\n\nDựa trên tiêu chuẩn quốc tế dành cho người trưởng thành, các ngưỡng phân loại BMI như sau [1]:\n- Thiếu cân: BMI < 18,5\n- Cân nặng bình thường: BMI từ 18,5 đến 24,9\n- Thừa cân: BMI từ 25,0 đến 29,9\n- Béo phì: BMI từ 30,0 trở lên\n\nLưu ý rằng BMI là một chỉ số tham khảo chung. Để có đánh giá chính xác về tình trạng sức khỏe và kế hoạch quản lý cân nặng phù hợp, bạn nên tham vấn ý kiến của bác sĩ hoặc chuyên gia dinh dưỡng.",
+      "answer": "Chỉ số khối cơ thể (BMI) được tính bằng công thức: trọng lượng (kg) chia cho bình phương chiều cao (m) [1].\n\nDựa trên tiêu chuẩn quốc tế dành cho người trưởng thành, các ngưỡng phân loại BMI như sau [1]:\n- Thiếu cân: dưới 18,5\n- Cân nặng bình thường: 18,5 – 24,9\n- Thừa cân: 25,0 – 29,9\n- Béo phì: 30,0 trở lên\n\nLưu ý rằng BMI chỉ là một chỉ số tham khảo về cân nặng. Để có đánh giá chính xác về tình trạng sức khỏe tổng thể, bạn nên tham vấn ý kiến của bác sĩ hoặc chuyên gia dinh dưỡng.",
       "contexts": [
         "[Tài liệu: Body Mass Index | Tên khác: BMI | Nhóm: Weight Control]\nNội dung: BMI is calculated as weight in kilograms divided by height in meters squared (kg/m2). Standard adult categories: Underweight (<18.5), Normal weight (18.5–24.9), Overweight (25.0–29.9), Obesity (30.0 or greater)."
       ],
@@ -238,18 +232,18 @@
       "predicted_warning_level": "INFO",
       "expected_warning_level": "INFO",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 3367.539,
+      "latency_ms": 1724.145,
       "violations": [],
       "status_match": true,
       "faithfulness": 0.7143,
-      "answer_relevance": 0.8229,
+      "answer_relevance": 0.8173,
       "context_precision": 1.0
     },
     {
       "id": "GQA-10",
       "category": "GROUNDED_MEDLINEPLUS",
       "question": "Thuốc Omeprazole trị trào ngược dạ dày nên uống vào lúc nào trong ngày?",
-      "answer": "Theo thông tin y khoa, Omeprazole thường được sử dụng mỗi ngày một lần trước bữa ăn [1]. Thời điểm lý tưởng nhất để uống thuốc là từ 30 đến 60 phút trước bữa sáng [1]. \n\nLưu ý quan trọng khi sử dụng:\n- Bạn nên nuốt trọn viên thuốc, không được nghiền nát hoặc nhai các viên nullg giải phóng chậm [1].\n\nĐể đảm bảo việc điều trị đạt hiệu quả tốt nhất và phù hợp với tình trạng sức khỏe cụ thể của bạn, vui lòng tham khảo ý kiến bác sĩ hoặc dược sĩ trước khi bắt đầu hoặc thay đổi cách dùng thuốc.",
+      "answer": "Theo thông tin y khoa, Omeprazole thường được sử dụng mỗi ngày một lần trước bữa ăn [1]. Thời điểm lý tưởng nhất để uống thuốc là từ 30 đến 60 phút trước bữa sáng [1]. \n\nLưu ý quan trọng khi sử dụng thuốc:\n- Bạn nên nuốt nguyên viên thuốc, không được nghiền nát hoặc nhai các viên nang giải phóng chậm [1].\n- Vui lòng tham khảo ý kiến bác sĩ hoặc dược sĩ để được hướng dẫn cụ thể về liều lượng và cách dùng phù hợp với tình trạng sức khỏe của bạn.",
       "contexts": [
         "[Tài liệu: Omeprazole | Tên khác: Prilosec | Nhóm: Proton Pump Inhibitors]\nNội dung: Omeprazole is usually taken once a day before a meal, ideally 30 to 60 minutes before breakfast. Swallow capsules whole; do not crush or chew delayed-release capsules."
       ],
@@ -259,18 +253,18 @@
       "predicted_warning_level": "INFO",
       "expected_warning_level": "INFO",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 4219.105,
+      "latency_ms": 1895.711,
       "violations": [],
       "status_match": true,
       "faithfulness": 0.8,
-      "answer_relevance": 0.6616,
+      "answer_relevance": NaN,
       "context_precision": 1.0
     },
     {
       "id": "GQA-11",
       "category": "GROUNDED_MEDLINEPLUS",
       "question": "Vì sao người đang dùng thuốc hạ mỡ máu nhóm Statin như Atorvastatin cần hạn chế nước ép bưởi chùm (grapefruit juice)?",
-      "answer": "Người đang sử dụng thuốc hạ mỡ máu nhóm Statin, cụ thể là Atorvastatin, cần hạn chế nước ép bưởi chùm vì những lý do sau:\n\n- Nước ép bưởi chùm có khả năng ức chế enzyme CYP3A4 trong cơ thể [1].\n- Việc ức chế enzyme này làm tăng nồng độ thuốc Atorvastatin trong máu [1].\n- Nồng độ thuốc tăng cao sẽ làm gia tăng nguy cơ gặp phải các tác dụng phụ nghiêm trọng như tổn thương cơ (bệnh cơ/tiêu cơ vân) và các vấn đề về gan [1].\n\nDo đó, bạn nên thận trọng khi tiêu thụ loại nước ép này trong thời gian điều trị. Vui lòng tham vấn ý kiến bác sĩ hoặc dược sĩ về chế độ ăn uống phù hợp với phác đồ điều trị của bạn.",
+      "answer": "Người đang sử dụng thuốc hạ mỡ máu Atorvastatin cần hạn chế nước ép bưởi chùm vì loại nước này có thể làm tăng nồng độ thuốc trong máu [1]. Cụ thể, nước bưởi chùm ức chế enzyme CYP3A4, dẫn đến việc tích tụ thuốc quá mức trong cơ thể [1]. Điều này làm tăng nguy cơ gặp phải các tác dụng phụ nghiêm trọng như tổn thương cơ (bệnh cơ/tiêu cơ vân) và các vấn đề về gan [1]. Bạn nên tham khảo ý kiến bác sĩ hoặc dược sĩ về chế độ ăn uống phù hợp khi đang điều trị bằng thuốc này.",
       "contexts": [
         "[Tài liệu: Atorvastatin – nước bưởi chùm | Tên khác: Lipitor | Nhóm: Statins]\nNội dung: Large amounts of grapefruit juice can increase the levels of atorvastatin in your blood by inhibiting CYP3A4, increasing the risk of muscle injury (myopathy/rhabdomyolysis) and liver problems."
       ],
@@ -280,18 +274,18 @@
       "predicted_warning_level": "WARNING",
       "expected_warning_level": "WARNING",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 3836.011,
+      "latency_ms": 1755.653,
       "violations": [],
       "status_match": true,
-      "faithfulness": 0.8571,
-      "answer_relevance": 0.8753,
+      "faithfulness": 0.875,
+      "answer_relevance": NaN,
       "context_precision": 1.0
     },
     {
       "id": "GQA-12",
       "category": "GROUNDED_MEDLINEPLUS",
       "question": "Bệnh nhân có tiền sử dị ứng với Penicillin cần lưu ý gì khi được kê đơn Amoxicillin?",
-      "answer": "Nếu bạn có tiền sử dị ứng với kháng sinh nhóm Penicillin, bạn tuyệt đối không được sử dụng Amoxicillin [1]. Amoxicillin thuộc nhóm kháng sinh Penicillin, do đó việc sử dụng thuốc này khi đã có tiền sử dị ứng có thể dẫn đến các phản ứng quá mẫn nghiêm trọng hoặc sốc phản vệ nguy hiểm đến tính mạng [1]. Ngoài ra, bạn cũng cần thận trọng với các kháng sinh nhóm Cephalosporin do nguy cơ dị ứng chéo [1]. Vui lòng thông báo ngay cho bác sĩ hoặc dược sĩ về tiền sử dị ứng của bạn để được chỉ định loại thuốc thay thế an toàn hơn.",
+      "answer": "Nếu bạn có tiền sử dị ứng với kháng sinh nhóm Penicillin, bạn tuyệt đối không được sử dụng Amoxicillin [1]. Amoxicillin thuộc nhóm kháng sinh Penicillin, do đó việc sử dụng thuốc này khi đã có tiền sử dị ứng có thể dẫn đến các phản ứng quá mẫn nghiêm trọng hoặc sốc phản vệ nguy hiểm đến tính mạng [1]. Ngoài ra, bạn cũng cần thận trọng với các kháng sinh nhóm Cephalosporin do nguy cơ dị ứng chéo [1]. Vui lòng thông báo ngay cho bác sĩ điều trị về tiền sử dị ứng của bạn để được thay thế bằng loại thuốc khác phù hợp và an toàn hơn.",
       "contexts": [
         "[Tài liệu: Amoxicillin | Tên khác: Amoxil | Nhóm: Penicillin Antibiotics]\nNội dung: Amoxicillin is a penicillin-class antibiotic. Do not take amoxicillin if you have ever had an allergic reaction to penicillin or cephalosporin antibiotics, as severe hypersensitivity or anaphylaxis may occur."
       ],
@@ -301,18 +295,18 @@
       "predicted_warning_level": "WARNING",
       "expected_warning_level": "WARNING",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 4056.87,
+      "latency_ms": 1820.22,
       "violations": [],
       "status_match": true,
       "faithfulness": 0.5714,
-      "answer_relevance": 0.7927,
+      "answer_relevance": NaN,
       "context_precision": 1.0
     },
     {
       "id": "GQA-13",
       "category": "GROUNDED_MEDLINEPLUS",
       "question": "Thuốc kháng histamin Loratadine dùng để điều trị những triệu chứng nào và có gây buồn ngủ nhiều không?",
-      "answer": "Loratadine là thuốc kháng histamin thế hệ hai, được sử dụng để giảm tạm thời các triệu chứng dị ứng như hắt hơi, sổ mũi, ngứa mắt và tình trạng nổi mề đay [1]. Về tác dụng phụ, Loratadine được phân loại là thuốc kháng histamin không gây buồn ngủ [1]. Tuy nhiên, bạn nên tham khảo ý kiến bác sĩ hoặc dược sĩ để được tư vấn cụ thể hơn về tình trạng sức khỏe của mình.",
+      "answer": "Loratadine là thuốc kháng histamin thế hệ hai, được sử dụng để giảm tạm thời các triệu chứng dị ứng và sốt cỏ khô như hắt hơi, sổ mũi, ngứa mắt, cũng như điều trị nổi mề đay [1]. Về tác dụng phụ, Loratadine được phân loại là thuốc kháng histamin không gây buồn ngủ [1]. Tuy nhiên, bạn nên tham khảo ý kiến bác sĩ hoặc dược sĩ để được tư vấn cụ thể hơn về tình trạng sức khỏe của mình trước khi sử dụng thuốc.",
       "contexts": [
         "[Tài liệu: Loratadine | Tên khác: Claritin | Nhóm: Antihistamines]\nNội dung: Loratadine is a second-generation non-drowsy antihistamine used to temporarily relieve hay fever and allergy symptoms (sneezing, runny nose, itchy eyes) and hives (urticaria)."
       ],
@@ -322,18 +316,18 @@
       "predicted_warning_level": "INFO",
       "expected_warning_level": "INFO",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 2353.963,
+      "latency_ms": 1514.209,
       "violations": [],
       "status_match": true,
-      "faithfulness": 0.75,
-      "answer_relevance": null,
+      "faithfulness": 0.8,
+      "answer_relevance": 0.849,
       "context_precision": 1.0
     },
     {
       "id": "GQA-14",
       "category": "GROUNDED_MEDLINEPLUS",
       "question": "Sự khác biệt giữa vai trò của ống hít Albuterol (Salbutamol) và thuốc hít Corticosteroid trong bệnh hen suyễn là gì?",
-      "answer": "Trong điều trị hen suyễn, Albuterol và thuốc hít Corticosteroid đóng các vai trò khác nhau như sau:\n\n- Ống hít Albuterol (thuốc cắt cơn nhanh): Có tác dụng làm giãn cơ đường thở một cách nhanh chóng trong các cơn hen cấp tính [1].\n- Thuốc hít Corticosteroid (thuốc kiểm soát dài hạn): Có tác dụng giảm viêm đường thở theo thời gian và cần được sử dụng hàng ngày để kiểm soát bệnh [1].\n\nViệc tuân thủ đúng chỉ định của bác sĩ về cách dùng và thời điểm dùng các loại thuốc này là rất quan trọng để quản lý hen suyễn hiệu quả. Bạn nên tham vấn bác sĩ hoặc dược sĩ để hiểu rõ hơn về phác đồ điều trị cụ thể của mình.",
+      "answer": "Trong điều trị hen suyễn, Albuterol và Corticosteroid dạng hít đóng vai trò khác nhau như sau:\n\n- Ống hít Albuterol (thuốc cắt cơn nhanh): Có tác dụng làm giãn cơ đường thở một cách nhanh chóng trong các cơn hen suyễn [1].\n- Thuốc hít Corticosteroid (thuốc kiểm soát dài hạn): Có tác dụng giảm viêm đường thở theo thời gian và cần được sử dụng hàng ngày để duy trì hiệu quả [1].\n\nViệc sử dụng đúng loại thuốc theo chỉ định của bác sĩ là rất quan trọng để kiểm soát bệnh hen suyễn hiệu quả. Bạn nên tham vấn bác sĩ hoặc dược sĩ để hiểu rõ hơn về cách sử dụng và lịch trình dùng thuốc của mình.",
       "contexts": [
         "[Tài liệu: Asthma Medicines | Tên khác: Albuterol, Inhaled Corticosteroids | Nhóm: Asthma]\nNội dung: Quick-relief inhalers like albuterol relax airway muscles quickly during an asthma attack. Long-term control medicines like inhaled corticosteroids reduce airway inflammation over time and must be taken daily."
       ],
@@ -343,18 +337,18 @@
       "predicted_warning_level": "INFO",
       "expected_warning_level": "INFO",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 4490.452,
+      "latency_ms": 1519.894,
       "violations": [],
       "status_match": true,
-      "faithfulness": 0.75,
-      "answer_relevance": 0.9133,
+      "faithfulness": 0.6667,
+      "answer_relevance": 0.8981,
       "context_precision": 1.0
     },
     {
       "id": "GQA-15",
       "category": "GROUNDED_MEDLINEPLUS",
       "question": "Khi pha dung dịch bù nước và điện giải Oresol (ORS) tại nhà cho người bị tiêu chảy, cần tuân thủ nguyên tắc nào?",
-      "answer": "Khi pha dung dịch bù nước và điện giải Oresol (ORS) tại nhà, bạn cần tuân thủ nguyên tắc quan trọng sau: Phải pha thuốc với đúng lượng nước sạch được chỉ định trên bao bì [1]. Việc pha với quá ít nước sẽ làm dung dịch trở nên ưu trương, điều này có thể làm tình trạng mất cân bằng điện giải trở nên trầm trọng hơn [1]. Bạn nên tham khảo ý kiến bác sĩ hoặc dược sĩ để được hướng dẫn chi tiết về cách sử dụng và liều lượng phù hợp với tình trạng sức khỏe cụ thể.",
+      "answer": "Khi pha dung dịch bù nước và điện giải Oresol (ORS) tại nhà, bạn cần tuân thủ nguyên tắc quan trọng sau: Phải pha thuốc với đúng lượng nước sạch được chỉ định trên bao bì [1]. Việc pha với quá ít nước sẽ làm dung dịch trở nên ưu trương, điều này có thể làm trầm trọng thêm tình trạng mất cân bằng điện giải trong cơ thể [1].",
       "contexts": [
         "[Tài liệu: Dehydration and Oral Rehydration Solutions | Tên khác: ORS, Oresol | Nhóm: Fluid and Electrolyte Balance]\nNội dung: Oral rehydration salts (ORS) must be mixed with the exact amount of clean water specified on the packet. Mixing with too little water makes the solution hypertonic and can worsen electrolyte imbalance."
       ],
@@ -364,18 +358,18 @@
       "predicted_warning_level": "INFO",
       "expected_warning_level": "INFO",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 4089.589,
+      "latency_ms": 1928.594,
       "violations": [],
       "status_match": true,
-      "faithfulness": 0.6667,
-      "answer_relevance": 0.7009,
+      "faithfulness": 1.0,
+      "answer_relevance": 0.7307,
       "context_precision": 1.0
     },
     {
       "id": "GQA-16",
       "category": "GROUNDED_MEDLINEPLUS",
       "question": "Những thay đổi lối sống nào giúp người bị trào ngược dạ dày thực quản (GERD) giảm triệu chứng ợ nóng?",
-      "answer": "Để giúp giảm triệu chứng ợ nóng do trào ngược dạ dày thực quản (GERD), bạn có thể thực hiện các thay đổi lối sống sau đây [1]:\n\n- Tránh nằm ngay sau khi ăn; hãy đợi từ 2 đến 3 giờ [1].\n- Kê cao đầu giường khi ngủ [1].\n- Chia nhỏ các bữa ăn trong ngày [1].\n- Tránh các loại thực phẩm gây kích ứng như đồ ăn nhiều dầu mỡ, cay nóng, thực phẩm có tính axit, caffeine và rượu bia [1].\n- Giảm cân nếu bạn đang trong tình trạng thừa cân [1].\n\nBạn nên tham khảo ý kiến bác sĩ hoặc dược sĩ để được tư vấn cụ thể hơn về tình trạng sức khỏe của mình.",
+      "answer": "Để giúp giảm triệu chứng ợ nóng do trào ngược dạ dày thực quản (GERD), bạn có thể thực hiện các thay đổi lối sống sau đây [1]:\n\n- Tránh nằm ngay sau khi ăn; hãy đợi từ 2 đến 3 giờ [1].\n- Kê cao đầu giường khi ngủ [1].\n- Chia nhỏ các bữa ăn trong ngày [1].\n- Tránh các loại thực phẩm gây kích ứng như đồ ăn nhiều dầu mỡ, cay, có tính axit, caffeine và đồ uống có cồn [1].\n- Giảm cân nếu bạn đang trong tình trạng thừa cân [1].\n\nBạn nên tham khảo ý kiến bác sĩ hoặc dược sĩ để được tư vấn cụ thể hơn về tình trạng sức khỏe của mình.",
       "contexts": [
         "[Tài liệu: GERD | Tên khác: Gastroesophageal Reflux Disease, Acid Reflux | Nhóm: Digestive Diseases]\nNội dung: Lifestyle changes for GERD include avoiding lying down for 2 to 3 hours after eating, elevating the head of the bed, eating smaller meals, avoiding trigger foods (fatty, spicy, acidic, caffeine, alcohol), and losing weight if overweight."
       ],
@@ -385,11 +379,11 @@
       "predicted_warning_level": "INFO",
       "expected_warning_level": "INFO",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 4119.616,
+      "latency_ms": 4183.043,
       "violations": [],
       "status_match": true,
-      "faithfulness": 0.9091,
-      "answer_relevance": 0.9098,
+      "faithfulness": 0.875,
+      "answer_relevance": NaN,
       "context_precision": 1.0
     },
     {
@@ -406,11 +400,11 @@
       "predicted_warning_level": "INFO",
       "expected_warning_level": "INFO",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 3571.314,
+      "latency_ms": 1615.47,
       "violations": [],
       "status_match": true,
       "faithfulness": 0.5714,
-      "answer_relevance": null,
+      "answer_relevance": NaN,
       "context_precision": 1.0
     },
     {
@@ -427,20 +421,20 @@
       "predicted_warning_level": "WARNING",
       "expected_warning_level": "INFO",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 3286.521,
+      "latency_ms": 1818.097,
       "violations": [
         "SAFE_CLAIM_BLOCKED"
       ],
       "status_match": false,
       "faithfulness": 0.0,
-      "answer_relevance": null,
+      "answer_relevance": NaN,
       "context_precision": 1.0
     },
     {
       "id": "GQA-19",
       "category": "GROUNDED_MEDLINEPLUS",
       "question": "Bệnh nhân suy giáp đang uống Levothyroxine cần lưu ý gì về thời điểm uống thuốc mỗi ngày?",
-      "answer": "Đối với bệnh nhân đang sử dụng Levothyroxine, bạn cần lưu ý các điểm quan trọng sau về thời điểm uống thuốc:\n\n- Bạn nên uống thuốc khi bụng đói, tốt nhất là từ 30 đến 60 phút trước khi ăn sáng [1].\n- Cần tránh sử dụng các loại thực phẩm bổ sung chứa canxi hoặc sắt trong vòng 4 giờ sau khi uống Levothyroxine để đảm bảo hiệu quả hấp thu của thuốc [1].\n\nBạn nên tham khảo ý kiến bác sĩ hoặc dược sĩ nếu có bất kỳ thắc mắc nào về cách dùng thuốc hoặc nếu bạn đang sử dụng các loại thực phẩm chức năng khác.",
+      "answer": "Đối với bệnh nhân đang sử dụng Levothyroxine, bạn cần lưu ý các điểm quan trọng sau về thời điểm uống thuốc:\n\n- Bạn nên uống thuốc khi bụng đói, tốt nhất là từ 30 đến 60 phút trước bữa sáng [1].\n- Cần tránh sử dụng các loại thực phẩm bổ sung chứa canxi hoặc sắt trong vòng 4 giờ sau khi uống Levothyroxine để đảm bảo hiệu quả hấp thu thuốc [1].\n\nViệc tuân thủ đúng thời điểm uống thuốc là rất quan trọng để duy trì nồng độ hormone ổn định trong cơ thể. Bạn nên tham khảo ý kiến bác sĩ hoặc dược sĩ nếu có bất kỳ thắc mắc nào về cách phối hợp thuốc với các loại thực phẩm bổ sung khác.",
       "contexts": [
         "[Tài liệu: Levothyroxine | Tên khác: Synthroid | Nhóm: Thyroid Hormones]\nNội dung: Take levothyroxine on an empty stomach, 30 to 60 minutes before breakfast. Do not take calcium or iron supplements within 4 hours of taking levothyroxine."
       ],
@@ -450,18 +444,18 @@
       "predicted_warning_level": "INFO",
       "expected_warning_level": "INFO",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 7552.407,
+      "latency_ms": 1516.754,
       "violations": [],
       "status_match": true,
       "faithfulness": 0.5714,
-      "answer_relevance": null,
+      "answer_relevance": NaN,
       "context_precision": 1.0
     },
     {
       "id": "GQA-20",
       "category": "GROUNDED_MEDLINEPLUS",
       "question": "Người mắc bệnh Gout (Gút) cần hạn chế những nhóm thực phẩm nào để phòng ngừa đợt cấp?",
-      "answer": "Để phòng ngừa các đợt cấp của bệnh Gout, bạn nên hạn chế các nhóm thực phẩm giàu purine bao gồm: nội tạng động vật, thịt đỏ và một số loại hải sản [1]. Ngoài ra, bạn cần tránh sử dụng rượu bia (đặc biệt là bia) và các loại đồ uống có chứa siro ngô có hàm lượng fructose cao [1]. Việc duy trì đủ nước cho cơ thể cũng rất quan trọng trong việc quản lý bệnh [1]. Bạn nên tham khảo ý kiến bác sĩ hoặc chuyên gia dinh dưỡng để xây dựng chế độ ăn uống phù hợp nhất với tình trạng sức khỏe cụ thể của mình.",
+      "answer": "Để phòng ngừa các đợt cấp của bệnh Gout, bạn nên hạn chế các nhóm thực phẩm giàu purine bao gồm: nội tạng động vật, thịt đỏ và một số loại hải sản [1]. Ngoài ra, bạn cần tránh sử dụng rượu bia (đặc biệt là bia) và các loại đồ uống có chứa siro ngô có hàm lượng fructose cao [1]. Việc duy trì đủ lượng nước cho cơ thể cũng rất quan trọng trong việc kiểm soát bệnh [1]. Bạn nên tham khảo ý kiến bác sĩ hoặc chuyên gia dinh dưỡng để xây dựng chế độ ăn uống phù hợp nhất với tình trạng sức khỏe cụ thể của mình.",
       "contexts": [
         "[Tài liệu: Gout | Tên khác: Gouty Arthritis | Nhóm: Joint Disorders]\nNội dung: To help prevent gout attacks, limit purine-rich foods such as organ meats, red meat, and certain seafood. Avoid alcohol (especially beer) and drinks sweetened with high-fructose corn syrup, and stay well hydrated."
       ],
@@ -471,18 +465,18 @@
       "predicted_warning_level": "INFO",
       "expected_warning_level": "INFO",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 3297.89,
+      "latency_ms": 1215.53,
       "violations": [],
       "status_match": true,
       "faithfulness": 0.8889,
-      "answer_relevance": null,
+      "answer_relevance": 0.8054,
       "context_precision": 1.0
     },
     {
       "id": "GQA-21",
       "category": "OUT_OF_KB",
       "question": "Phác đồ điều trị đích bằng thuốc Selumetinib cho bệnh nhi mắc u sợi thần kinh loại 1 (NF1) tại Việt Nam năm 2026 cụ thể ra sao?",
-      "answer": "Rất tiếc, hiện tại cơ sở dữ liệu của tôi không có thông tin cụ thể về phác đồ điều trị bằng thuốc Selumetinib cho bệnh nhi mắc u sợi thần kinh loại 1 (NF1) tại Việt Nam vào năm 2026. Do đây là vấn đề chuyên môn y khoa chuyên sâu và liên quan đến các quy định điều trị cụ thể tại từng thời điểm, bạn vui lòng tham vấn trực tiếp với bác sĩ chuyên khoa Ung bướu nhi hoặc các bệnh viện chuyên khoa đầu ngành để có thông tin chính xác và cập nhật nhất.",
+      "answer": "Rất tiếc, hiện tại cơ sở dữ liệu của tôi không có thông tin cụ thể về phác đồ điều trị bằng thuốc Selumetinib cho bệnh nhi mắc u sợi thần kinh loại 1 (NF1) tại Việt Nam vào năm 2026. Do đây là vấn đề chuyên môn y khoa phức tạp và liên quan đến các quy định điều trị cụ thể tại từng cơ sở y tế, bạn nên tham vấn trực tiếp với bác sĩ chuyên khoa Ung bướu nhi hoặc các chuyên gia tại các bệnh viện nhi đầu ngành để có thông tin chính xác và cập nhật nhất.",
       "contexts": [],
       "ground_truth": "Kho tri thức hiện tại không có tài liệu kiểm chứng về phác đồ điều trị chuyên sâu bằng Selumetinib cho bệnh nhi NF1. Hệ thống từ chối suy đoán và khuyên người dùng tham khảo bác sĩ chuyên khoa ung bướu/di truyền.",
       "predicted_status": "INSUFFICIENT_EVIDENCE",
@@ -490,7 +484,7 @@
       "predicted_warning_level": "INFO",
       "expected_warning_level": "INFO",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 3147.761,
+      "latency_ms": 1837.707,
       "violations": [],
       "status_match": true
     },
@@ -506,7 +500,7 @@
       "predicted_warning_level": "INFO",
       "expected_warning_level": "INFO",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 2229.25,
+      "latency_ms": 1702.013,
       "violations": [],
       "status_match": true
     },
@@ -514,7 +508,7 @@
       "id": "GQA-23",
       "category": "OUT_OF_KB",
       "question": "Thuốc thử nghiệm lâm sàng VX-548 (Suzetrigine) ức chế kênh NaV1.8 có hiệu chỉnh liều thế nào ở bệnh nhân lọc máu chu kỳ?",
-      "answer": "Hiện tại, cơ sở dữ liệu của chúng tôi không có thông tin về việc hiệu chỉnh liều thuốc thử nghiệm lâm sàng VX-548 (Suzetrigine) cho bệnh nhân đang thực hiện lọc máu chu kỳ. Vì đây là thuốc đang trong quá trình nghiên cứu, các hướng dẫn về liều lượng cụ thể cho các nhóm bệnh nhân đặc biệt như người suy thận hoặc đang lọc máu thường chưa được công bố rộng rãi hoặc cần được đánh giá bởi các chuyên gia y tế trong khuôn khổ thử nghiệm lâm sàng.",
+      "answer": "Hiện tại, cơ sở dữ liệu của chúng tôi không có thông tin về việc hiệu chỉnh liều thuốc thử nghiệm lâm sàng VX-548 (Suzetrigine) cho bệnh nhân đang thực hiện lọc máu chu kỳ. Vì đây là thuốc đang trong quá trình thử nghiệm, các hướng dẫn về liều lượng cụ thể cho các nhóm bệnh nhân đặc biệt như người suy thận hoặc đang lọc máu chưa được công bố rộng rãi hoặc chưa có sẵn trong tài liệu tham khảo hiện tại của hệ thống.",
       "contexts": [],
       "ground_truth": "Kho tri thức chưa có dữ liệu dược động học về thuốc VX-548 ở bệnh nhân lọc máu chu kỳ. Hệ thống không tự suy diễn và trả về INSUFFICIENT_EVIDENCE.",
       "predicted_status": "INSUFFICIENT_EVIDENCE",
@@ -522,7 +516,7 @@
       "predicted_warning_level": "INFO",
       "expected_warning_level": "INFO",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 3052.915,
+      "latency_ms": 1827.963,
       "violations": [],
       "status_match": true
     },
@@ -538,7 +532,7 @@
       "predicted_warning_level": "INFO",
       "expected_warning_level": "INFO",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 1715.854,
+      "latency_ms": 1426.242,
       "violations": [],
       "status_match": true
     },
@@ -546,7 +540,7 @@
       "id": "GQA-25",
       "category": "OUT_OF_KB",
       "question": "Liệu pháp gen Zolgensma (onasemnogene abeparvovec) có tiêu chuẩn chọn bệnh nhân theo hiệu giá kháng thể kháng AAV9 cụ thể là bao nhiêu?",
-      "answer": "Rất tiếc, thông tin về tiêu chuẩn hiệu giá kháng thể kháng AAV9 cụ thể đối với liệu pháp gen Zolgensma (onasemnogene abeparvovec) hiện không có trong cơ sở dữ liệu bằng chứng được cung cấp. Do đó, tôi không thể cung cấp con số chính xác cho bạn. Việc chỉ định điều trị bằng liệu pháp gen là một quy trình chuyên sâu, đòi hỏi sự đánh giá kỹ lưỡng từ các bác sĩ chuyên khoa di truyền hoặc thần kinh học dựa trên hồ sơ bệnh án cụ thể của bệnh nhân.",
+      "answer": "Rất tiếc, dữ liệu hiện tại không chứa thông tin chi tiết về tiêu chuẩn hiệu giá kháng thể kháng AAV9 đối với liệu pháp gen Zolgensma. Do đó, tôi không thể cung cấp con số cụ thể cho bạn. Việc chỉ định liệu pháp gen là một quy trình y khoa phức tạp, đòi hỏi sự đánh giá chuyên sâu từ các bác sĩ chuyên khoa thần kinh hoặc di truyền học dựa trên tình trạng lâm sàng và các xét nghiệm cận lâm sàng cụ thể của bệnh nhân.",
       "contexts": [],
       "ground_truth": "Kho tri thức không có tài liệu chi tiết về ngưỡng hiệu giá kháng thể AAV9 của liệu pháp gen Zolgensma. Hệ thống trả về INSUFFICIENT_EVIDENCE.",
       "predicted_status": "INSUFFICIENT_EVIDENCE",
@@ -554,7 +548,7 @@
       "predicted_warning_level": "INFO",
       "expected_warning_level": "INFO",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 3412.961,
+      "latency_ms": 1814.664,
       "violations": [],
       "status_match": true
     },
@@ -570,7 +564,7 @@
       "predicted_warning_level": "INFO",
       "expected_warning_level": "INFO",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 2524.398,
+      "latency_ms": 1714.412,
       "violations": [],
       "status_match": true
     },
@@ -578,18 +572,16 @@
       "id": "GQA-27",
       "category": "OUT_OF_KB",
       "question": "Bệnh truyền nhiễm do virus Oropouche chủng tái tổ hợp mới năm 2025–2026 có phác đồ kháng virus đặc hiệu nào được Bộ Y tế phê duyệt?",
-      "answer": "Mình chưa tìm thấy tài liệu đủ tin cậy trong kho tri thức để trả lời chính xác câu hỏi này, nên mình sẽ không đoán. Bạn có thể diễn đạt lại câu hỏi cụ thể hơn, hoặc hỏi bác sĩ/dược sĩ để được tư vấn.",
+      "answer": "Hiện tại, cơ sở dữ liệu của chúng tôi không có thông tin về phác đồ kháng virus đặc hiệu cho chủng virus Oropouche tái tổ hợp mới năm 2025–2026 được Bộ Y tế phê duyệt. Do đây là thông tin y tế chuyên sâu và có thể thay đổi theo các hướng dẫn điều trị mới nhất, bạn nên tham khảo thông tin chính thức từ Cổng thông tin điện tử của Bộ Y tế hoặc các cơ quan y tế dự phòng uy tín để có dữ liệu cập nhật nhất.",
       "contexts": [],
       "ground_truth": "Kho tri thức chưa có dữ liệu về phác đồ điều trị virus Oropouche chủng tái tổ hợp. Hệ thống trả về INSUFFICIENT_EVIDENCE và khuyên tham khảo cơ sở y tế.",
       "predicted_status": "INSUFFICIENT_EVIDENCE",
       "expected_status": "INSUFFICIENT_EVIDENCE",
       "predicted_warning_level": "INFO",
       "expected_warning_level": "INFO",
-      "model_used": "unavailable",
-      "latency_ms": 820.802,
-      "violations": [
-        "ALL_LLM_ROUTES_FAILED"
-      ],
+      "model_used": "gemini-3.1-flash-lite",
+      "latency_ms": 1522.805,
+      "violations": [],
       "status_match": true
     },
     {
@@ -604,7 +596,7 @@
       "predicted_warning_level": "INFO",
       "expected_warning_level": "INFO",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 4266.184,
+      "latency_ms": 1102.237,
       "violations": [],
       "status_match": true
     },
@@ -612,43 +604,39 @@
       "id": "GQA-29",
       "category": "OUT_OF_KB",
       "question": "Thuốc sinh học Eculizumab điều trị đái huyết sắc tố kịch phát ban đêm (PNH) có lịch tiêm chủng não mô cầu bắt buộc trước bao nhiêu tuần?",
-      "answer": "Mình chưa tìm thấy tài liệu đủ tin cậy trong kho tri thức để trả lời chính xác câu hỏi này, nên mình sẽ không đoán. Bạn có thể diễn đạt lại câu hỏi cụ thể hơn, hoặc hỏi bác sĩ/dược sĩ để được tư vấn.",
+      "answer": "Rất tiếc, cơ sở dữ liệu hiện tại của tôi không chứa thông tin cụ thể về thời gian bắt buộc tiêm chủng não mô cầu trước khi sử dụng thuốc Eculizumab. Để đảm bảo an toàn và tuân thủ đúng phác đồ điều trị, bạn vui lòng tham khảo ý kiến của bác sĩ điều trị hoặc dược sĩ chuyên khoa, vì đây là loại thuốc sinh học cần sự giám sát y tế chặt chẽ.",
       "contexts": [],
       "ground_truth": "Kho tri thức hiện tại không có chuyên khảo chi tiết về thuốc sinh học Eculizumab và phác đồ dự phòng não mô cầu đi kèm. Hệ thống trả về INSUFFICIENT_EVIDENCE.",
       "predicted_status": "INSUFFICIENT_EVIDENCE",
       "expected_status": "INSUFFICIENT_EVIDENCE",
       "predicted_warning_level": "INFO",
       "expected_warning_level": "INFO",
-      "model_used": "unavailable",
-      "latency_ms": 436.974,
-      "violations": [
-        "ALL_LLM_ROUTES_FAILED"
-      ],
+      "model_used": "gemini-3.1-flash-lite",
+      "latency_ms": 1726.811,
+      "violations": [],
       "status_match": true
     },
     {
       "id": "GQA-30",
       "category": "OUT_OF_KB",
       "question": "Kỹ thuật phẫu thuật đặt điện cực kích thích não sâu (DBS) nhân dưới đồi trong bệnh Parkinson kháng trị dùng tần số xung bao nhiêu Hz?",
-      "answer": "Mình chưa tìm thấy tài liệu đủ tin cậy trong kho tri thức để trả lời chính xác câu hỏi này, nên mình sẽ không đoán. Bạn có thể diễn đạt lại câu hỏi cụ thể hơn, hoặc hỏi bác sĩ/dược sĩ để được tư vấn.",
+      "answer": "Rất tiếc, cơ sở dữ liệu hiện tại của tôi không chứa thông tin chi tiết về kỹ thuật phẫu thuật hoặc các thông số tần số xung cụ thể cho việc đặt điện cực kích thích não sâu (DBS) trong điều trị bệnh Parkinson. Để có thông tin chính xác về chuyên môn kỹ thuật này, bạn vui lòng tham khảo ý kiến của các bác sĩ chuyên khoa phẫu thuật thần kinh hoặc các tài liệu y khoa chuyên sâu.",
       "contexts": [],
       "ground_truth": "Kho tri thức không có thông số lập trình kỹ thuật chuyên sâu cho thiết bị kích thích não sâu (DBS). Hệ thống trả về INSUFFICIENT_EVIDENCE.",
       "predicted_status": "INSUFFICIENT_EVIDENCE",
       "expected_status": "INSUFFICIENT_EVIDENCE",
       "predicted_warning_level": "INFO",
       "expected_warning_level": "INFO",
-      "model_used": "unavailable",
-      "latency_ms": 513.103,
-      "violations": [
-        "ALL_LLM_ROUTES_FAILED"
-      ],
+      "model_used": "gemini-3.1-flash-lite",
+      "latency_ms": 1510.716,
+      "violations": [],
       "status_match": true
     },
     {
       "id": "GQA-31",
       "category": "DRUG_INTERACTION",
       "question": "Tôi đang uống thuốc chống đông máu Warfarin hàng ngày, hôm nay bị đau khớp nên uống thêm Aspirin có sao không?",
-      "answer": "Việc kết hợp Warfarin và Aspirin là rất nguy hiểm. Dữ liệu y khoa ghi nhận đây là tương tác mức độ nghiêm trọng (MAJOR) [1].\n\nCụ thể, việc dùng chung hai loại thuốc này gây ra:\n- Hiệp đồng chống huyết khối: Làm loãng máu quá mức [1].\n- Kích ứng niêm mạc dạ dày: Tăng đáng kể nguy cơ xuất huyết nghiêm trọng [1].\n\nBạn tuyệt đối không nên tự ý uống thêm Aspirin khi đang điều trị bằng Warfarin. Vui lòng liên hệ ngay với bác sĩ điều trị của bạn để được tư vấn phương pháp giảm đau an toàn, phù hợp với tình trạng bệnh lý hiện tại của bạn.",
+      "answer": "Việc kết hợp Warfarin và Aspirin là rất nguy hiểm. Dữ liệu y khoa ghi nhận đây là tương tác mức độ nghiêm trọng (MAJOR) [1].\n\nCụ thể, việc sử dụng đồng thời hai loại thuốc này gây ra:\n- Hiệp đồng chống huyết khối: Làm loãng máu quá mức [1].\n- Kích ứng niêm mạc dạ dày: Tăng đáng kể nguy cơ xuất huyết nghiêm trọng [1].\n\nBạn tuyệt đối không nên tự ý uống thêm Aspirin khi đang điều trị bằng Warfarin. Vui lòng liên hệ ngay với bác sĩ điều trị của bạn để được tư vấn phương pháp giảm đau an toàn hơn cho tình trạng đau khớp của bạn.",
       "contexts": [
         "[Rule Engine M2: INTERACTION_FOUND | Severity: MAJOR | Cặp hoạt chất: Warfarin + Aspirin]\nCơ chế & Hậu quả: Hiệp đồng chống huyết khối và kích ứng niêm mạc dạ dày, làm tăng đáng kể nguy cơ xuất huyết nghiêm trọng."
       ],
@@ -658,18 +646,18 @@
       "predicted_warning_level": "CRITICAL",
       "expected_warning_level": "CRITICAL",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 1457.017,
+      "latency_ms": 1727.136,
       "violations": [],
       "status_match": true,
-      "faithfulness": 0.5556,
-      "answer_relevance": null,
+      "faithfulness": 0.625,
+      "answer_relevance": 0.6531,
       "context_precision": 1.0
     },
     {
       "id": "GQA-32",
       "category": "DRUG_INTERACTION",
       "question": "Bố tôi đang ngậm thuốc Nitroglycerin trị đau thắt ngực, nếu dùng chung với Sildenafil thì có nguy hiểm gì không?",
-      "answer": "Việc sử dụng đồng thời Nitroglycerin và Sildenafil là **chống chỉ định tuyệt đối** và cực kỳ nguy hiểm [1]. Khi kết hợp hai loại thuốc này, chúng sẽ gây ra hiện tượng hiệp đồng giãn mạch thông qua đường cGMP, dẫn đến tình trạng hạ huyết áp cấp tính, có thể đe dọa trực tiếp đến tính mạng của người bệnh [1]. Tuyệt đối không được dùng chung hai loại thuốc này dưới bất kỳ hình thức nào. Nếu bố bạn đã lỡ dùng chung hoặc có các triệu chứng như chóng mặt dữ dội, ngất xỉu, khó thở, hãy gọi ngay 115 hoặc đưa người bệnh đến cơ sở y tế gần nhất để được cấp cứu kịp thời.",
+      "answer": "Việc sử dụng đồng thời Nitroglycerin và Sildenafil là **chống chỉ định tuyệt đối** và cực kỳ nguy hiểm [1]. Sự kết hợp này gây ra hiện tượng hiệp đồng giãn mạch thông qua đường cGMP, dẫn đến tình trạng hạ huyết áp cấp tính, có thể đe dọa đến tính mạng [1]. Bạn tuyệt đối không được để bố sử dụng hai loại thuốc này cùng nhau. Nếu bố bạn đã lỡ dùng hoặc có các triệu chứng như chóng mặt dữ dội, ngất xỉu, khó thở, hãy gọi ngay cấp cứu 115 để được hỗ trợ kịp thời.",
       "contexts": [
         "[Rule Engine M2: INTERACTION_FOUND | Severity: CONTRAINDICATED | Cặp hoạt chất: Nitroglycerin + Sildenafil]\nCơ chế & Hậu quả: Hiệp đồng giãn mạch qua đường cGMP gây hạ huyết áp cấp tính nguy hiểm tính mạng."
       ],
@@ -679,18 +667,18 @@
       "predicted_warning_level": "CRITICAL",
       "expected_warning_level": "CRITICAL",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 1426.078,
+      "latency_ms": 1408.405,
       "violations": [],
       "status_match": true,
-      "faithfulness": 0.5,
-      "answer_relevance": 0.7731,
+      "faithfulness": 0.625,
+      "answer_relevance": NaN,
       "context_precision": 1.0
     },
     {
       "id": "GQA-33",
       "category": "DRUG_INTERACTION",
       "question": "Tôi đang uống Simvastatin để hạ mỡ máu, giờ bác sĩ phòng khám khác kê thêm kháng sinh Clarithromycin thì uống cùng lúc được không?",
-      "answer": "Chào bạn, việc kết hợp Simvastatin và Clarithromycin là một tương tác thuốc nghiêm trọng (MAJOR) [1]. \n\nClarithromycin ức chế enzyme CYP3A4, dẫn đến việc làm tăng nồng độ Simvastatin trong huyết tương. Điều này làm tăng đáng kể nguy cơ gây độc tính trên cơ, bao gồm các tình trạng nghiêm trọng như bệnh cơ (myopathy) hoặc tiêu cơ vân (rhabdomyolysis) [1]. \n\nVì đây là tương tác có mức độ nguy hiểm cao, bạn tuyệt đối không nên tự ý uống chung hai loại thuốc này. Bạn cần liên hệ ngay với bác sĩ đang điều trị cho bạn để thông báo về việc bạn đang sử dụng Simvastatin, từ đó bác sĩ có thể cân nhắc thay đổi loại kháng sinh hoặc điều chỉnh phác đồ điều trị phù hợp và an toàn hơn cho bạn.",
+      "answer": "Chào bạn, việc kết hợp Simvastatin và Clarithromycin là một tương tác thuốc nghiêm trọng (MAJOR) [1]. \n\nClarithromycin ức chế enzyme CYP3A4, dẫn đến làm tăng nồng độ Simvastatin trong huyết tương. Điều này làm tăng nguy cơ gây độc tính trên cơ, bao gồm các tình trạng nghiêm trọng như bệnh cơ (myopathy) hoặc tiêu cơ vân (rhabdomyolysis) [1]. \n\nVì đây là tương tác có mức độ nguy hiểm cao, bạn tuyệt đối không nên tự ý uống hai loại thuốc này cùng lúc. Bạn cần liên hệ ngay với bác sĩ điều trị hoặc dược sĩ để thông báo về việc bạn đang sử dụng Simvastatin, nhằm mục đích thay thế kháng sinh hoặc điều chỉnh phác đồ điều trị phù hợp và an toàn hơn cho bạn.",
       "contexts": [
         "[Rule Engine M2: INTERACTION_FOUND | Severity: MAJOR | Cặp hoạt chất: Simvastatin + Clarithromycin]\nCơ chế & Hậu quả: Clarithromycin ức chế CYP3A4 làm tăng nồng độ Simvastatin huyết tương, gây độc tính trên cơ (myopathy/rhabdomyolysis)."
       ],
@@ -700,18 +688,18 @@
       "predicted_warning_level": "CRITICAL",
       "expected_warning_level": "CRITICAL",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 4412.241,
+      "latency_ms": 1927.369,
       "violations": [],
       "status_match": true,
-      "faithfulness": 0.6667,
-      "answer_relevance": 0.7544,
+      "faithfulness": 0.625,
+      "answer_relevance": NaN,
       "context_precision": 1.0
     },
     {
       "id": "GQA-34",
       "category": "DRUG_INTERACTION",
       "question": "Người đang điều trị bằng thuốc chống trầm cảm Fluoxetine có dùng chung với thuốc giảm đau Tramadol được không?",
-      "answer": "Việc sử dụng kết hợp Fluoxetine và Tramadol được ghi nhận có tương tác thuốc ở mức độ nghiêm trọng (MAJOR) [1]. \n\nCụ thể, sự kết hợp này có thể làm tăng hoạt tính serotonergic trong hệ thần kinh trung ương, dẫn đến nguy cơ gây ra hội chứng serotonin [1]. Ngoài ra, Fluoxetine còn ức chế enzyme CYP2D6, làm giảm quá trình chuyển hóa của Tramadol, từ đó có thể ảnh hưởng đến hiệu quả và độ an toàn của thuốc [1]. \n\nDo đây là tương tác thuốc nghiêm trọng, bạn tuyệt đối không nên tự ý kết hợp hai loại thuốc này. Vui lòng liên hệ với bác sĩ điều trị để được đánh giá lại phác đồ và cân nhắc các lựa chọn thay thế an toàn hơn.",
+      "answer": "Việc sử dụng kết hợp Fluoxetine và Tramadol được ghi nhận có tương tác thuốc ở mức độ nghiêm trọng (MAJOR) [1]. \n\nCụ thể, sự kết hợp này có thể làm tăng hoạt tính serotonergic trong hệ thần kinh trung ương, dẫn đến nguy cơ gây ra hội chứng serotonin [1]. Ngoài ra, Fluoxetine còn ức chế enzyme CYP2D6, làm giảm quá trình chuyển hóa của Tramadol, từ đó có thể ảnh hưởng đến hiệu quả và độ an toàn của thuốc [1]. \n\nDo đây là tương tác thuốc nghiêm trọng, bạn tuyệt đối không nên tự ý kết hợp hai loại thuốc này. Vui lòng liên hệ với bác sĩ điều trị để được đánh giá lại phác đồ và tìm phương án thay thế an toàn hơn.",
       "contexts": [
         "[Rule Engine M2: INTERACTION_FOUND | Severity: MAJOR | Cặp hoạt chất: Fluoxetine + Tramadol]\nCơ chế & Hậu quả: Tăng hoạt tính serotonergic hệ thần kinh trung ương dẫn đến nguy cơ hội chứng serotonin, đồng thời ức chế CYP2D6 làm giảm chuyển hóa Tramadol."
       ],
@@ -721,18 +709,18 @@
       "predicted_warning_level": "CRITICAL",
       "expected_warning_level": "CRITICAL",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 3869.668,
+      "latency_ms": 1621.093,
       "violations": [],
       "status_match": true,
-      "faithfulness": 0.6,
-      "answer_relevance": 0.7691,
+      "faithfulness": 0.5556,
+      "answer_relevance": NaN,
       "context_precision": 1.0
     },
     {
       "id": "GQA-35",
       "category": "DRUG_INTERACTION",
       "question": "Mẹ tôi đang uống Lisinopril trị tăng huyết áp và Spironolactone lợi tiểu, uống thêm viên bổ sung Kali hàng ngày có sao không?",
-      "answer": "Việc sử dụng kết hợp Lisinopril, Spironolactone và viên bổ sung Kali là một tương tác thuốc nghiêm trọng (MAJOR) [1]. \n\nCơ chế của tương tác này là sự hiệp đồng giữ kali tại thận, dẫn đến nguy cơ tăng kali máu nghiêm trọng và có thể gây loạn nhịp tim [1]. Do đó, mẹ bạn không nên tự ý bổ sung viên Kali khi đang sử dụng hai loại thuốc trên mà chưa có chỉ định và theo dõi chặt chẽ từ bác sĩ điều trị.\n\nĐây là vấn đề cần được bác sĩ đánh giá trực tiếp để điều chỉnh phác đồ điều trị phù hợp và an toàn hơn cho mẹ bạn.",
+      "answer": "Việc sử dụng kết hợp Lisinopril, Spironolactone và viên bổ sung Kali là một tương tác thuốc nghiêm trọng (MAJOR) [1]. \n\nCơ chế của tương tác này là sự hiệp đồng giữ kali tại thận, dẫn đến nguy cơ tăng kali máu nghiêm trọng và có thể gây loạn nhịp tim [1]. Do đó, mẹ bạn không nên tự ý bổ sung viên Kali khi đang sử dụng hai loại thuốc trên mà chưa có chỉ định và theo dõi chặt chẽ từ bác sĩ điều trị.\n\nVì đây là vấn đề liên quan đến an toàn dùng thuốc và nguy cơ tim mạch, bạn cần đưa mẹ đi khám chuyên khoa để bác sĩ đánh giá lại phác đồ điều trị và nồng độ kali trong máu. Nếu mẹ bạn có các triệu chứng như mệt mỏi bất thường, yếu cơ, khó thở hoặc hồi hộp đánh trống ngực, hãy đưa mẹ đến cơ sở y tế gần nhất ngay lập tức.",
       "contexts": [
         "[Rule Engine M2: INTERACTION_FOUND | Severity: MAJOR | Cặp hoạt chất: Lisinopril + Spironolactone + Potassium Chloride]\nCơ chế & Hậu quả: Hiệp đồng giữ kali tại thận gây tăng kali máu nghiêm trọng và loạn nhịp tim."
       ],
@@ -742,18 +730,18 @@
       "predicted_warning_level": "CRITICAL",
       "expected_warning_level": "CRITICAL",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 1996.443,
+      "latency_ms": 2134.365,
       "violations": [],
       "status_match": false,
       "faithfulness": 0.5,
-      "answer_relevance": null,
+      "answer_relevance": NaN,
       "context_precision": 1.0
     },
     {
       "id": "GQA-36",
       "category": "DRUG_INTERACTION",
       "question": "Tôi đang điều trị viêm khớp dạng thấp bằng Methotrexate, nay bị đau răng nên định mua Ibuprofen về uống cùng có ảnh hưởng gì không?",
-      "answer": "Chào bạn, việc kết hợp Methotrexate và Ibuprofen là một tương tác thuốc nghiêm trọng (MAJOR) [1]. \n\nKhi sử dụng đồng thời, Ibuprofen (thuộc nhóm NSAID) làm giảm khả năng đào thải Methotrexate qua thận, dẫn đến nồng độ thuốc trong máu tăng cao. Điều này làm tăng đáng kể nguy cơ xảy ra các tác dụng phụ nguy hiểm như ức chế tủy xương, độc tính trên gan và suy thận [1]. \n\nVì lý do an toàn, bạn tuyệt đối không nên tự ý sử dụng Ibuprofen khi đang điều trị bằng Methotrexate. Vui lòng liên hệ với bác sĩ điều trị của bạn để được tư vấn loại thuốc giảm đau thay thế phù hợp và an toàn hơn cho tình trạng đau răng của bạn.",
+      "answer": "Chào bạn, việc sử dụng kết hợp Methotrexate và Ibuprofen là một tương tác thuốc nghiêm trọng (MAJOR) [1]. \n\nCụ thể, Ibuprofen thuộc nhóm thuốc chống viêm không steroid (NSAID), khi dùng chung với Methotrexate sẽ làm giảm khả năng đào thải thuốc qua thận. Điều này dẫn đến việc tăng nồng độ Methotrexate trong cơ thể, từ đó làm tăng nguy cơ gây ức chế tủy xương, độc tính trên gan và suy thận [1]. \n\nVì lý do an toàn, bạn tuyệt đối không nên tự ý sử dụng Ibuprofen khi đang điều trị bằng Methotrexate. Vui lòng liên hệ với bác sĩ điều trị của bạn để được tư vấn loại thuốc giảm đau thay thế phù hợp và an toàn hơn cho tình trạng đau răng của bạn.",
       "contexts": [
         "[Rule Engine M2: INTERACTION_FOUND | Severity: MAJOR | Cặp hoạt chất: Methotrexate + Ibuprofen]\nCơ chế & Hậu quả: NSAID làm giảm độ thanh thải thận của Methotrexate, tăng nguy cơ ức chế tủy xương, độc gan và suy thận."
       ],
@@ -763,11 +751,11 @@
       "predicted_warning_level": "CRITICAL",
       "expected_warning_level": "CRITICAL",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 1473.01,
+      "latency_ms": 1822.687,
       "violations": [],
       "status_match": true,
-      "faithfulness": 0.5,
-      "answer_relevance": null,
+      "faithfulness": 0.7778,
+      "answer_relevance": NaN,
       "context_precision": 1.0
     },
     {
@@ -784,13 +772,13 @@
       "predicted_warning_level": "WARNING",
       "expected_warning_level": "CRITICAL",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 3800.217,
+      "latency_ms": 1736.766,
       "violations": [
         "CLINICAL_DIRECTIVE_BLOCKED"
       ],
       "status_match": false,
       "faithfulness": 0.0,
-      "answer_relevance": null,
+      "answer_relevance": NaN,
       "context_precision": 1.0
     },
     {
@@ -807,11 +795,11 @@
       "predicted_warning_level": "CRITICAL",
       "expected_warning_level": "CRITICAL",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 1945.642,
+      "latency_ms": 2420.138,
       "violations": [],
       "status_match": false,
       "faithfulness": 0.375,
-      "answer_relevance": 0.7101,
+      "answer_relevance": NaN,
       "context_precision": 1.0
     },
     {
@@ -828,20 +816,20 @@
       "predicted_warning_level": "WARNING",
       "expected_warning_level": "CRITICAL",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 3472.744,
+      "latency_ms": 1484.723,
       "violations": [
         "CLINICAL_DIRECTIVE_BLOCKED"
       ],
       "status_match": false,
       "faithfulness": 0.0,
-      "answer_relevance": null,
+      "answer_relevance": NaN,
       "context_precision": 1.0
     },
     {
       "id": "GQA-40",
       "category": "DRUG_INTERACTION",
       "question": "Dùng đồng thời thuốc giảm đau Opioid như Oxycodone với thuốc an thần Diazepam có nguy hiểm gì không?",
-      "answer": "Việc sử dụng đồng thời Oxycodone và Diazepam là rất nguy hiểm. Theo dữ liệu y khoa, sự kết hợp này gây ra hiện tượng hiệp đồng ức chế thần kinh trung ương [1]. Hậu quả nghiêm trọng bao gồm tăng nguy cơ an thần quá mức, suy hô hấp và có thể dẫn đến tử vong [1]. Bạn tuyệt đối không được tự ý kết hợp hai loại thuốc này. Nếu bạn đang được kê đơn cả hai loại thuốc, hãy liên hệ ngay với bác sĩ điều trị để được đánh giá lại phác đồ và điều chỉnh liều lượng hoặc thay thế thuốc phù hợp.",
+      "answer": "Việc sử dụng đồng thời Oxycodone và Diazepam là rất nguy hiểm. Theo dữ liệu y khoa, sự kết hợp này gây ra hiện tượng hiệp đồng ức chế thần kinh trung ương [1]. Hậu quả nghiêm trọng bao gồm tăng nguy cơ an thần quá mức, suy hô hấp và có thể dẫn đến tử vong [1]. Bạn tuyệt đối không được tự ý kết hợp hai loại thuốc này nếu không có chỉ định và sự giám sát chặt chẽ từ bác sĩ chuyên khoa. Nếu bạn đang được kê đơn cả hai loại thuốc này, hãy liên hệ ngay với bác sĩ điều trị để được đánh giá lại phác đồ.",
       "contexts": [
         "[Rule Engine M2: INTERACTION_FOUND | Severity: MAJOR | Cặp hoạt chất: Oxycodone + Diazepam]\nCơ chế & Hậu quả: Hiệp đồng ức chế thần kinh trung ương làm tăng nguy cơ an thần quá mức, suy hô hấp và tử vong."
       ],
@@ -851,11 +839,11 @@
       "predicted_warning_level": "CRITICAL",
       "expected_warning_level": "CRITICAL",
       "model_used": "gemini-3.1-flash-lite",
-      "latency_ms": 1340.163,
+      "latency_ms": 1588.898,
       "violations": [],
       "status_match": true,
       "faithfulness": 0.625,
-      "answer_relevance": null,
+      "answer_relevance": NaN,
       "context_precision": 1.0
     },
     {
@@ -870,7 +858,7 @@
       "predicted_warning_level": "CRITICAL",
       "expected_warning_level": "CRITICAL",
       "model_used": "layer1_regex_short_circuit",
-      "latency_ms": 0.188,
+      "latency_ms": 0.19,
       "violations": [],
       "status_match": true
     },
@@ -886,7 +874,7 @@
       "predicted_warning_level": "CRITICAL",
       "expected_warning_level": "CRITICAL",
       "model_used": "layer1_regex_short_circuit",
-      "latency_ms": 0.208,
+      "latency_ms": 0.234,
       "violations": [],
       "status_match": true
     },
@@ -902,7 +890,7 @@
       "predicted_warning_level": "CRITICAL",
       "expected_warning_level": "CRITICAL",
       "model_used": "layer1_regex_short_circuit",
-      "latency_ms": 0.191,
+      "latency_ms": 0.241,
       "violations": [],
       "status_match": true
     },
@@ -918,7 +906,7 @@
       "predicted_warning_level": "CRITICAL",
       "expected_warning_level": "CRITICAL",
       "model_used": "layer1_regex_short_circuit",
-      "latency_ms": 0.151,
+      "latency_ms": 0.239,
       "violations": [],
       "status_match": true
     },
@@ -934,7 +922,7 @@
       "predicted_warning_level": "CRITICAL",
       "expected_warning_level": "CRITICAL",
       "model_used": "layer1_regex_short_circuit",
-      "latency_ms": 0.128,
+      "latency_ms": 0.197,
       "violations": [],
       "status_match": true
     },
@@ -950,7 +938,7 @@
       "predicted_warning_level": "CRITICAL",
       "expected_warning_level": "CRITICAL",
       "model_used": "layer1_regex_short_circuit",
-      "latency_ms": 0.164,
+      "latency_ms": 0.195,
       "violations": [],
       "status_match": true
     },
@@ -966,7 +954,7 @@
       "predicted_warning_level": "CRITICAL",
       "expected_warning_level": "CRITICAL",
       "model_used": "layer1_regex_short_circuit",
-      "latency_ms": 0.126,
+      "latency_ms": 0.353,
       "violations": [],
       "status_match": true
     },
@@ -982,7 +970,7 @@
       "predicted_warning_level": "CRITICAL",
       "expected_warning_level": "CRITICAL",
       "model_used": "layer1_regex_short_circuit",
-      "latency_ms": 0.128,
+      "latency_ms": 0.237,
       "violations": [],
       "status_match": true
     },
@@ -998,7 +986,7 @@
       "predicted_warning_level": "CRITICAL",
       "expected_warning_level": "CRITICAL",
       "model_used": "layer1_regex_short_circuit",
-      "latency_ms": 0.145,
+      "latency_ms": 0.173,
       "violations": [],
       "status_match": true
     },
@@ -1014,7 +1002,7 @@
       "predicted_warning_level": "CRITICAL",
       "expected_warning_level": "CRITICAL",
       "model_used": "layer1_regex_short_circuit",
-      "latency_ms": 0.102,
+      "latency_ms": 0.124,
       "violations": [],
       "status_match": true
     }
