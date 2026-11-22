@@ -54,6 +54,13 @@ export type RawObservation = Observation & {
   source_reference: string | null;
   created_at: string;
 };
+export type SymptomInput = {
+  symptom_name: string;
+  severity: number | null;
+  duration_minutes: number | null;
+  notes: string | null;
+};
+export type Symptom = SymptomInput & { id: string; entry_id: string; created_at: string | null };
 export type Entry = {
   id: string;
   title: string | null;
@@ -62,6 +69,7 @@ export type Entry = {
   entry_type: string;
   recorded_at: string;
   observations: Observation[];
+  symptoms?: Symptom[];
 };
 export type DrugOption = {
   drug_id: string;

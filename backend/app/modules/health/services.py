@@ -165,9 +165,10 @@ class HealthService:
         self.db.delete(self.repo.owned(model, resource_id, lock=True))
         self.db.flush()
 
-    def entry_detail(self, row, readings=None):
-        result = {k: getattr(row, k) for k in s.Entry.model_fields if k != 'observations'}
+    def entry_detail(self, row, readings=None, symptoms=None):
+        result = {k: getattr(row, k) for k in s.Entry.model_fields if k not in ('observations', 'symptoms')}
         result['observations'] = [fields(x, s.Observation) for x in (readings if readings is not None else self.repo.readings(row.id))]
+        result['symptoms'] = [fields(x, s.Symptom) for x in (symptoms if symptoms is not None else self.repo.symptoms([row.id]).all())]
         return result
 
     def entry(self, entry_id):
@@ -196,20 +197,36 @@ class HealthService:
         grouped = {}
         for child in children:
             grouped.setdefault(child.entry_id, []).append(child)
-        return {'items': [self.entry_detail(row, grouped.get(row.id, [])) for row in rows],
+        symptoms = {}
+        for symptom in self.repo.symptoms([row.id for row in rows]) if rows else ():
+            symptoms.setdefault(symptom.entry_id, []).append(symptom)
+        return {'items': [self.entry_detail(row, grouped.get(row.id, []), symptoms.get(row.id, [])) for row in rows],
                 'pagination': {'page': number, 'page_size': size, 'total': total}}
 
     def _entry_invariant(self, entry):
         readings = self.repo.readings(entry.id)
-        if not (entry.title or entry.content or readings):
-            conflict('Entry cần nội dung hoặc số đo; hãy xóa cả entry nếu không còn dữ liệu')
+        symptoms = self.repo.symptoms([entry.id]).all()
+        if not ((entry.title or '').strip() or (entry.content or '').strip() or readings or symptoms):
+            conflict('Ghi chép cần tiêu đề, ghi chú, số đo hoặc triệu chứng; hãy xóa cả ghi chép nếu không còn dữ liệu')
         if len(readings) > 100:
             invalid('observations', 'TOO_MANY_OBSERVATIONS')
+        if len(symptoms) > 100:
+            invalid('symptoms', 'TOO_MANY_SYMPTOMS')
+        return readings, symptoms
+
+    def _create_symptom(self, entry_id, payload):
+        symptom = m.Symptoms(entry_id=entry_id, created_at=now(), **payload.model_dump())
+        self.db.add(symptom)
+        return symptom
+
+    def _patch_symptom(self, symptom, payload):
+        for key, value in payload.model_dump(exclude_unset=True, exclude={'id'}).items():
+            setattr(symptom, key, value)
 
     @write
     def create_entry(self, payload):
-        data = payload.model_dump(exclude={'observations'})
-        if not (data.get('title') or data.get('content') or payload.observations):
+        data = payload.model_dump(exclude={'observations', 'symptoms'})
+        if not (data.get('title') or data.get('content') or payload.observations or payload.symptoms):
             invalid('entry', 'EMPTY_ENTRY')
         past(data['recorded_at'], 'recorded_at')
         entry = m.HealthEntries(user_id=self.owner, created_at=now(), **data)
@@ -218,9 +235,10 @@ class HealthService:
         for reading in payload.observations:
             self.db.add(m.HealthObservations(user_id=self.owner, entry_id=entry.id, observation_type=reading.observation_type,
                         source_type='MANUAL', created_at=now(), **observation_values(reading.model_dump(exclude_unset=True), entry.recorded_at)))
+        for symptom in payload.symptoms:
+            self._create_symptom(entry.id, symptom)
         self.db.flush()
-        self._entry_invariant(entry)
-        return self.entry_detail(entry)
+        return self.entry_detail(entry, *self._entry_invariant(entry))
 
     def _header(self, row, payload):
         data = payload.model_dump(exclude_unset=True)
@@ -238,8 +256,7 @@ class HealthService:
         row = self.repo.owned(m.HealthEntries, entry_id, lock=True)
         self._header(row, payload)
         self.db.flush()
-        self._entry_invariant(row)
-        return self.entry_detail(row)
+        return self.entry_detail(row, *self._entry_invariant(row))
 
     @write
     def aggregate(self, entry_id, payload):
@@ -257,10 +274,15 @@ class HealthService:
         for create in commands.create:
             self.db.add(m.HealthObservations(user_id=self.owner, entry_id=row.id, observation_type=create.observation_type,
                         source_type='MANUAL', created_at=now(), **observation_values(create.model_dump(exclude_unset=True), row.recorded_at)))
+        for update in payload.symptoms.update:
+            self._patch_symptom(self.repo.symptom(entry_id, update.id), update)
+        for symptom_id in payload.symptoms.delete:
+            self.db.delete(self.repo.symptom(entry_id, symptom_id))
+        for symptom in payload.symptoms.create:
+            self._create_symptom(entry_id, symptom)
         row.updated_at = now()
         self.db.flush()
-        self._entry_invariant(row)
-        return self.entry_detail(row)
+        return self.entry_detail(row, *self._entry_invariant(row))
 
     @write
     def delete_entry(self, entry_id):
@@ -284,6 +306,21 @@ class HealthService:
         self.db.flush()
         self._entry_invariant(row)
         return None if delete else fields(reading, s.Observation)
+
+    @write
+    def mutate_symptom(self, entry_id, payload=None, symptom_id=None, delete=False):
+        row = self.repo.owned(m.HealthEntries, entry_id, lock=True)
+        symptom = self.repo.symptom(entry_id, symptom_id) if symptom_id else None
+        if delete:
+            self.db.delete(symptom)
+        elif symptom is None:
+            symptom = self._create_symptom(entry_id, payload)
+        else:
+            self._patch_symptom(symptom, payload)
+        row.updated_at = now()
+        self.db.flush()
+        self._entry_invariant(row)
+        return None if delete else fields(symptom, s.Symptom)
 
     def course_dict(self, row):
         drug = catalog.drug(self.db, row.drug_id)

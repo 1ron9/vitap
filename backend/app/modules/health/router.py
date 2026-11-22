@@ -161,6 +161,22 @@ def observations(health: Health, filters: Annotated[s.ObservationSeriesQuery, Qu
     return health.observations(filters)
 
 
+@router.post('/entries/{entry_id}/symptoms', response_model=s.Symptom, status_code=201)
+def create_symptom(entry_id: UUID, payload: s.SymptomCreate, health: Health):
+    return health.mutate_symptom(entry_id, payload)
+
+
+@router.patch('/entries/{entry_id}/symptoms/{symptom_id}', response_model=s.Symptom)
+def patch_symptom(entry_id: UUID, symptom_id: UUID, payload: s.SymptomPatch, health: Health):
+    return health.mutate_symptom(entry_id, payload, symptom_id)
+
+
+@router.delete('/entries/{entry_id}/symptoms/{symptom_id}', status_code=204)
+def delete_symptom(entry_id: UUID, symptom_id: UUID, health: Health):
+    health.mutate_symptom(entry_id, symptom_id=symptom_id, delete=True)
+    return Response(status_code=204)
+
+
 @router.get('/medication-course-options', response_model=s.Page[s.DrugOption])
 def course_options(health: Health, q: Annotated[str, Query(max_length=255)] = '', page: PageNumber = 1, page_size: PageSize = 20):
     return health.options(q.strip(), page, page_size)

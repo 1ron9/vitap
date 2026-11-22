@@ -212,3 +212,35 @@ def test_concurrent_last_observation_deletes_preserve_entry(pg):
         assert sorted(f.result(timeout=20) for f in futures)==[204,409]
     with TestClient(app) as client:
         assert len(client.get('/api/v1/health/entries/'+row['id'],headers=h).json()['observations'])==1
+
+
+def test_last_symptom_and_last_reading_share_postgres_lock(pg):
+    engine, _, headers = pg
+    with TestClient(app) as client:
+        response = client.post('/api/v1/health/entries', headers=headers, json={
+            'symptoms':[{'symptom_name':'Synthetic symptom'}],
+            'observations':[{'observation_type':'HEART_RATE','value':72}],
+        })
+        assert response.status_code == 201, response.text
+        row = response.json()
+    path = f"/api/v1/health/entries/{row['id']}"
+    barrier = Barrier(2)
+
+    def remove(child_path):
+        with TestClient(app) as client:
+            barrier.wait(timeout=10)
+            return client.delete(path+child_path, headers=headers).status_code
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        tasks = [
+            pool.submit(remove, '/symptoms/'+row['symptoms'][0]['id']),
+            pool.submit(remove, '/observations/'+row['observations'][0]['id']),
+        ]
+        assert sorted(task.result(timeout=20) for task in tasks) == [204, 409]
+    with TestClient(app) as client:
+        item = client.get(path, headers=headers).json()
+        assert len(item['symptoms']) + len(item['observations']) == 1
+        assert client.delete(path, headers=headers).status_code == 204
+    with engine.connect() as db:
+        actual = db.scalar(text('SELECT count(*) FROM symptoms WHERE entry_id=:id'), {'id':UUID(row['id'])})
+        assert actual == 0

@@ -11,6 +11,7 @@ import type {
   Preferences,
   DrugOption,
   RawObservation,
+  Symptom,
 } from "./types";
 
 type State = {
@@ -95,6 +96,7 @@ function initial(email: string): State {
         entry_type: "DAILY",
         recorded_at: at,
         observations,
+        symptoms: [],
       };
     }),
     courses: [],
@@ -120,7 +122,11 @@ function store(email: string) {
   if (!stores.has(email)) {
     const saved = localStorage.getItem(`vitap-m1-mock-v1-${email}`);
     try {
-      stores.set(email, saved ? JSON.parse(saved) : initial(email));
+      const state: State = saved ? JSON.parse(saved) : initial(email);
+      state.entries.forEach((entry) => {
+        entry.symptoms ??= [];
+      });
+      stores.set(email, state);
     } catch {
       stores.set(email, initial(email));
     }
@@ -154,11 +160,64 @@ function reading(input: any, recorded: string, old?: Observation): Observation {
   return result;
 }
 function validateEntry(e: Entry) {
-  if (!e.title?.trim() && !e.content?.trim() && !e.observations.length)
-    fail("Ghi chép cần nội dung hoặc số đo", 409);
+  if (!e.title?.trim() && !e.content?.trim() && !e.observations.length && !e.symptoms?.length)
+    fail("Ghi chép cần tiêu đề, ghi chú, số đo hoặc triệu chứng", 409);
   if (e.observations.length > 100) fail("Tối đa 100 số đo");
+  if ((e.symptoms?.length ?? 0) > 100) fail("Tối đa 100 triệu chứng");
   if (new Date(e.recorded_at).getTime() > Date.now())
     fail("Thời gian ghi chép không được ở tương lai");
+}
+
+function symptomInput(body: Record<string, unknown>, entryId: string, previous?: Symptom): Symptom {
+  if (
+    Object.keys(body).some(
+      (key) => !["symptom_name", "severity", "duration_minutes", "notes"].includes(key),
+    )
+  )
+    fail("Trường triệu chứng không hợp lệ");
+  const next = { severity: null, duration_minutes: null, notes: null, ...previous, ...body };
+  const name = typeof next.symptom_name === "string" ? next.symptom_name.trim() : "";
+  const intInRange = (value: unknown, min: number, max: number) =>
+    value === null ||
+    (typeof value === "number" && Number.isInteger(value) && value >= min && value <= max);
+  if (
+    !name ||
+    name.length > 255 ||
+    !intInRange(next.severity, 1, 10) ||
+    !intInRange(next.duration_minutes, 0, 2_147_483_647) ||
+    (next.notes !== null && (typeof next.notes !== "string" || next.notes.trim().length > 5000))
+  )
+    fail("Tên, mức độ, thời lượng hoặc ghi chú triệu chứng không hợp lệ");
+  return {
+    id: previous?.id ?? crypto.randomUUID(),
+    entry_id: entryId,
+    created_at: previous ? previous.created_at : new Date().toISOString(),
+    symptom_name: name,
+    severity: next.severity as number | null,
+    duration_minutes: next.duration_minutes as number | null,
+    notes: typeof next.notes === "string" ? next.notes.trim() : null,
+  };
+}
+
+type SymptomCommands = {
+  create?: Record<string, unknown>[];
+  update?: (Record<string, unknown> & { id: string })[];
+  delete?: string[];
+};
+
+function applySymptoms(entry: Entry, commands: SymptomCommands = {}) {
+  const current = (entry.symptoms ??= []);
+  const targets = [...(commands.update || []).map((row) => row.id), ...(commands.delete || [])];
+  if (targets.length !== new Set(targets).size) fail("Triệu chứng bị cập nhật nhiều lần");
+  for (const target of targets)
+    if (!current.some((row) => row.id === target)) fail("Không tìm thấy triệu chứng", 404);
+  for (const { id, ...patch } of commands.update || []) {
+    if (!Object.keys(patch).length) fail("Cần trường triệu chứng để cập nhật");
+    const index = current.findIndex((row) => row.id === id);
+    current[index] = symptomInput(patch, entry.id, current[index]);
+  }
+  entry.symptoms = current.filter((row) => !(commands.delete || []).includes(row.id));
+  entry.symptoms.push(...(commands.create || []).map((s) => symptomInput(s, entry.id)));
 }
 
 function rawObservations(entries: Entry[], params: URLSearchParams): RawObservation[] {
@@ -215,7 +274,7 @@ export async function mockHealthApi<T>(url: string, method = "GET", body?: any):
   if (email === "guest") fail("Cần đăng nhập", 401);
   const state = structuredClone(store(email)),
     parsed = new URL(url, "http://mock.local"),
-    [resource, id, operation] = parsed.pathname.split("/").filter(Boolean);
+    [resource, id, operation, childId] = parsed.pathname.split("/").filter(Boolean);
   let result: any;
   const paginate = (list: any[]) => {
     const page = Number(parsed.searchParams.get("page") || 1),
@@ -262,7 +321,17 @@ export async function mockHealthApi<T>(url: string, method = "GET", body?: any):
   else if (resource === "entries") {
     const item = id ? state.entries.find((x) => x.id === id) : undefined;
     if (id && !item) fail("Không tìm thấy ghi chép", 404);
-    if (method === "GET")
+    if (operation === "symptoms" && item) {
+      if (method === "POST" && !childId) {
+        applySymptoms(item, { create: [body] });
+        result = item.symptoms!.at(-1);
+      } else if (method === "PATCH" && childId) {
+        applySymptoms(item, { update: [{ ...body, id: childId }] });
+        result = item.symptoms!.find((row) => row.id === childId);
+      } else if (method === "DELETE" && childId) applySymptoms(item, { delete: [childId] });
+      else fail("Không có preview cho thao tác này", 404);
+      validateEntry(item);
+    } else if (method === "GET")
       result = id
         ? item
         : paginate(
@@ -282,19 +351,31 @@ export async function mockHealthApi<T>(url: string, method = "GET", body?: any):
                 (a, b) => b.recorded_at.localeCompare(a.recorded_at) || b.id.localeCompare(a.id),
               ),
           );
-    if (method === "POST") {
+    else if (method === "POST") {
+      const entryId = crypto.randomUUID();
+      const recordedAt = body.recorded_at ?? new Date().toISOString();
       const row = {
         ...body,
-        id: crypto.randomUUID(),
+        id: entryId,
         mood: null,
         entry_type: "DAILY",
-        observations: body.observations.map((o: any) => reading(o, body.recorded_at)),
+        recorded_at: recordedAt,
+        observations: (body.observations || []).map((o: any) => reading(o, recordedAt)),
+        symptoms: (body.symptoms || []).map((s: Record<string, unknown>) =>
+          symptomInput(s, entryId),
+        ),
       };
+      if (
+        !row.title?.trim() &&
+        !row.content?.trim() &&
+        !row.observations.length &&
+        !row.symptoms.length
+      )
+        fail("Ghi chép cần tiêu đề, ghi chú, số đo hoặc triệu chứng");
       validateEntry(row);
       state.entries.unshift(row);
       result = row;
-    }
-    if (method === "PATCH" && item) {
+    } else if (method === "PATCH" && item) {
       if (operation === "aggregate") {
         Object.assign(item, body.entry || {});
         const c = body.observations || {};
@@ -305,11 +386,11 @@ export async function mockHealthApi<T>(url: string, method = "GET", body?: any):
         }
         item.observations = item.observations.filter((o) => !(c.delete || []).includes(o.id));
         item.observations.push(...(c.create || []).map((o: any) => reading(o, item.recorded_at)));
+        applySymptoms(item, body.symptoms);
       } else Object.assign(item, body);
       validateEntry(item);
       result = item;
-    }
-    if (method === "DELETE") state.entries = state.entries.filter((x) => x.id !== id);
+    } else if (method === "DELETE") state.entries = state.entries.filter((x) => x.id !== id);
   } else if (
     resource === "conditions" ||
     resource === "allergies" ||

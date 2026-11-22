@@ -17,6 +17,17 @@ Mỗi item giữ `id`, `entry_id`, các giá trị, đơn vị và cặp `entere
 đã lưu khi có. Hai lần đo trùng thời điểm vẫn là hai item. Client đọc đủ các trang
 cần hiển thị. Các request phân trang độc lập có thể thấy dữ liệu thay đổi khi có ghi đồng thời.
 
+### Triệu chứng trong ghi chép
+
+`POST /api/v1/health/entries` nhận mảng `symptoms` tùy chọn. Mỗi triệu chứng cần tên,
+có thể kèm mức độ tự khai (số nguyên 1–10), thời lượng theo số phút nguyên không âm
+và ghi chú. Tối đa 100 triệu chứng mỗi ghi chép. Một ghi chép có thể chỉ có triệu chứng.
+
+`PATCH /api/v1/health/entries/{id}/aggregate` nhận nhóm `symptoms` cùng kiểu thao tác
+`create/update/delete` như số đo. Sửa tiêu đề, số đo và triệu chứng cùng một transaction.
+Các route con `/entries/{entry_id}/symptoms` hỗ trợ POST, và `/{symptom_id}` hỗ trợ PATCH/DELETE.
+Danh sách và chi tiết ghi chép trả mảng triệu chứng. Thao tác làm ghi chép rỗng trả 409.
+
 ## Cập nhật
 
 Tại gốc repo trong môi trường đã cài dependency backend:

@@ -105,6 +105,77 @@ def test_raw_observations_accept_366_days_and_deny_inactive_user(client, users, 
     assert response.json()['error']['code'] == 'ACCOUNT_INACTIVE'
 
 
+def test_structured_symptom_only_lifecycle_and_ownership(client, users):
+    a, b = users[0][1], users[1][1]
+    obj = post(client, '/entries', {'symptoms': [
+        {'symptom_name': ' Synthetic symptom ', 'severity': 4, 'duration_minutes': 0, 'notes': 'original'},
+    ]}, a)
+    assert not obj['observations'] and obj['title'] is None
+    symptom = obj['symptoms'][0]
+    assert symptom['entry_id'] == obj['id'] and symptom['symptom_name'] == 'Synthetic symptom'
+    path = f"/entries/{obj['id']}"
+    nested = path + '/symptoms/' + symptom['id']
+    incorrect_parent = entry(client, a)
+    assert client.patch(ROOT+nested, headers=b, json={'severity': 7}).status_code == 404
+    assert client.delete(ROOT+f"/entries/{incorrect_parent['id']}/symptoms/{symptom['id']}", headers=a).status_code == 404
+    assert client.get(ROOT+'/entries', headers=b).json()['items'] == []
+    result = client.patch(ROOT+nested, headers=a, json={'notes': None})
+    assert result.status_code == 200, result.text
+    assert result.json() == {**symptom, 'notes': None}
+    assert client.delete(ROOT+nested, headers=a).status_code == 409
+    assert client.get(ROOT+path, headers=a).json()['symptoms'] == [result.json()]
+    assert any(row['symptoms'] == [result.json()] for row in client.get(ROOT+'/entries', headers=a).json()['items'])
+    assert client.delete(ROOT+path, headers=a).status_code == 204
+    assert client.get(ROOT+path, headers=a).status_code == 404
+
+
+@pytest.mark.parametrize('fields', [
+    {'symptom_name':'  '}, {'symptom_name':None}, {'severity':0}, {'severity':11},
+    {'severity':True}, {'severity':3.5}, {'duration_minutes':-1}, {'duration_minutes':2_147_483_648},
+    {'duration_minutes':'5'}, {'notes':'x' * 5001}, {'entry_id':str(uuid4())},
+])
+def test_structured_symptom_validation(client, users, fields):
+    response = client.post(ROOT+'/entries', headers=users[0][1], json={
+        'symptoms': [{'symptom_name':'Synthetic', **fields}],
+    })
+    assert response.status_code == 422, response.text
+
+
+def test_mixed_aggregate_rolls_back_and_replaces_last_child(client, users):
+    a = users[0][1]
+    original = post(client, '/entries', {'observations':[{'observation_type':'HEART_RATE','value':72}]}, a)
+    path = ROOT+f"/entries/{original['id']}/aggregate"
+    rid = original['observations'][0]['id']
+    rejected = client.patch(path, headers=a, json={'entry':{'title':'Must rollback'},
+        'observations':{'update':[{'id':rid,'value':77}]},
+        'symptoms':{'update':[{'id':str(uuid4()),'notes':'missing'}]} })
+    assert rejected.status_code == 404
+    assert client.get(path.removesuffix('/aggregate'), headers=a).json() == original
+    changed = client.patch(path, headers=a, json={'observations':{'delete':[rid]},
+        'symptoms':{'create':[{'symptom_name':'Synthetic symptom','severity':10}]} })
+    assert changed.status_code == 200, changed.text
+    item = changed.json()
+    assert not item['observations'] and len(item['symptoms']) == 1
+    sid = item['symptoms'][0]['id']
+    duplicate = client.patch(path, headers=a, json={'symptoms':{'update':[{'id':sid,'severity':3}], 'delete':[sid]}})
+    assert duplicate.status_code == 422
+    assert client.get(path.removesuffix('/aggregate'), headers=a).json() == item
+
+
+def test_structured_symptom_limit_applies_after_merging_commands(client, users):
+    a = users[0][1]
+    obj = post(client, '/entries', {'symptoms':[{'symptom_name':f'Synthetic {i}'} for i in range(100)]}, a)
+    path = ROOT+f"/entries/{obj['id']}"
+    response = client.post(path+'/symptoms', headers=a, json={'symptom_name':'Overflow'})
+    assert response.status_code == 422
+    assert len(client.get(path, headers=a).json()['symptoms']) == 100
+    replaced = client.patch(path+'/aggregate', headers=a, json={'symptoms':{
+        'delete':[obj['symptoms'][0]['id']], 'create':[{'symptom_name':'Replacement'}],
+    }})
+    assert replaced.status_code == 200, replaced.text
+    assert len(replaced.json()['symptoms']) == 100
+
+
 def test_profile_preferences_and_declaration(client, users):
     h = users[0][1]
     before = client.get(ROOT+'/profile', headers=h).json()

@@ -20,7 +20,7 @@ def test_migration_matches_model_columns(engine):
         actual={c['name'] for c in inspector.get_columns(table.name)}
         assert actual == set(table.columns.keys()), table.name
     with engine.connect() as db:
-        assert db.scalar(text('SELECT version_num FROM alembic_version')) == '20261117_m1_phase_a'
+        assert db.scalar(text('SELECT version_num FROM alembic_version')) == '20261122_m1_symptoms'
         assert db.scalar(text("SELECT atttypmod FROM pg_attribute WHERE attrelid='knowledge_chunks'::regclass AND attname='embedding'")) == 768
 
 def test_constraints_on_real_database(engine):
@@ -80,6 +80,8 @@ def test_cascade_and_vector_index(engine):
     info=inspect(engine)
     fk=next(f for f in info.get_foreign_keys('health_observations') if f['constrained_columns']==['entry_id'])
     assert fk['options']['ondelete']=='CASCADE'
+    assert any(index['column_names']==['entry_id','created_at','id']
+               for index in info.get_indexes('symptoms'))
     with engine.connect() as db:
         definition=db.scalar(text("SELECT indexdef FROM pg_indexes WHERE indexname='idx_knowledge_chunks_vector_hnsw'"))
         assert 'hnsw' in definition and 'vector_cosine_ops' in definition

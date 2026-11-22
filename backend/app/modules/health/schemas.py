@@ -4,7 +4,7 @@ from decimal import Decimal
 import re
 from typing import Annotated, Generic, Literal, TypeVar
 from uuid import UUID
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StrictBool, PlainSerializer, field_validator, model_validator
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StrictBool, StrictInt, PlainSerializer, field_validator, model_validator
 
 Metric = Literal['BLOOD_PRESSURE', 'GLUCOSE', 'WEIGHT', 'HEART_RATE']
 Sex = Literal['MALE', 'FEMALE', 'OTHER', 'UNKNOWN']
@@ -163,8 +163,48 @@ class EntryHeader(DTO):
     recorded_at: AwareDatetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
+SymptomSeverity = Annotated[StrictInt, Field(ge=1, le=10)]
+SymptomDuration = Annotated[StrictInt, Field(ge=0, le=2_147_483_647)]
+
+
+class SymptomCreate(DTO):
+    symptom_name: Name
+    severity: SymptomSeverity | None = None
+    duration_minutes: SymptomDuration | None = None
+    notes: Note | None = None
+
+
+class SymptomPatch(Patch):
+    symptom_name: Name | None = None
+    severity: SymptomSeverity | None = None
+    duration_minutes: SymptomDuration | None = None
+    notes: Note | None = None
+
+    @field_validator('symptom_name')
+    @classmethod
+    def name_may_not_be_cleared(cls, value):
+        if value is None:
+            raise ValueError('NULL_NOT_ALLOWED')
+        return value
+
+
+class SymptomUpdate(SymptomPatch):
+    id: UUID
+
+
+class Symptom(DTO):
+    id: UUID
+    entry_id: UUID
+    symptom_name: str
+    severity: int | None
+    duration_minutes: int | None
+    notes: str | None
+    created_at: datetime | None
+
+
 class EntryCreate(EntryHeader):
     observations: list[ObservationCreate] = Field(default_factory=list, max_length=100)
+    symptoms: list[SymptomCreate] = Field(default_factory=list, max_length=100)
 
 
 class EntryPatch(Patch):
@@ -185,6 +225,7 @@ class Entry(DTO):
     created_at: datetime
     updated_at: datetime | None
     observations: list[Observation]
+    symptoms: list[Symptom]
 
 
 class ObservationCommands(DTO):
@@ -202,13 +243,31 @@ class ObservationCommands(DTO):
         return self
 
 
+class SymptomCommands(DTO):
+    create: list[SymptomCreate] = Field(default_factory=list, max_length=100)
+    update: list[SymptomUpdate] = Field(default_factory=list, max_length=100)
+    delete: list[UUID] = Field(default_factory=list, max_length=100)
+
+    @model_validator(mode='after')
+    def unique_targets(self):
+        ids = [x.id for x in self.update] + self.delete
+        if len(ids) != len(set(ids)):
+            raise ValueError('DUPLICATE_OR_CONFLICTING_SYMPTOM_TARGETS')
+        if any(x.model_fields_set == {'id'} for x in self.update):
+            raise ValueError('EMPTY_SYMPTOM_UPDATE')
+        return self
+
+
 class Aggregate(DTO):
     entry: EntryPatch | None = None
     observations: ObservationCommands = Field(default_factory=ObservationCommands)
+    symptoms: SymptomCommands = Field(default_factory=SymptomCommands)
 
     @model_validator(mode='after')
     def nonempty(self):
-        if not self.entry and not (self.observations.create or self.observations.update or self.observations.delete):
+        if not self.entry and not any(
+            command.create or command.update or command.delete for command in (self.observations, self.symptoms)
+        ):
             raise ValueError('EMPTY_COMMAND')
         return self
 
