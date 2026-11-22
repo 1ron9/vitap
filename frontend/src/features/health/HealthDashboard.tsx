@@ -147,6 +147,7 @@ function HealthDashboardContent() {
       <Card className="mb-4 grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
         <Field label="Chỉ số">
           <select
+            aria-label="Chỉ số"
             className={inputClass}
             value={metric}
             onChange={(e) => setMetric(e.target.value as Metric)}
@@ -160,6 +161,7 @@ function HealthDashboardContent() {
         </Field>
         <Field label="Khoảng thời gian">
           <select
+            aria-label="Khoảng thời gian"
             className={inputClass}
             value={preset}
             onChange={(e) => {
