@@ -7,3 +7,9 @@ Dashboard đọc đủ các trang kết quả trước khi vẽ. Mỗi điểm d
 Khi dữ liệu chưa tải đủ, Dashboard hiển thị trạng thái tải. Nếu một trang lỗi, nút “Thử lại” chạy lại cả truy vấn. Sau khi thêm, sửa hoặc xóa trong Sổ tay, lần đọc tiếp theo dùng dữ liệu backend mới. Bộ lọc chỉ đổi khoảng hiển thị các số đo gốc. Chế độ thống kê theo bucket và dải tham chiếu thuộc các phần triển khai riêng.
 
 Mock mode vẫn dùng màn hình mô phỏng với nhãn dữ liệu mẫu. Guest thấy lời mời đăng nhập. Dashboard thật không tải dữ liệu cá nhân trước khi xác thực.
+
+## Nghiệm thu Đợt B
+
+Chạy `pnpm test:e2e` trong `frontend` với PostgreSQL thử nghiệm đã migrate và seed. Hai spec Dashboard chạy trên Chromium desktop/mobile. `dashboard.spec.ts` kiểm tra lọc ngày Việt Nam, hai lần đo huyết áp trùng giờ, đường huyết và mở đúng ghi chép. `dashboard-flow.spec.ts` tạo, sửa và xóa ghi chép từ UI, kiểm tra thời điểm đo và cách ly tài khoản khi phản hồi cũ về trễ. Suite PostgreSQL đối chiếu danh sách theo UUID qua nhiều trang với DB.
+
+Khi nghiệm thu thủ công, tạo hai lần đo cùng chỉ số trong một ngày rồi đối chiếu số lượng, đơn vị và thời điểm giữa Sổ tay, bảng và biểu đồ. Sửa riêng thời điểm ghi chép để xác nhận các điểm đứng nguyên. Sau đó sửa thời điểm đo qua ngày khác và xóa ghi chép để xác nhận dữ liệu được đọc lại. Giữ phạm vi 4 chỉ số của A và đưa dải tham chiếu sang task riêng.
