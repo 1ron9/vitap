@@ -54,6 +54,28 @@ export type RawObservation = Observation & {
   source_reference: string | null;
   created_at: string;
 };
+export type AnalyticsGranularity = "day" | "week" | "month";
+export type AnalyticsBucket = {
+  period_start: string;
+  period_end: string;
+  count: number;
+  average: number | null;
+  minimum: number | null;
+  maximum: number | null;
+  secondary_average: number | null;
+  secondary_minimum: number | null;
+  secondary_maximum: number | null;
+};
+export type Analytics = {
+  observation_type: Metric;
+  from: string;
+  to: string;
+  granularity: AnalyticsGranularity;
+  timezone: string;
+  unit: string;
+  excluded_count: number;
+  buckets: AnalyticsBucket[];
+};
 export type SymptomInput = {
   symptom_name: string;
   severity: number | null;

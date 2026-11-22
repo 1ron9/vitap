@@ -9,7 +9,11 @@ const resource = (path: string) => path.split("?")[0].split("/")[1] || "";
 export function invalidateHealth(path: string) {
   const name = resource(path);
   const related =
-    name === "entries" ? ["observations"] : name === "allergies" ? ["allergy-declaration"] : [];
+    name === "entries"
+      ? ["observations", "analytics"]
+      : name === "allergies"
+        ? ["allergy-declaration"]
+        : [];
   const keys = [name, ...related];
   keys.forEach((key) => revisions.set(key, (revisions.get(key) || 0) + 1));
   subscribers.forEach((fn) => fn());

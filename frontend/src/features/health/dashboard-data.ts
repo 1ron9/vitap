@@ -1,7 +1,7 @@
 import { readHealth } from "./hooks";
 import { dayBounds, today } from "./time";
 import { metrics } from "./metrics";
-import type { Metric, Page, RawObservation } from "./types";
+import type { AnalyticsGranularity, Metric, Page, RawObservation } from "./types";
 
 const DAY_MS = 86_400_000;
 const PAGE_SIZE = 100;
@@ -35,6 +35,20 @@ export function dashboardBounds(range: DateRange): DateRange | null {
 
 export function observationsPath(metric: Metric, bounds: DateRange) {
   return `/observations?${new URLSearchParams({ observation_type: metric, ...bounds })}`;
+}
+
+export function analyticsPath(metric: Metric, range: DateRange, granularity: AnalyticsGranularity) {
+  if (!dashboardBounds(range)) return null;
+  const next = new Date(`${range.to}T00:00:00Z`);
+  next.setUTCDate(next.getUTCDate() + 1);
+  if (Number.isNaN(next.getTime()) || next.getUTCFullYear() > 9999) return null;
+  return `/analytics?${new URLSearchParams({
+    observation_type: metric,
+    from: range.from,
+    to: next.toISOString().slice(0, 10),
+    granularity,
+    timezone: "Asia/Ho_Chi_Minh",
+  })}`;
 }
 
 export async function loadObservationSeries(
