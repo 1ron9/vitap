@@ -6,6 +6,13 @@ import { Field, Failure, QueryState, useAction, inputClass as cls, HealthGate } 
 import type { Entry, Observation, Page, Metric } from "./types";
 import { localDateTime, toUtc, today, dayBounds, displayTime } from "./time";
 import { metrics } from "./metrics";
+import {
+  SymptomsEditor,
+  symptomChanges,
+  symptomDraft,
+  symptomPayload,
+  type SymptomDraft,
+} from "./SymptomsEditor";
 
 type DraftReading = {
   key: string;
@@ -170,6 +177,25 @@ function JournalContent() {
                   </li>
                 ))}
               </ul>
+              {(e.symptoms?.length ?? 0) > 0 && (
+                <div className="my-3">
+                  <h3 className="font-semibold">Triệu chứng</h3>
+                  <ul className="list-inside list-disc space-y-1">
+                    {e.symptoms?.map((symptom) => (
+                      <li key={symptom.id} className="whitespace-pre-wrap">
+                        {symptom.symptom_name}
+                        {symptom.severity !== null
+                          ? ` · mức độ tự khai ${symptom.severity}/10`
+                          : ""}
+                        {symptom.duration_minutes !== null
+                          ? ` · ${symptom.duration_minutes} phút`
+                          : ""}
+                        {symptom.notes ? ` · ${symptom.notes}` : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <div className="flex gap-2">
                 <Button variant="secondary" onClick={() => setEdit(e)}>
                   Sửa ghi chép
@@ -210,7 +236,7 @@ function JournalContent() {
       {deleting && (
         <Card className="my-4 p-5">
           <div role="alertdialog" aria-label="Xác nhận xóa ghi chép">
-            <p>Xóa ghi chép và toàn bộ số đo trong ghi chép này?</p>
+            <p>Xóa ghi chép, toàn bộ số đo và triệu chứng trong ghi chép này?</p>
             <Button
               loading={action.busy}
               onClick={() =>
@@ -238,6 +264,9 @@ function EntryForm({ initial, onClose }: { initial?: Entry; onClose: () => void 
     [content, setContent] = useState(initial?.content || ""),
     [time, setTime] = useState(localDateTime(initial?.recorded_at || new Date()));
   const [rows, setRows] = useState<DraftReading[]>(() => initial?.observations.map(draft) || []),
+    [symptoms, setSymptoms] = useState<SymptomDraft[]>(
+      () => initial?.symptoms?.map(symptomDraft) || [],
+    ),
     [newType, setNewType] = useState<Metric>("BLOOD_PRESSURE"),
     action = useAction();
   const update = (key: string, patch: Partial<DraftReading>) =>
@@ -260,12 +289,17 @@ function EntryForm({ initial, onClose }: { initial?: Entry; onClose: () => void 
             };
             if (initial) {
               const command = aggregateCommand(initial, header, rows);
-              if (command)
-                await healthMutation(`/entries/${initial.id}/aggregate`, "PATCH", command);
+              const symptomCommand = symptomChanges(initial.symptoms || [], symptoms);
+              if (command || symptomCommand)
+                await healthMutation(`/entries/${initial.id}/aggregate`, "PATCH", {
+                  ...command,
+                  ...(symptomCommand ? { symptoms: symptomCommand } : {}),
+                });
             } else
               await healthMutation("/entries", "POST", {
                 ...header,
                 observations: rows.map(readingInput),
+                symptoms: symptoms.map(symptomPayload),
               });
             onClose();
           });
@@ -408,16 +442,17 @@ function EntryForm({ initial, onClose }: { initial?: Entry; onClose: () => void 
             </Button>
           </fieldset>
         ))}
+        <SymptomsEditor drafts={symptoms} onChange={setSymptoms} busy={action.busy} />
         <p className="text-sm text-ink-600">
-          Bạn có thể chỉ ghi nội dung hoặc thêm nhiều số đo cùng loại. Một lần Lưu sẽ áp dụng toàn
-          bộ thay đổi; số đo cuối không được xóa nếu ghi chép không còn nội dung.
+          Ghi chép có thể chỉ có triệu chứng, tiêu đề, ghi chú hoặc số đo. Một lần Lưu sẽ áp dụng
+          toàn bộ thay đổi; nếu xóa nội dung cuối cùng, hãy xóa cả ghi chép.
         </p>
         <Failure error={action.error} />
         <div className="flex gap-3">
           <Button
             type="submit"
             loading={action.busy}
-            disabled={!title.trim() && !content.trim() && !rows.length}
+            disabled={!title.trim() && !content.trim() && !rows.length && !symptoms.length}
           >
             Lưu ghi chép
           </Button>
