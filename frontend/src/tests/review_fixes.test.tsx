@@ -5,7 +5,7 @@ import { AppProvider } from '@/app/state'
 import { DataProvider, RESULT_SCENARIOS } from '@/data/db'
 import { Result } from '@/screens/scan/Result'
 import { Scan } from '@/screens/scan/Scan'
-import { Dashboard } from '@/screens/Dashboard'
+import { PreviewDashboard } from '@/screens/Dashboard'
 import { clearSessionUserEmail } from '@/api/client'
 
 describe('Code Review Defect Fixes Verification', () => {
@@ -70,7 +70,7 @@ describe('Code Review Defect Fixes Verification', () => {
       <MemoryRouter initialEntries={['/dashboard']}>
         <AppProvider>
           <DataProvider overrideEmail="patient.ddi@vitap.vn">
-            <Dashboard />
+            <PreviewDashboard />
           </DataProvider>
         </AppProvider>
       </MemoryRouter>

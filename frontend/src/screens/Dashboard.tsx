@@ -39,7 +39,7 @@ import {
 import { type ChartDef, chartDefs, fmt, type Range } from "@/data/health";
 import { setChatDraft } from "@/screens/Chat";
 import { mockMode } from "@/shared/api";
-import { HealthGate } from "@/features/health/ui";
+import { HealthDashboard } from "@/features/health/HealthDashboard";
 
 const RANGE_OPTS: { value: Range; label: string }[] = [
   { value: "day", label: "Ngày" },
@@ -50,19 +50,9 @@ const RANGE_OPTS: { value: Range; label: string }[] = [
 type DState = "data" | "loading" | "empty" | "single" | "error";
 
 export function Dashboard() {
-  return mockMode || import.meta.env.MODE === "test" ? (
-    <PreviewDashboard />
-  ) : (
-    <HealthGate>
-      <PageHeader title="Tổng quan" sub="Biểu đồ sẽ được hoàn thiện ở Đợt B" />
-      <Card className="p-6">
-        Bạn có thể quản lý hồ sơ và ghi chép sức khỏe trong Hồ sơ / Sổ tay. Biểu đồ dữ liệu thật sẽ
-        có ở Đợt B.
-      </Card>
-    </HealthGate>
-  );
+  return mockMode ? <PreviewDashboard /> : <HealthDashboard />;
 }
-function PreviewDashboard() {
+export function PreviewDashboard() {
   const { isGuest } = useApp();
   const { entries } = useData();
   const [range, setRange] = useState<Range>("week");
@@ -77,7 +67,7 @@ function PreviewDashboard() {
     <>
       <PageHeader
         title="Tổng quan"
-        sub={isGuest ? "Dữ liệu mẫu" : "Chỉ số của bạn, tổng hợp từ Sổ tay"}
+        sub="Chế độ mô phỏng · Dữ liệu mẫu"
         right={
           <Segmented
             size="lg"

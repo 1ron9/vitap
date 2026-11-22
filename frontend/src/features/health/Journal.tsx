@@ -1,16 +1,12 @@
 import { useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Button, Card, PageHeader } from "@/components/ui";
 import { useHealthQuery, healthMutation } from "./hooks";
 import { Field, Failure, QueryState, useAction, inputClass as cls, HealthGate } from "./ui";
 import type { Entry, Observation, Page, Metric } from "./types";
 import { localDateTime, toUtc, today, dayBounds, displayTime } from "./time";
+import { metrics } from "./metrics";
 
-export const metrics: Record<Metric, { label: string; unit: string }> = {
-  BLOOD_PRESSURE: { label: "Huyết áp", unit: "mmHg" },
-  GLUCOSE: { label: "Đường huyết", unit: "mmol/L" },
-  WEIGHT: { label: "Cân nặng", unit: "kg" },
-  HEART_RATE: { label: "Nhịp tim", unit: "bpm" },
-};
 type DraftReading = {
   key: string;
   id?: string;
@@ -79,6 +75,8 @@ export function aggregateCommand(
   };
 }
 function JournalContent() {
+  const [search, setSearch] = useSearchParams();
+  const entryId = search.get("entry");
   const [page, setPage] = useState(1),
     [metric, setMetric] = useState(""),
     [from, setFrom] = useState(""),
@@ -88,8 +86,12 @@ function JournalContent() {
     ...dayBounds(from, to),
     ...(metric ? { observation_type: metric } : {}),
   });
-  const query = useHealthQuery<Page<Entry>>(`/entries?${params}`),
-    action = useAction();
+  const list = useHealthQuery<Page<Entry>>(entryId ? null : `/entries?${params}`);
+  const detail = useHealthQuery<Entry>(entryId ? `/entries/${encodeURIComponent(entryId)}` : null);
+  const query = entryId ? detail : list;
+  const entries = entryId ? (detail.data ? [detail.data] : []) : list.data?.items;
+  const total = list.data?.pagination.total ?? 0;
+  const action = useAction();
   const [edit, setEdit] = useState<Entry | "new" | null>(null),
     [deleting, setDeleting] = useState<Entry | null>(null);
   return (
@@ -97,52 +99,62 @@ function JournalContent() {
       <PageHeader
         title="Sổ tay"
         sub="Ghi chép chỉ số sức khỏe theo thời gian"
-        right={<Button onClick={() => setEdit("new")}>Thêm ghi chép</Button>}
+        right={
+          entryId ? (
+            <Link className="text-brand-600 underline" to="/journal">
+              Xem tất cả ghi chép
+            </Link>
+          ) : (
+            <Button onClick={() => setEdit("new")}>Thêm ghi chép</Button>
+          )
+        }
       />
-      <div className="mb-5 grid gap-3 sm:grid-cols-3">
-        <Field label="Từ ngày">
-          <input
-            className={cls}
-            type="date"
-            value={from}
-            onChange={(e) => {
-              setFrom(e.target.value);
-              setPage(1);
-            }}
-          />
-        </Field>
-        <Field label="Đến ngày (bao gồm)">
-          <input
-            className={cls}
-            type="date"
-            value={to}
-            onChange={(e) => {
-              setTo(e.target.value);
-              setPage(1);
-            }}
-          />
-        </Field>
-        <Field label="Lọc theo chỉ số">
-          <select
-            className={cls}
-            value={metric}
-            onChange={(e) => {
-              setMetric(e.target.value);
-              setPage(1);
-            }}
-          >
-            <option value="">Tất cả</option>
-            {Object.entries(metrics).map(([k, v]) => (
-              <option key={k} value={k}>
-                {v.label}
-              </option>
-            ))}
-          </select>
-        </Field>
-      </div>
+      {!entryId && (
+        <div className="mb-5 grid gap-3 sm:grid-cols-3">
+          <Field label="Từ ngày">
+            <input
+              className={cls}
+              type="date"
+              value={from}
+              onChange={(e) => {
+                setFrom(e.target.value);
+                setPage(1);
+              }}
+            />
+          </Field>
+          <Field label="Đến ngày (bao gồm)">
+            <input
+              className={cls}
+              type="date"
+              value={to}
+              onChange={(e) => {
+                setTo(e.target.value);
+                setPage(1);
+              }}
+            />
+          </Field>
+          <Field label="Lọc theo chỉ số">
+            <select
+              className={cls}
+              value={metric}
+              onChange={(e) => {
+                setMetric(e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="">Tất cả</option>
+              {Object.entries(metrics).map(([k, v]) => (
+                <option key={k} value={k}>
+                  {v.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </div>
+      )}
       <QueryState query={query}>
         <div className="grid gap-4">
-          {query.data?.items.map((e) => (
+          {entries?.map((e) => (
             <Card key={e.id} className="p-5">
               <h2 className="font-semibold">{e.title || "Ghi chép sức khỏe"}</h2>
               <p className="text-sm text-ink-600">{displayTime(e.recorded_at)}</p>
@@ -169,23 +181,20 @@ function JournalContent() {
             </Card>
           ))}
         </div>
-        {query.data?.items.length === 0 && (
+        {!entryId && entries?.length === 0 && (
           <Card className="p-6">
             Không có ghi chép trong khoảng này. Bạn có thể thêm ghi chép hoặc đổi bộ lọc.
           </Card>
         )}
-        {(page > 1 || (query.data?.pagination.total || 0) > 20) && (
+        {!entryId && (page > 1 || total > 20) && (
           <div className="my-4 flex gap-3">
             <Button disabled={page === 1} onClick={() => setPage(page - 1)}>
               Trang trước
             </Button>
             <span>
-              Trang {page} · {query.data?.pagination.total} bản ghi
+              Trang {page} · {total} bản ghi
             </span>
-            <Button
-              disabled={page * 20 >= (query.data?.pagination.total || 0)}
-              onClick={() => setPage(page + 1)}
-            >
+            <Button disabled={page * 20 >= total} onClick={() => setPage(page + 1)}>
               Trang sau
             </Button>
           </div>
@@ -208,6 +217,7 @@ function JournalContent() {
                 void action.run(async () => {
                   await healthMutation(`/entries/${deleting.id}`, "DELETE");
                   setDeleting(null);
+                  if (entryId) setSearch({}, { replace: true });
                 })
               }
             >

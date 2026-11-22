@@ -3,7 +3,7 @@ import { renderToString } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
 import { AppProvider } from '@/app/state'
 import { DataProvider } from '@/data/db'
-import { Dashboard } from '@/screens/Dashboard'
+import { PreviewDashboard } from '@/screens/Dashboard'
 
 describe('Natural Screen Rendering', () => {
   it('renders Dashboard with EmptyState when entries are empty', () => {
@@ -11,7 +11,7 @@ describe('Natural Screen Rendering', () => {
       <MemoryRouter initialEntries={['/dashboard?role=member']}>
         <AppProvider>
           <DataProvider overrideEmail="patient.empty@vitap.vn">
-            <Dashboard />
+            <PreviewDashboard />
           </DataProvider>
         </AppProvider>
       </MemoryRouter>
@@ -25,7 +25,7 @@ describe('Natural Screen Rendering', () => {
       <MemoryRouter initialEntries={['/dashboard?role=member']}>
         <AppProvider>
           <DataProvider overrideEmail="patient.ddi@vitap.vn">
-            <Dashboard />
+            <PreviewDashboard />
           </DataProvider>
         </AppProvider>
       </MemoryRouter>
