@@ -41,7 +41,9 @@ def fields(obj, response):
 
 def page(query, number, size, render):
     total = query.order_by(None).count()
-    return {'items': [render(x) for x in query.offset((number - 1) * size).limit(size).all()],
+    offset = (number - 1) * size
+    rows = query.offset(offset).limit(size).all() if offset < total else []
+    return {'items': [render(x) for x in rows],
             'pagination': {'page': number, 'page_size': size, 'total': total}}
 
 
@@ -170,6 +172,12 @@ class HealthService:
 
     def entry(self, entry_id):
         return self.entry_detail(self.repo.owned(m.HealthEntries, entry_id))
+
+    def observations(self, filters: s.ObservationSeriesQuery):
+        if filters.start >= filters.end or filters.end - filters.start > timedelta(days=366):
+            invalid('from', 'INVALID_OR_TOO_WIDE_DATE_RANGE')
+        query = self.repo.observation_series(filters.observation_type, filters.start, filters.end)
+        return page(query, filters.page, filters.page_size, lambda row: fields(row, s.Observation))
 
     def entries(self, number, size, start=None, end=None, metric=None):
         if start and end and (start >= end or end - start > timedelta(days=366)):

@@ -1,6 +1,7 @@
 """Real migrated PostgreSQL checks: transactions, row locks and persisted M1 fields."""
 import os
 import importlib.util
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
@@ -13,7 +14,9 @@ from app.main import app
 from app.core.database import get_db
 from app.core.security import create_access_token
 from app.modules.auth.models import User, UserProfile, UserConsent
-from app.modules.health.models import UserHealthSettings, HealthObservations
+from app.modules.health.models import UserHealthSettings, HealthEntries, HealthObservations
+from app.modules.health.repositories import HealthRepository
+from app.modules.auth.router import Principal
 
 pytestmark = pytest.mark.skipif(not os.getenv('TEST_POSTGRES_URL'), reason='Requires disposable migrated PostgreSQL')
 
@@ -105,6 +108,58 @@ def test_atomic_rollback_precision_and_cascade(pg):
         assert client.delete(path,headers=h).status_code==204
         with engine.connect() as db:
             assert db.scalar(text('SELECT count(*) FROM health_observations WHERE id=:id'),{'id':UUID(rid)})==0
+
+
+def test_raw_observation_pages_match_postgres_and_time_index_can_serve_query(pg):
+    engine, owner, headers = pg
+    start = datetime(2020, 1, 1, 17, tzinfo=timezone.utc)
+    end = start + timedelta(days=1)
+    with Session(engine) as db:
+        entry_ids = [uuid4(), uuid4()]
+        db.add_all(HealthEntries(id=id, user_id=owner, recorded_at=start - timedelta(days=3)) for id in entry_ids)
+        db.flush()
+        db.add_all(HealthObservations(
+            entry_id=entry_ids[i % 2], user_id=owner, observation_type='HEART_RATE', value=60 + i,
+            unit='bpm', measured_at=start + timedelta(seconds=i // 3),
+        ) for i in range(205))
+        db.add_all(HealthObservations(
+            entry_id=entry_ids[0], user_id=owner, observation_type='HEART_RATE', value=60,
+            unit='bpm', measured_at=t,
+        ) for t in (start - timedelta(microseconds=1), end))
+        db.commit()
+
+        expected = db.execute(text('''
+            SELECT id, entry_id, value, measured_at FROM health_observations
+            WHERE user_id=:owner AND observation_type='HEART_RATE' AND measured_at>=:start AND measured_at<:end
+            ORDER BY measured_at, id
+        '''), {'owner': owner, 'start': start, 'end': end}).all()
+        assert len(expected) == 205
+
+        # With a small test database, disabling seqscan lets us check whether the existing
+        # index is eligible. PostgreSQL remains free to select a different plan in production.
+        db.execute(text('SET LOCAL enable_seqscan = off'))
+        query = HealthRepository(db, Principal('USER', owner)).observation_series('HEART_RATE', start, end)
+        sql = query.limit(100).statement.compile(engine, compile_kwargs={'literal_binds': True})
+        explain = '\n'.join(db.execute(text(f'EXPLAIN (ANALYZE, BUFFERS) {sql}')).scalars())
+        assert 'measured_at' in explain
+        assert any(index in explain for index in (
+            'idx_observations_timeseries', 'ix_health_observations_user_id_observation_type_measured_at',
+        )), explain
+
+    actual = []
+    with TestClient(app) as client:
+        for number, length in ((1, 100), (2, 100), (3, 5), (4, 0)):
+            response = client.get('/api/v1/health/observations', headers=headers, params={
+                'observation_type': 'HEART_RATE', 'from': start.isoformat(), 'to': end.isoformat(),
+                'page': number, 'page_size': 100,
+            })
+            assert response.status_code == 200, response.text
+            result = response.json()
+            assert result['pagination'] == {'page': number, 'page_size': 100, 'total': 205}
+            assert len(result['items']) == length
+            actual.extend((UUID(o['id']), UUID(o['entry_id']), o['value'], datetime.fromisoformat(o['measured_at']))
+                          for o in result['items'])
+    assert actual == [tuple(row) for row in expected]
 
 
 def test_phase_a_persona_seed_on_postgres(pg):

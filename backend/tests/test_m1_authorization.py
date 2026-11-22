@@ -22,6 +22,7 @@ ID='00000000-0000-4000-8000-000000000001'
     ('POST',f'/entries/{ID}/observations',{'observation_type':'HEART_RATE','value':60}),
     ('PATCH',f'/entries/{ID}/observations/{ID}',{'value':61}),
     ('DELETE',f'/entries/{ID}/observations/{ID}',None),
+    ('GET','/observations?observation_type=HEART_RATE&from=2020-01-01T00:00:00Z&to=2020-01-02T00:00:00Z',None),
     ('POST','/medication-courses',{'drug_id':ID,'start_date':'2020-01-01'}),
     ('PATCH',f'/medication-courses/{ID}',{'status':'STOPPED','end_date':'2020-01-02'}),
     ('GET','/medication-course-options/prescription-items',None),

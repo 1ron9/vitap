@@ -1,8 +1,21 @@
 # Hợp đồng API VitaP
 
-openapi.json mô tả endpoint backend hiện triển khai: Auth, Guest, M1 Đợt A, OCR M2 và hạ tầng.
+openapi.json mô tả endpoint backend hiện triển khai: Auth, Guest, M1 (gồm API số đo gốc), OCR M2 và hạ tầng.
 Phạm vi M1 và delta với API draft: [m1-phase-a.md](../docs/m1-phase-a.md). Xem trạng thái trong
 [README](../README.md) và ranh giới module trong [ARCHITECTURE](../docs/architecture.md).
+
+### Số đo gốc cho Dashboard
+
+`GET /api/v1/health/observations` yêu cầu tài khoản User đang hoạt động và ba tham số
+`observation_type`, `from`, `to`. Chỉ số hỗ trợ gồm `BLOOD_PRESSURE`, `GLUCOSE`,
+`WEIGHT`, `HEART_RATE`. Hai mốc là timestamp có offset hoặc `Z`. API đọc theo
+`measured_at` trong khoảng `[from,to)`, tối đa 366 ngày và trả timestamp UTC.
+
+Response dùng `{items,pagination:{page,page_size,total}}`. `page` bắt đầu từ 1,
+`page_size` mặc định 20 và tối đa 100. Thứ tự là `measured_at ASC, id ASC`.
+Mỗi item giữ `id`, `entry_id`, các giá trị, đơn vị và cặp `entered_value`/`entered_unit`
+đã lưu khi có. Hai lần đo trùng thời điểm vẫn là hai item. Client đọc đủ các trang
+cần hiển thị. Các request phân trang độc lập có thể thấy dữ liệu thay đổi khi có ghi đồng thời.
 
 ## Cập nhật
 
