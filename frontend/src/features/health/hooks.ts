@@ -7,7 +7,10 @@ const revisions = new Map<string, number>();
 const subscribers = new Set<() => void>();
 const resource = (path: string) => path.split("?")[0].split("/")[1] || "";
 export function invalidateHealth(path: string) {
-  const keys = [resource(path), ...(resource(path) === "allergies" ? ["allergy-declaration"] : [])];
+  const name = resource(path);
+  const related =
+    name === "entries" ? ["observations"] : name === "allergies" ? ["allergy-declaration"] : [];
+  const keys = [name, ...related];
   keys.forEach((key) => revisions.set(key, (revisions.get(key) || 0) + 1));
   subscribers.forEach((fn) => fn());
 }
@@ -30,7 +33,11 @@ export async function healthMutation<T>(path: string, method: string, body?: unk
     throw error;
   }
 }
-export function useHealthQuery<T>(path: string | null) {
+export function readHealth<T>(path: string, signal: AbortSignal): Promise<T> {
+  return mockMode ? mockHealthApi<T>(path) : api<T>(`/health${path}`, { signal });
+}
+
+export function useHealthQuery<T>(path: string | null, load = readHealth<T>) {
   const session = useSession();
   const version = useSyncExternalStore(
     (fn) => {
@@ -43,16 +50,14 @@ export function useHealthQuery<T>(path: string | null) {
     () => 0,
   );
   const enabled = session.status === "authenticated" && !!path;
-  const key = `${session.user?.id}:${session.generation}:${path}:${version}`;
   const [state, setState] = useState<{ key: string; data?: T; error?: unknown }>({ key: "" });
   const [retry, setRetry] = useState(0);
+  const key = `${session.user?.id}:${session.generation}:${path}:${version}:${retry}`;
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !path) return;
     const controller = new AbortController();
     setState({ key });
-    const request = mockMode
-      ? mockHealthApi<T>(path!)
-      : api<T>(`/health${path}`, { signal: controller.signal });
+    const request = load(path, controller.signal);
     request
       .then((data) => {
         if (!controller.signal.aborted) setState({ key, data });
@@ -61,7 +66,7 @@ export function useHealthQuery<T>(path: string | null) {
         if (!controller.signal.aborted && error?.name !== "AbortError") setState({ key, error });
       });
     return () => controller.abort();
-  }, [key, enabled, retry]);
+  }, [key, enabled, path, load]);
   const current = enabled && state.key === key ? state : { key };
   return {
     data: current.data,
