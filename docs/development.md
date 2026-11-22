@@ -11,12 +11,12 @@ frontend dùng Node >=22.12, .nvmrc và CI chọn Node 22.13.
 | backend/.env từ backend/.env.example | Backend chạy thủ công |
 | frontend/.env từ frontend/.env.example | URL API và mock frontend |
 
-Compose chạy backend trong /app; frontend chạy npm trên host. PostgreSQL không publish
-cổng host. Backend chạy thủ công cần PostgreSQL truy cập được từ host, không dùng hostname
+Compose chạy backend trong /app; frontend chạy pnpm trên host. PostgreSQL publish
+127.0.0.1:5432. Backend chạy thủ công không dùng hostname
 db của Compose. Cấu hình DATABASE_URL tới DB local/thử nghiệm của bạn.
 
-VITE_USE_MOCK=true giả lập login UI; false gọi Auth API thật. Token frontend nằm trong
-RAM nên reload cần đăng nhập lại; automatic refresh UI chưa có. Backend mặc định access
+VITE_USE_MOCK=true dùng offline preview; false gọi Auth/M1/OCR API thật. Access token ở
+RAM, refresh token theo chính sách hiện tại ở localStorage; startup refresh khôi phục phiên, USER request TOKEN_EXPIRED được retry tối đa một lần. Backend mặc định access
 TTL 15 phút, refresh 7 ngày, Guest 24 giờ theo settings.
 
 ## Database và migration
@@ -36,6 +36,11 @@ trường của API. DB demo integer cũ cần backup/chuyển đổi riêng. Mi
 observation không entry hoặc embedding cũ còn dữ liệu; cần backfill hoặc xuất/nạp lại
 embedding 768 chiều trước khi chạy tiếp. Không tự xóa dữ liệu để vượt preflight.
 Revision v3.1 chặn downgrade; phục hồi bằng backup đã kiểm chứng.
+
+Revision `20261117_m1_phase_a` nối tiếp v3.1, thêm allergy type, glucose input provenance
+và user health settings. Backfill settings/profile shell không suy đoán dữ liệu sức khỏe.
+Preflight dừng nếu ownership observation/entry không khớp; không tự xóa/sửa owner.
+Revision này cũng chặn downgrade để tránh mất declaration và giá trị đã nhập.
 
 Thêm revision mới khi đổi schema; review SQL/autogenerate trước khi áp dụng và kiểm tra
 trên PostgreSQL. Không dùng create_all() thay Alembic trong ứng dụng hoặc seed.
@@ -112,9 +117,10 @@ cd backend
 cd ..
 .\.venv\Scripts\python scripts/export_openapi.py --check
 cd frontend
-npm ci
-npm run build
-npm test
+pnpm install --frozen-lockfile
+pnpm typecheck
+pnpm build
+pnpm test
 ```
 
 Linux/macOS dùng .venv/bin/python thay .venv/Scripts/python. Chạy backend bằng Compose

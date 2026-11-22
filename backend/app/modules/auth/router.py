@@ -105,6 +105,8 @@ def register(payload: RegisterRequest, request: Request, db: Session = Depends(g
     user = User(id=uuid4(), email=payload.email, password_hash=get_password_hash(payload.password), role="USER", status="ACTIVE", created_at=utc_now())
     db.add(user)
     db.add(UserProfile(id=uuid4(), user_id=user.id, full_name=payload.full_name, created_at=utc_now()))
+    from app.modules.health.models import UserHealthSettings
+    db.add(UserHealthSettings(user_id=user.id, created_at=utc_now()))
     db.add(UserConsent(id=uuid4(), user_id=user.id, consent_version=consent.version, scope=consent.scope,
                        is_accepted=True, ip_address=request.client.host if request.client else None, consented_at=utc_now()))
     try:
