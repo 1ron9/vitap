@@ -19,11 +19,16 @@ async function createUser(request: APIRequestContext) {
   expect(registration.status()).toBe(201);
   const login = await request.post("/api/v1/auth/login", { data: { email, password } });
   expect(login.ok()).toBe(true);
-  return (await login.json()) as { access_token: string; refresh_token: string };
+  const tokens = (await login.json()) as { access_token: string; refresh_token: string };
+  return { ...tokens, email, password };
 }
 
 async function showHeartRate(page: Page, day: string) {
   await page.goto("/dashboard");
+  await selectHeartRateRange(page, day);
+}
+
+async function selectHeartRateRange(page: Page, day: string) {
   await page.getByLabel("Chỉ số", { exact: true }).selectOption("HEART_RATE");
   await page.getByLabel("Từ ngày", { exact: true }).fill(day);
   await page.getByLabel("Đến ngày (bao gồm)", { exact: true }).fill(day);
@@ -129,11 +134,14 @@ test("a delayed Dashboard page from A never appears for Guest or B", async ({ pa
   });
   expect(created.status()).toBe(201);
   await page.goto("/profile");
-  await page.evaluate(
-    (value) => localStorage.setItem("vitap-refresh-token", value),
-    a.refresh_token,
-  );
-  await page.reload();
+  await page.getByRole("button", { name: "Đăng ký / Đăng nhập", exact: true }).click();
+  const firstDialog = page.getByRole("dialog");
+  await firstDialog.getByRole("tab", { name: "Đăng nhập", exact: true }).click();
+  await firstDialog.getByLabel("Email", { exact: true }).fill(a.email);
+  await firstDialog.getByLabel("Mật khẩu", { exact: true }).fill(a.password);
+  await firstDialog.getByRole("button", { name: "Đăng nhập", exact: true }).last().click();
+  await expect(firstDialog).not.toBeVisible();
+  await expect(page.getByRole("button", { name: "Chỉnh sửa thông tin cá nhân" })).toBeVisible();
 
   let release!: () => void;
   const held = new Promise<void>((resolve) => {
@@ -165,11 +173,14 @@ test("a delayed Dashboard page from A never appears for Guest or B", async ({ pa
     await page.goto("/dashboard");
     await expect(page.getByText("Đăng nhập để quản lý sức khỏe")).toBeVisible();
     expect(await page.getByRole("table", { name: "Bảng số đo gốc" }).count()).toBe(0);
-    await page.evaluate(
-      (value) => localStorage.setItem("vitap-refresh-token", value),
-      b.refresh_token,
-    );
-    await showHeartRate(page, "2020-02-02");
+    await page.getByRole("button", { name: "Đăng ký / Đăng nhập", exact: true }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByRole("tab", { name: "Đăng nhập", exact: true }).click();
+    await dialog.getByLabel("Email", { exact: true }).fill(b.email);
+    await dialog.getByLabel("Mật khẩu", { exact: true }).fill(b.password);
+    await dialog.getByRole("button", { name: "Đăng nhập", exact: true }).last().click();
+    await expect(dialog).not.toBeVisible();
+    await selectHeartRateRange(page, "2020-02-02");
     release();
     await expect(page.getByText("Chưa có số đo nhịp tim trong khoảng này.")).toBeVisible();
     await expect(page.getByText("88 bpm")).toHaveCount(0);
