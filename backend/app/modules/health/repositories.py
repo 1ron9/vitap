@@ -49,3 +49,16 @@ class HealthRepository:
 
     def readings(self, entry_id):
         return self.query(HealthObservations).filter_by(entry_id=entry_id).order_by(HealthObservations.measured_at, HealthObservations.id).all()
+
+    def observation_series(self, metric, start, end):
+        return (
+            self.query(HealthObservations)
+            .join(HealthEntries, HealthEntries.id == HealthObservations.entry_id)
+            .filter(
+                HealthEntries.user_id == self.owner,
+                HealthObservations.observation_type == metric,
+                HealthObservations.measured_at >= start,
+                HealthObservations.measured_at < end,
+            )
+            .order_by(HealthObservations.measured_at, HealthObservations.id)
+        )

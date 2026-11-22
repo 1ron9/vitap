@@ -155,6 +155,12 @@ def delete_observation(entry_id: UUID, observation_id: UUID, health: Health):
     return Response(status_code=204)
 
 
+@router.get('/observations', response_model=s.Page[s.Observation])
+def observations(health: Health, filters: Annotated[s.ObservationSeriesQuery, Query()]):
+    """List the user's raw readings by measured time in a half-open window of up to 366 days."""
+    return health.observations(filters)
+
+
 @router.get('/medication-course-options', response_model=s.Page[s.DrugOption])
 def course_options(health: Health, q: Annotated[str, Query(max_length=255)] = '', page: PageNumber = 1, page_size: PageSize = 20):
     return health.options(q.strip(), page, page_size)

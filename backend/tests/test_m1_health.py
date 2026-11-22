@@ -38,6 +38,73 @@ def entry(client, headers, observations=None, **header):
     return post(client, '/entries', {'title': 'Đo tại nhà', 'observations': observations or [], **header}, headers)
 
 
+RAW = ROOT + '/observations'
+DAY = {'from': '2020-01-02T00:00:00+07:00', 'to': '2020-01-03T00:00:00+07:00'}
+
+
+def test_raw_observations_use_measured_time_and_both_owners(client, users, db_session):
+    (owner, a), (other, b) = users
+    at_start = '2020-01-01T17:00:00Z'
+    obj = entry(client, a, [
+        {'observation_type': 'BLOOD_PRESSURE', 'value': 120, 'secondary_value': 80, 'measured_at': at_start},
+        {'observation_type': 'BLOOD_PRESSURE', 'value': 124, 'secondary_value': 82, 'measured_at': at_start},
+        {'observation_type': 'BLOOD_PRESSURE', 'value': 130, 'secondary_value': 85, 'measured_at': '2020-01-02T17:00:00Z'},
+        {'observation_type': 'GLUCOSE', 'value': 100, 'unit': 'mg/dL', 'measured_at': at_start},
+    ], recorded_at='2019-12-31T00:00:00Z')
+    b_entry = entry(client, b, [
+        {'observation_type': 'BLOOD_PRESSURE', 'value': 110, 'secondary_value': 70, 'measured_at': at_start},
+    ])
+    # A mismatched record must be visible to neither owner, even if imported outside the service.
+    db_session.add(HealthObservations(user_id=owner.id, entry_id=UUID(b_entry['id']), observation_type='BLOOD_PRESSURE',
+        value=123, secondary_value=77, unit='mmHg', measured_at=datetime.fromisoformat(at_start)))
+    db_session.add(HealthObservations(user_id=other.id, entry_id=UUID(obj['id']), observation_type='BLOOD_PRESSURE',
+        value=126, secondary_value=79, unit='mmHg', measured_at=datetime.fromisoformat(at_start)))
+    db_session.commit()
+
+    query = {**DAY, 'observation_type': 'BLOOD_PRESSURE', 'page_size': 1}
+    expected = sorted((o for o in obj['observations'] if o['measured_at'] == at_start and
+                       o['observation_type'] == 'BLOOD_PRESSURE'), key=lambda o: o['id'])
+    assert len(expected) == 2
+    for n in (1, 2, 3):
+        response = client.get(RAW, params={**query, 'page': n}, headers=a)
+        assert response.status_code == 200, response.text
+        assert response.json() == {'items': expected[n-1:n], 'pagination': {'page': n, 'page_size': 1, 'total': 2}}
+    assert client.get(RAW, params=query, headers=b).json()['items'] == b_entry['observations']
+    glucose = client.get(RAW, params={**DAY, 'observation_type': 'GLUCOSE'}, headers=a).json()
+    assert glucose['pagination'] == {'page': 1, 'page_size': 20, 'total': 1}
+    assert glucose['items'][0] == next(o for o in obj['observations'] if o['observation_type'] == 'GLUCOSE')
+    assert glucose['items'][0]['entered_value'] == 100
+    assert glucose['items'][0]['entered_unit'] == 'mg/dL'
+    assert glucose['items'][0]['value'] == 5.5556
+    assert client.get(RAW, params={**DAY, 'observation_type': 'WEIGHT'}, headers=a).json() == {
+        'items': [], 'pagination': {'page': 1, 'page_size': 20, 'total': 0},
+    }
+
+
+@pytest.mark.parametrize('change', [
+    {'from': None}, {'to': None}, {'observation_type': None}, {'observation_type': 'SPO2'},
+    {'from': '2020-01-02T00:00:00'}, {'from': '1577923200'}, {'from': '2020-01-02'},
+    {'to': DAY['from']}, {'to': '2019-12-01T00:00:00Z'}, {'to': '2021-01-03T00:00:00+07:00'},
+    {'page': 0}, {'page_size': 101}, {'user_id': str(uuid4())},
+])
+def test_raw_observations_reject_invalid_query(client, users, change):
+    query = {**DAY, 'observation_type': 'HEART_RATE', **change}
+    response = client.get(RAW, params={k: v for k, v in query.items() if v is not None}, headers=users[0][1])
+    assert response.status_code == 422, response.text
+    assert response.json()['error']['request_id']
+
+
+def test_raw_observations_accept_366_days_and_deny_inactive_user(client, users, db_session):
+    user, headers = users[0]
+    query = {'observation_type': 'HEART_RATE', 'from': '2020-01-01T00:00:00Z', 'to': '2021-01-01T00:00:00Z'}
+    assert client.get(RAW, params=query, headers=headers).status_code == 200
+    user.status = 'INACTIVE'
+    db_session.commit()
+    response = client.get(RAW, params=query, headers=headers)
+    assert response.status_code == 403, response.text
+    assert response.json()['error']['code'] == 'ACCOUNT_INACTIVE'
+
+
 def test_profile_preferences_and_declaration(client, users):
     h = users[0][1]
     before = client.get(ROOT+'/profile', headers=h).json()

@@ -1,6 +1,7 @@
 """M1 wire DTOs. All editable fields are explicit; owner/provenance are server-owned."""
 from datetime import date, datetime, timezone
 from decimal import Decimal
+import re
 from typing import Annotated, Generic, Literal, TypeVar
 from uuid import UUID
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StrictBool, PlainSerializer, field_validator, model_validator
@@ -134,6 +135,24 @@ class Observation(DTO):
     source_type: str | None
     source_reference: str | None
     created_at: datetime
+
+
+class ObservationSeriesQuery(DTO):
+    observation_type: Metric
+    start: AwareDatetime = Field(alias='from')
+    end: AwareDatetime = Field(alias='to')
+    page: int = Field(default=1, ge=1)
+    page_size: int = Field(default=20, ge=1, le=100)
+
+    @field_validator('start', 'end', mode='before')
+    @classmethod
+    def timestamp_with_offset(cls, value):
+        # AwareDatetime also accepts Unix timestamps. The HTTP contract requires an explicit offset.
+        if isinstance(value, str) and not re.fullmatch(
+            r'\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:[Zz]|[+-]\d{2}:\d{2})', value,
+        ):
+            raise ValueError('EXPECTED_TIMESTAMP_WITH_OFFSET')
+        return value
 
 
 class EntryHeader(DTO):

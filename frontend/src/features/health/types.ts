@@ -48,6 +48,12 @@ export type Observation = {
   entered_value: number | null;
   entered_unit: string | null;
 };
+export type RawObservation = Observation & {
+  entry_id: string;
+  source_type: string | null;
+  source_reference: string | null;
+  created_at: string;
+};
 export type Entry = {
   id: string;
   title: string | null;

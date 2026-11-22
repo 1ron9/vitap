@@ -10,6 +10,7 @@ import type {
   Course,
   Preferences,
   DrugOption,
+  RawObservation,
 } from "./types";
 
 type State = {
@@ -159,6 +160,56 @@ function validateEntry(e: Entry) {
   if (new Date(e.recorded_at).getTime() > Date.now())
     fail("Thời gian ghi chép không được ở tương lai");
 }
+
+function rawObservations(entries: Entry[], params: URLSearchParams): RawObservation[] {
+  const keys = ["observation_type", "from", "to", "page", "page_size"];
+  const metric = params.get("observation_type");
+  const from = params.get("from") ?? "";
+  const to = params.get("to") ?? "";
+  const timestamp = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/i;
+  const start = Date.parse(from),
+    end = Date.parse(to);
+  const page = Number(params.get("page") ?? 1),
+    size = Number(params.get("page_size") ?? 20);
+  if (
+    [...params.keys()].some((key) => !keys.includes(key)) ||
+    !metric ||
+    !["BLOOD_PRESSURE", "GLUCOSE", "WEIGHT", "HEART_RATE"].includes(metric) ||
+    !timestamp.test(from) ||
+    !timestamp.test(to) ||
+    !Number.isFinite(start) ||
+    !Number.isFinite(end) ||
+    start >= end ||
+    end - start > 366 * 86400000 ||
+    !Number.isSafeInteger(page) ||
+    page < 1 ||
+    !Number.isSafeInteger(size) ||
+    size < 1 ||
+    size > 100
+  )
+    fail("Chỉ số, khoảng thời gian hoặc phân trang không hợp lệ");
+
+  return entries
+    .flatMap((entry) =>
+      entry.observations.flatMap((observation) => {
+        const time = Date.parse(observation.measured_at);
+        if (observation.observation_type !== metric || !(start <= time && time < end)) return [];
+        return [
+          {
+            ...observation,
+            entry_id: entry.id,
+            measured_at: new Date(time).toISOString(),
+            source_type: "MANUAL",
+            source_reference: null,
+            // The offline store does not track creation timestamps; recording time is synthetic provenance.
+            created_at: new Date(entry.recorded_at).toISOString(),
+          },
+        ];
+      }),
+    )
+    .sort((a, b) => a.measured_at.localeCompare(b.measured_at) || a.id.localeCompare(b.id));
+}
+
 export async function mockHealthApi<T>(url: string, method = "GET", body?: any): Promise<T> {
   const email = localStorage.getItem("vitap-user-email") || "guest";
   if (email === "guest") fail("Cần đăng nhập", 401);
@@ -174,7 +225,9 @@ export async function mockHealthApi<T>(url: string, method = "GET", body?: any):
       pagination: { page, page_size: size, total: list.length },
     };
   };
-  if (resource === "profile") {
+  if (resource === "observations" && method === "GET" && !id) {
+    result = paginate(rawObservations(state.entries, parsed.searchParams));
+  } else if (resource === "profile") {
     if (method === "PATCH") Object.assign(state.profile, body);
     result = state.profile;
   } else if (resource === "preferences") {
