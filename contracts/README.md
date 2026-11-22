@@ -28,6 +28,28 @@ và ghi chú. Tối đa 100 triệu chứng mỗi ghi chép. Một ghi chép có
 Các route con `/entries/{entry_id}/symptoms` hỗ trợ POST, và `/{symptom_id}` hỗ trợ PATCH/DELETE.
 Danh sách và chi tiết ghi chép trả mảng triệu chứng. Thao tác làm ghi chép rỗng trả 409.
 
+### Thống kê số đo theo lịch địa phương
+
+`GET /api/v1/health/analytics` yêu cầu User đang hoạt động, `observation_type` thuộc
+bốn chỉ số trên và hai **ngày địa phương** `from`, `to` (`YYYY-MM-DD`). Khoảng ngày là
+`[from,to)`, dài tối đa 366 ngày. `granularity` nhận `day` (mặc định), `week` (thứ Hai)
+hoặc `month` (ngày 1). `timezone` nhận tên IANA, mặc định `Asia/Ho_Chi_Minh`.
+Hai mốc ngày được chuyển riêng sang UTC để ngày đổi giờ vẫn đủ số giờ thực tế.
+
+Response lặp lại bộ lọc và `unit`, trả `buckets` liên tục với `period_start`,
+`period_end` là biên lịch tự nhiên. Bucket đầu/cuối chỉ chứa lần đo nằm trong khoảng
+lọc. Bucket rỗng có `count:0`; các trường `average/minimum/maximum` và
+`secondary_average/secondary_minimum/secondary_maximum` đều `null`. Trung bình
+làm tròn 4 chữ số thập phân bằng `ROUND_HALF_UP`; min/max giữ độ chính xác lưu trữ.
+Mỗi số đo được tính một lần. Huyết áp tính hai bộ số trên cùng các lần đo đủ hai vế.
+Đường huyết dùng `mmol/L` chuẩn; row legacy `mg/dL` được chia 18 trước tổng hợp.
+Row có đơn vị không nhận diện, giá trị không hợp lệ hoặc huyết áp thiếu vế bị loại
+và cộng vào `excluded_count`. API không sửa dữ liệu cũ.
+
+Ví dụ nhịp tim ngày 02/01/2020 giờ Việt Nam với 205 giá trị nguyên 60–264 có
+`count:205`, `average:162`, `minimum:60`, `maximum:264`. Một reading tại đúng
+`2020-01-02T17:00:00Z` nằm ngoài bucket của ngày 02/01/2020.
+
 ## Cập nhật
 
 Tại gốc repo trong môi trường đã cài dependency backend:

@@ -4,6 +4,7 @@ from decimal import Decimal
 import re
 from typing import Annotated, Generic, Literal, TypeVar
 from uuid import UUID
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StrictBool, StrictInt, PlainSerializer, field_validator, model_validator
 
 Metric = Literal['BLOOD_PRESSURE', 'GLUCOSE', 'WEIGHT', 'HEART_RATE']
@@ -153,6 +154,53 @@ class ObservationSeriesQuery(DTO):
         ):
             raise ValueError('EXPECTED_TIMESTAMP_WITH_OFFSET')
         return value
+
+
+class AnalyticsQuery(DTO):
+    observation_type: Metric
+    start: date = Field(alias='from')
+    end: date = Field(alias='to')
+    granularity: Literal['day', 'week', 'month'] = 'day'
+    timezone: str = 'Asia/Ho_Chi_Minh'
+
+    @field_validator('start', 'end', mode='before')
+    @classmethod
+    def calendar_date(cls, value):
+        if not isinstance(value, str) or not re.fullmatch(r'\d{4}-\d{2}-\d{2}', value):
+            raise ValueError('EXPECTED_CALENDAR_DATE')
+        return value
+
+    @field_validator('timezone')
+    @classmethod
+    def known_timezone(cls, value):
+        try:
+            ZoneInfo(value)
+        except (ZoneInfoNotFoundError, ValueError, TypeError) as exc:
+            raise ValueError('UNKNOWN_TIMEZONE') from exc
+        return value
+
+
+class AnalyticsBucket(DTO):
+    period_start: date
+    period_end: date
+    count: int
+    average: JsonDecimal | None
+    minimum: JsonDecimal | None
+    maximum: JsonDecimal | None
+    secondary_average: JsonDecimal | None
+    secondary_minimum: JsonDecimal | None
+    secondary_maximum: JsonDecimal | None
+
+
+class Analytics(DTO):
+    observation_type: Metric
+    start: date = Field(alias='from')
+    end: date = Field(alias='to')
+    granularity: Literal['day', 'week', 'month']
+    timezone: str
+    unit: str
+    excluded_count: int
+    buckets: list[AnalyticsBucket]
 
 
 class EntryHeader(DTO):

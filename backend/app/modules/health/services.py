@@ -8,6 +8,7 @@ from app.core.config import settings as config
 from app.modules.health import models as m, schemas as s
 from app.modules.health.errors import invalid, missing, conflict
 from app.modules.health.repositories import HealthRepository
+from app.modules.health.analytics import summarize
 from app.modules.health.validation import now, past, date_not_future, observation_values
 from app.modules.medication.models import Ingredients
 from app.modules.medication import catalog
@@ -179,6 +180,9 @@ class HealthService:
             invalid('from', 'INVALID_OR_TOO_WIDE_DATE_RANGE')
         query = self.repo.observation_series(filters.observation_type, filters.start, filters.end)
         return page(query, filters.page, filters.page_size, lambda row: fields(row, s.Observation))
+
+    def analytics(self, filters: s.AnalyticsQuery):
+        return summarize(self.repo.analytics_readings, filters)
 
     def entries(self, number, size, start=None, end=None, metric=None):
         if start and end and (start >= end or end - start > timedelta(days=366)):
