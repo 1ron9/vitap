@@ -177,6 +177,12 @@ def delete_symptom(entry_id: UUID, symptom_id: UUID, health: Health):
     return Response(status_code=204)
 
 
+@router.get('/analytics', response_model=s.Analytics)
+def analytics(health: Health, filters: Annotated[s.AnalyticsQuery, Query()]):
+    """Summarize saved readings in continuous local calendar buckets."""
+    return health.analytics(filters)
+
+
 @router.get('/medication-course-options', response_model=s.Page[s.DrugOption])
 def course_options(health: Health, q: Annotated[str, Query(max_length=255)] = '', page: PageNumber = 1, page_size: PageSize = 20):
     return health.options(q.strip(), page, page_size)

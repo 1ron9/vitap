@@ -76,3 +76,9 @@ class HealthRepository:
             )
             .order_by(HealthObservations.measured_at, HealthObservations.id)
         )
+
+    def analytics_readings(self, metric, start, end):
+        from app.modules.health.models import HealthObservations as O
+        query = self.observation_series(metric, start, end).order_by(None).with_entities(
+            O.measured_at, O.value, O.secondary_value, O.unit)
+        return query.yield_per(1000)
