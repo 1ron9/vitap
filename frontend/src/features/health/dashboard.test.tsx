@@ -101,6 +101,46 @@ it("keeps private series unmounted for a guest", async () => {
   expect(fetcher).not.toHaveBeenCalled();
 });
 
+it("explains why legacy readings were excluded from analytics", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string) => {
+      if (url.endsWith("/auth/me")) return json(user);
+      if (url.includes("/health/analytics?"))
+        return json({
+          observation_type: "BLOOD_PRESSURE",
+          from: "2020-01-01",
+          to: "2020-01-02",
+          granularity: "day",
+          timezone: "Asia/Ho_Chi_Minh",
+          unit: "mmHg",
+          excluded_count: 2,
+          excluded_reasons: { UNKNOWN_UNIT: 1, INCOMPLETE_BLOOD_PRESSURE: 1 },
+          buckets: [
+            {
+              period_start: "2020-01-01",
+              period_end: "2020-01-02",
+              count: 0,
+              average: null,
+              minimum: null,
+              maximum: null,
+              secondary_average: null,
+              secondary_minimum: null,
+              secondary_maximum: null,
+            },
+          ],
+        });
+      return json(pageOf([]));
+    }),
+  );
+  await establishSession(pair);
+  mount();
+  await userEvent.selectOptions(screen.getByLabelText("Cách xem"), "analytics");
+  await screen.findByText("2 số đo cũ không thể tổng hợp:");
+  expect(screen.getByText("1 · đơn vị không nhận diện")).toBeTruthy();
+  expect(screen.getByText("1 · huyết áp thiếu hoặc sai một vế")).toBeTruthy();
+});
+
 it("keeps a failed page out of the chart, retries all pages and refetches after Journal saves", async () => {
   const items = Array.from({ length: 101 }, (_, i) => ({
     ...reading,

@@ -23,7 +23,7 @@ hiển thị `0` lần và dấu `—`, biểu đồ không nối khoảng trố
 chỉ bao gồm một phần tuần/tháng theo khoảng ngày đã chọn.
 
 Nếu số đo cũ có đơn vị hay giá trị không thể tổng hợp, giao diện hiển thị số lượng
-được loại theo `excluded_count` của API. Thống kê là mô tả dữ liệu đã ghi, không
+và lý do được loại theo `excluded_count`/`excluded_reasons` của API. Thống kê là mô tả dữ liệu đã ghi, không
 đưa ra dải tham chiếu hoặc diễn giải y khoa. Sửa/xóa trong Sổ tay làm mới cả
 dữ liệu gốc lẫn thống kê sau khi request lưu thành công.
 

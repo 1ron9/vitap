@@ -200,6 +200,7 @@ class Analytics(DTO):
     timezone: str
     unit: str
     excluded_count: int
+    excluded_reasons: dict[str, int]
     buckets: list[AnalyticsBucket]
 
 

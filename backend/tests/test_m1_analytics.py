@@ -69,11 +69,13 @@ def test_bp_two_series_glucose_legacy_conversion_and_exclusions(client, users, d
     assert (bp['count'], bp['average'], bp['minimum'], bp['maximum']) == (2, 121.5, 120, 123)
     assert (bp['secondary_average'], bp['secondary_minimum'], bp['secondary_maximum']) == (81.5, 80, 83)
     assert query(client, headers, metric='BLOOD_PRESSURE')['excluded_count'] == 1
+    assert query(client, headers, metric='BLOOD_PRESSURE')['excluded_reasons'] == {'INCOMPLETE_BLOOD_PRESSURE': 1}
     glucose = query(client, headers, metric='GLUCOSE')
     assert glucose['unit'] == 'mmol/L'
     assert glucose['buckets'][1]['count'] == 2
     assert glucose['buckets'][1]['average'] == 5
     assert glucose['excluded_count'] == 1
+    assert glucose['excluded_reasons'] == {'UNKNOWN_UNIT': 1}
 
 
 @pytest.mark.parametrize('change', [
@@ -99,3 +101,43 @@ def test_dst_boundaries_are_local_dates_not_24_hour_blocks(client, users):
                  **{'from': '2020-03-08', 'to': '2020-03-09'})
     assert len(data['buckets']) == 1
     assert (data['buckets'][0]['count'], data['buckets'][0]['average']) == (2, 71.5)
+
+
+def test_fall_dst_day_has_25_hours(client, users):
+    headers = users[0][1]
+    entry(client, headers, [
+        {'observation_type': 'WEIGHT', 'value': 70, 'measured_at': '2020-11-01T03:59:00Z'},
+        {'observation_type': 'WEIGHT', 'value': 71, 'measured_at': '2020-11-01T04:00:00Z'},
+        {'observation_type': 'WEIGHT', 'value': 72, 'measured_at': '2020-11-02T04:59:00Z'},
+        {'observation_type': 'WEIGHT', 'value': 73, 'measured_at': '2020-11-02T05:00:00Z'},
+    ])
+    data = query(client, headers, metric='WEIGHT', timezone='America/New_York',
+                 **{'from': '2020-11-01', 'to': '2020-11-02'})
+    assert (data['buckets'][0]['count'], data['buckets'][0]['average']) == (2, 71.5)
+
+
+def test_exclusion_reasons_are_counted_once_per_row(client, users, db_session):
+    owner, headers = users[0]
+    item = entry(client, headers, [], title='Legacy values')
+    when = datetime(2020, 2, 29, tzinfo=timezone.utc)
+    for value, secondary, unit in [(0, None, 'bpm'), (60, 30, 'bpm'), (70, None, 'UNKNOWN')]:
+        db_session.add(HealthObservations(user_id=owner.id, entry_id=UUID(item['id']),
+            observation_type='HEART_RATE', value=Decimal(value), secondary_value=secondary,
+            unit=unit, measured_at=when))
+    db_session.commit()
+    data = query(client, headers)
+    assert data['excluded_count'] == 3
+    assert data['excluded_reasons'] == {'INVALID_VALUE': 1, 'UNEXPECTED_SECONDARY_VALUE': 1, 'UNKNOWN_UNIT': 1}
+    assert all(bucket['count'] == 0 for bucket in data['buckets'])
+
+
+def test_analytics_access_and_366_day_limit(client, users):
+    params = {'observation_type': 'HEART_RATE', 'from': '2020-01-01', 'to': '2021-01-01'}
+    assert client.get(PATH, params=params).status_code == 401
+    guest = client.post('/api/v1/guest-sessions', json={
+        'consent_accepted': True, 'consent_version': 'guest-processing-v1',
+    }).json()
+    assert client.get(PATH, params=params, headers={'X-Guest-Token': guest['guest_token']}).status_code == 403
+    result = client.get(PATH, params=params, headers=users[0][1])
+    assert result.status_code == 200, result.text
+    assert len(result.json()['buckets']) == 366

@@ -9,6 +9,12 @@ import type { Analytics, AnalyticsBucket, AnalyticsGranularity, Metric } from ".
 const AnalyticsChart = lazy(() => import("./AnalyticsChart"));
 const number = new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 4 });
 const value = (n: number | null) => (n === null ? "—" : number.format(n));
+const exclusionLabels: Record<string, string> = {
+  UNKNOWN_UNIT: "đơn vị không nhận diện",
+  INVALID_VALUE: "giá trị không hợp lệ",
+  INCOMPLETE_BLOOD_PRESSURE: "huyết áp thiếu hoặc sai một vế",
+  UNEXPECTED_SECONDARY_VALUE: "số đo có giá trị phụ không phù hợp",
+};
 
 function bucketLabel(bucket: AnalyticsBucket) {
   return `${bucket.period_start} – ${bucket.period_end} (không gồm ngày cuối)`;
@@ -39,9 +45,16 @@ export function AnalyticsView({
             kỳ lịch.
           </p>
           {data.excluded_count > 0 && (
-            <p role="status" className="mb-3 text-sm text-ink-600">
-              {data.excluded_count} số đo cũ không thể tổng hợp do đơn vị hoặc giá trị không hợp lệ.
-            </p>
+            <div role="status" className="mb-3 text-sm text-ink-600">
+              <p>{data.excluded_count} số đo cũ không thể tổng hợp:</p>
+              <ul className="list-inside list-disc">
+                {Object.entries(data.excluded_reasons).map(([reason, count]) => (
+                  <li key={reason}>
+                    {count} · {exclusionLabels[reason] || reason}
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
           {data.buckets.every((bucket) => bucket.count === 0) && (
             <p>Chưa có số đo {metrics[metric].label.toLowerCase()} trong khoảng này.</p>

@@ -292,6 +292,13 @@
             "title": "Excluded Count",
             "type": "integer"
           },
+          "excluded_reasons": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Excluded Reasons",
+            "type": "object"
+          },
           "from": {
             "format": "date",
             "title": "From",
@@ -338,6 +345,7 @@
           "timezone",
           "unit",
           "excluded_count",
+          "excluded_reasons",
           "buckets"
         ],
         "title": "Analytics",
