@@ -15,6 +15,8 @@ import {
 import { metrics } from "./metrics";
 import { displayTime } from "./time";
 import type { Metric, RawObservation } from "./types";
+import type { AnalyticsGranularity } from "./types";
+import { AnalyticsView } from "./AnalyticsView";
 
 const ObservationChart = lazy(() => import("./ObservationChart"));
 const presets = { day: "Ngày", week: "Tuần", month: "Tháng", custom: "Tùy chọn" } as const;
@@ -137,13 +139,15 @@ function HealthDashboardContent() {
   const [metric, setMetric] = useState<Metric>("BLOOD_PRESSURE");
   const [preset, setPreset] = useState<Preset | "custom">("week");
   const [range, setRange] = useState(() => presetRange("week"));
+  const [view, setView] = useState<"raw" | "analytics">("raw");
+  const [granularity, setGranularity] = useState<AnalyticsGranularity>("day");
   const bounds = dashboardBounds(range);
-  const path = bounds ? observationsPath(metric, bounds) : null;
+  const path = view === "raw" && bounds ? observationsPath(metric, bounds) : null;
   const query = useHealthQuery(path, loadObservationSeries);
 
   return (
     <>
-      <PageHeader title="Tổng quan" sub="Số đo gốc từ Sổ tay theo giờ Việt Nam" />
+      <PageHeader title="Tổng quan" sub="Số đo và thống kê từ Sổ tay theo giờ Việt Nam" />
       <Card className="mb-4 grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
         <Field label="Chỉ số">
           <select
@@ -200,8 +204,37 @@ function HealthDashboardContent() {
           />
         </Field>
       </Card>
+      <Card className="mb-4 flex flex-wrap gap-3 p-4">
+        <Field label="Cách xem">
+          <select
+            aria-label="Cách xem"
+            className={inputClass}
+            value={view}
+            onChange={(e) => setView(e.target.value as "raw" | "analytics")}
+          >
+            <option value="raw">Số đo gốc</option>
+            <option value="analytics">Thống kê</option>
+          </select>
+        </Field>
+        {view === "analytics" && (
+          <Field label="Nhóm theo">
+            <select
+              aria-label="Nhóm theo"
+              className={inputClass}
+              value={granularity}
+              onChange={(e) => setGranularity(e.target.value as AnalyticsGranularity)}
+            >
+              <option value="day">Ngày</option>
+              <option value="week">Tuần</option>
+              <option value="month">Tháng</option>
+            </select>
+          </Field>
+        )}
+      </Card>
       {!bounds ? (
         <p role="alert">Chọn đủ ngày bắt đầu và kết thúc, theo thứ tự và trong tối đa 366 ngày.</p>
+      ) : view === "analytics" ? (
+        <AnalyticsView metric={metric} range={range} granularity={granularity} />
       ) : query.loading ? (
         <div role="status">
           <span className="sr-only">Đang tải số đo…</span>

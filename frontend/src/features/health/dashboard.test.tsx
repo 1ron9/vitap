@@ -6,11 +6,14 @@ import { MemoryRouter } from "react-router-dom";
 import { AppProvider } from "@/app/state";
 import { clearSession, establishSession } from "@/features/auth/session";
 import { Dashboard } from "@/screens/Dashboard";
-import { chartPoints, dashboardBounds, presetRange } from "./dashboard-data";
+import { analyticsPath, chartPoints, dashboardBounds, presetRange } from "./dashboard-data";
 import { healthMutation } from "./hooks";
 import type { RawObservation } from "./types";
 
 vi.mock("./ObservationChart", () => ({ default: () => <figure aria-label="Biểu đồ kiểm thử" /> }));
+vi.mock("./AnalyticsChart", () => ({
+  default: () => <figure aria-label="Biểu đồ thống kê kiểm thử" />,
+}));
 
 const user = {
   id: "test-user",
@@ -70,6 +73,10 @@ it("maps Vietnamese calendar dates, glucose units and same-time BP readings with
     to: "2020-01-02T17:00:00.000Z",
   });
   expect(dashboardBounds({ from: "2020-01-01", to: "2021-01-01" })).toBeNull();
+  expect(analyticsPath("HEART_RATE", { from: "2020-02-29", to: "2020-03-01" }, "week")).toBe(
+    "/analytics?observation_type=HEART_RATE&from=2020-02-29&to=2020-03-02&granularity=week&timezone=Asia%2FHo_Chi_Minh",
+  );
+  expect(analyticsPath("HEART_RATE", { from: "2020-03-01", to: "2020-02-29" }, "day")).toBeNull();
   const bp = chartPoints([reading, { ...reading, id: "reading-2", value: 310 }], "BLOOD_PRESSURE");
   expect(bp.primary.map((p) => p.reading.id)).toEqual(["reading-1", "reading-2"]);
   expect(bp.secondary.map((p) => p.y)).toEqual([80, 80]);

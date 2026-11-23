@@ -8,6 +8,25 @@ Khi dữ liệu chưa tải đủ, Dashboard hiển thị trạng thái tải. N
 
 Mock mode vẫn dùng màn hình mô phỏng với nhãn dữ liệu mẫu. Guest thấy lời mời đăng nhập. Dashboard thật không tải dữ liệu cá nhân trước khi xác thực.
 
+## Thống kê ngày, tuần và tháng
+
+Chọn **Cách xem → Thống kê** để xem số đo đã lưu được nhóm theo **Ngày**, **Tuần**
+(bắt đầu thứ Hai) hoặc **Tháng**. Bộ lọc chỉ số và ngày ở phía trên vẫn áp dụng;
+ngày cuối được tính trọn theo giờ Việt Nam. API dùng khoảng ngày địa phương
+`[from,to)` nên giao diện chuyển ngày cuối sang ngày kế tiếp khi gửi request.
+Chế độ **Số đo gốc** vẫn hiển thị từng lần đo và là lựa chọn mặc định.
+
+Mỗi bucket trong bảng có số lần đo, trung bình, thấp nhất và cao nhất. Huyết áp
+có hai bộ giá trị riêng cho tâm thu/tâm trương. Đường huyết dùng đơn vị chuẩn
+`mmol/L`; biểu đồ và bảng dùng cùng giá trị sau tổng hợp. Bucket không có số đo
+hiển thị `0` lần và dấu `—`, biểu đồ không nối khoảng trống. Kỳ đầu/cuối có thể
+chỉ bao gồm một phần tuần/tháng theo khoảng ngày đã chọn.
+
+Nếu số đo cũ có đơn vị hay giá trị không thể tổng hợp, giao diện hiển thị số lượng
+được loại theo `excluded_count` của API. Thống kê là mô tả dữ liệu đã ghi, không
+đưa ra dải tham chiếu hoặc diễn giải y khoa. Sửa/xóa trong Sổ tay làm mới cả
+dữ liệu gốc lẫn thống kê sau khi request lưu thành công.
+
 ## Nghiệm thu Đợt B
 
 Chạy `pnpm test:e2e` trong `frontend` với PostgreSQL thử nghiệm đã migrate và seed. Hai spec Dashboard chạy trên Chromium desktop/mobile. `dashboard.spec.ts` kiểm tra lọc ngày Việt Nam, hai lần đo huyết áp trùng giờ, đường huyết và mở đúng ghi chép. `dashboard-flow.spec.ts` tạo, sửa và xóa ghi chép từ UI, kiểm tra thời điểm đo và cách ly tài khoản khi phản hồi cũ về trễ. Suite PostgreSQL đối chiếu danh sách theo UUID qua nhiều trang với DB.
