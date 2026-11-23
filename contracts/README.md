@@ -44,7 +44,9 @@ làm tròn 4 chữ số thập phân bằng `ROUND_HALF_UP`; min/max giữ độ
 Mỗi số đo được tính một lần. Huyết áp tính hai bộ số trên cùng các lần đo đủ hai vế.
 Đường huyết dùng `mmol/L` chuẩn; row legacy `mg/dL` được chia 18 trước tổng hợp.
 Row có đơn vị không nhận diện, giá trị không hợp lệ hoặc huyết áp thiếu vế bị loại
-và cộng vào `excluded_count`. API không sửa dữ liệu cũ.
+và cộng vào `excluded_count`. `excluded_reasons` trả số lượng theo mã
+`UNKNOWN_UNIT`, `INVALID_VALUE`, `INCOMPLETE_BLOOD_PRESSURE` hoặc
+`UNEXPECTED_SECONDARY_VALUE`; tổng các mã bằng `excluded_count`. API không sửa dữ liệu cũ.
 
 Ví dụ nhịp tim ngày 02/01/2020 giờ Việt Nam với 205 giá trị nguyên 60–264 có
 `count:205`, `average:162`, `minimum:60`, `maximum:264`. Một reading tại đúng

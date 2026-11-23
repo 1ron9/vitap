@@ -74,6 +74,7 @@ export type Analytics = {
   timezone: string;
   unit: string;
   excluded_count: number;
+  excluded_reasons: Record<string, number>;
   buckets: AnalyticsBucket[];
 };
 export type SymptomInput = {

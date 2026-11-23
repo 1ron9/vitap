@@ -196,6 +196,7 @@ def test_analytics_matches_dense_postgres_rows_and_uses_owner_time_filter(pg):
     assert response.status_code == 200, response.text
     data = response.json()
     assert data['excluded_count'] == 0
+    assert data['excluded_reasons'] == {}
     assert data['buckets'] == [{
         'period_start': '2020-01-02', 'period_end': '2020-01-03', 'count': 205,
         'average': 162, 'minimum': 60, 'maximum': 264,

@@ -31,7 +31,7 @@ def summarize(readings, filters):
     from_utc = datetime.combine(filters.start, datetime.min.time(), tzinfo=tz).astimezone(timezone.utc)
     to_utc = datetime.combine(filters.end, datetime.min.time(), tzinfo=tz).astimezone(timezone.utc)
     groups = defaultdict(list)
-    excluded_count = 0
+    excluded_reasons = defaultdict(int)
     for measured_at, value, secondary, unit in readings(filters.observation_type, from_utc, to_utc):
         value = Decimal(value) if value is not None else None
         secondary = Decimal(secondary) if secondary is not None else None
@@ -39,16 +39,19 @@ def summarize(readings, filters):
             if unit == 'mg/dL' and value is not None:
                 value /= Decimal(18)
             elif unit != 'mmol/L':
-                excluded_count += 1
+                excluded_reasons['UNKNOWN_UNIT'] += 1
                 continue
         elif unit != UNITS[filters.observation_type]:
-            excluded_count += 1
+            excluded_reasons['UNKNOWN_UNIT'] += 1
             continue
-        if (value is None or not value.is_finite() or value <= 0 or
-                (filters.observation_type == 'BLOOD_PRESSURE' and
-                 (secondary is None or not secondary.is_finite() or secondary <= 0)) or
-                (filters.observation_type != 'BLOOD_PRESSURE' and secondary is not None)):
-            excluded_count += 1
+        if value is None or not value.is_finite() or value <= 0:
+            excluded_reasons['INVALID_VALUE'] += 1
+            continue
+        if filters.observation_type == 'BLOOD_PRESSURE' and (secondary is None or not secondary.is_finite() or secondary <= 0):
+            excluded_reasons['INCOMPLETE_BLOOD_PRESSURE'] += 1
+            continue
+        if filters.observation_type != 'BLOOD_PRESSURE' and secondary is not None:
+            excluded_reasons['UNEXPECTED_SECONDARY_VALUE'] += 1
             continue
         # The SQLite test adapter returns naive UTC values; PostgreSQL returns aware UTC.
         aware = measured_at if measured_at.tzinfo else measured_at.replace(tzinfo=timezone.utc)
@@ -75,4 +78,5 @@ def summarize(readings, filters):
         cursor = next_cursor
     return {'observation_type': filters.observation_type, 'from': filters.start, 'to': filters.end,
             'granularity': filters.granularity, 'timezone': filters.timezone,
-            'unit': UNITS[filters.observation_type], 'excluded_count': excluded_count, 'buckets': buckets}
+            'unit': UNITS[filters.observation_type], 'excluded_count': sum(excluded_reasons.values()),
+            'excluded_reasons': dict(sorted(excluded_reasons.items())), 'buckets': buckets}
