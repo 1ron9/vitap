@@ -283,6 +283,25 @@ def test_courses_options_sources_and_transitions(client,users,db_session):
     assert client.get(ROOT+'/medication-courses?status=ACTIVE',headers=a).json()['items']==[]
 
 
+def test_course_stop_is_idempotent_private_and_remains_in_history(client,users,db_session):
+    a,b=users[0][1],users[1][1]
+    drug=Drugs(brand_name='Synthetic stopped course',strength='10 mg')
+    db_session.add(drug);db_session.commit()
+    course=post(client,'/medication-courses',{'drug_id':str(drug.id),'start_date':'2020-01-01'},a)
+    path=ROOT+'/medication-courses/'+course['id']
+    assert course['status']=='ACTIVE' and course['end_date'] is None
+    assert client.get(ROOT+'/medication-courses?status=ACTIVE',headers=a).json()['items'][0]['id']==course['id']
+    end={'status':'STOPPED','end_date':'2020-01-03'}
+    stopped=client.patch(path,headers=a,json=end)
+    assert stopped.status_code==200,stopped.text
+    assert stopped.json()['status']=='STOPPED' and stopped.json()['end_date']=='2020-01-03'
+    assert client.patch(path,headers=a,json=end).json()==stopped.json()
+    assert client.get(ROOT+'/medication-courses?status=ACTIVE',headers=a).json()['items']==[]
+    assert client.get(ROOT+'/medication-courses?status=STOPPED',headers=a).json()['items'][0]['id']==course['id']
+    assert client.get(ROOT+'/medication-courses?status=STOPPED',headers=b).json()['items']==[]
+    assert client.patch(path,headers=a,json={'status':'COMPLETED','end_date':'2020-01-03'}).status_code==409
+
+
 def test_context_permission_and_service_authorization(client,users,db_session):
     user,h=users[0]
     principal=Principal('USER',user.id)

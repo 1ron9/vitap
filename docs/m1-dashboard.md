@@ -4,7 +4,7 @@ Trong real mode (`VITE_USE_MOCK=false`), `/dashboard` đọc số đo của tài
 
 Dashboard đọc đủ các trang kết quả trước khi vẽ. Mỗi điểm dùng thời điểm đo và giá trị đã lưu. Huyết áp có hai nhóm điểm cho tâm thu và tâm trương. Đường huyết dùng trục `mmol/L` và giữ giá trị, đơn vị nhập ở bảng cùng tooltip. Điểm trùng thời gian vẫn có từng dòng riêng trong bảng. Bấm “Mở ghi chép” để xem đúng entry trong Sổ tay, kể cả khi thời điểm đo và ngày ghi chép khác nhau.
 
-Khi dữ liệu chưa tải đủ, Dashboard hiển thị trạng thái tải. Nếu một trang lỗi, nút “Thử lại” chạy lại cả truy vấn. Sau khi thêm, sửa hoặc xóa trong Sổ tay, lần đọc tiếp theo dùng dữ liệu backend mới. Bộ lọc chỉ đổi khoảng hiển thị các số đo gốc. Chế độ thống kê theo bucket và dải tham chiếu thuộc các phần triển khai riêng.
+Khi dữ liệu chưa tải đủ, Dashboard hiển thị trạng thái tải. Nếu một trang lỗi, nút “Thử lại” chạy lại cả truy vấn. Sau khi thêm, sửa hoặc xóa trong Sổ tay, lần đọc tiếp theo dùng dữ liệu backend mới. Bộ lọc chọn khoảng hiển thị và hai chế độ Số đo gốc/Thống kê dùng cùng khoảng đó. Dải tham chiếu thuộc task riêng.
 
 Mock mode vẫn dùng màn hình mô phỏng với nhãn dữ liệu mẫu. Guest thấy lời mời đăng nhập. Dashboard thật không tải dữ liệu cá nhân trước khi xác thực.
 

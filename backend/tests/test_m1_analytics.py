@@ -141,3 +141,12 @@ def test_analytics_access_and_366_day_limit(client, users):
     result = client.get(PATH, params=params, headers=users[0][1])
     assert result.status_code == 200, result.text
     assert len(result.json()['buckets']) == 366
+@pytest.mark.parametrize(('first', 'last', 'periods'), [
+    ('2020-04-30', '2020-05-02', [('2020-04-01', '2020-05-01'), ('2020-05-01', '2020-06-01')]),
+    ('2020-12-31', '2021-01-02', [('2020-12-01', '2021-01-01'), ('2021-01-01', '2021-02-01')]),
+    ('2021-02-28', '2021-03-02', [('2021-02-01', '2021-03-01'), ('2021-03-01', '2021-04-01')]),
+])
+def test_month_buckets_cross_short_and_long_months_and_new_year(client, users, first, last, periods):
+    result = query(client, users[0][1], granularity='month', **{'from': first, 'to': last})
+    assert [(bucket['period_start'], bucket['period_end']) for bucket in result['buckets']] == periods
+    assert all(bucket['count'] == 0 for bucket in result['buckets'])
