@@ -9,12 +9,12 @@ thuốc và trợ lý thông tin y tế có dẫn nguồn.
 | Phân hệ | Hiện có | Đang phát triển |
 |---|---|---|
 | Tài khoản | Đăng ký/đăng nhập UI, JWT, refresh rotation, logout, Guest và khôi phục phiên | Bảo mật nâng cao ngoài MVP |
-| M1 — Sức khỏe | Hồ sơ, Journal 4 chỉ số, preferences, medication courses và Dashboard số đo gốc | Triệu chứng có cấu trúc và thống kê ngày/tuần/tháng |
+| M1 — Sức khỏe | Hồ sơ, Journal 4 chỉ số và triệu chứng có cấu trúc, preferences, medication courses, Dashboard số đo gốc và thống kê ngày/tuần/tháng | Dải tham chiếu theo ngữ cảnh thuộc task riêng |
 | M2 — Thuốc | Prescription OCR queue, PaddleOCR/VLM providers, private storage | UI review/save, tra cứu và rule engine DDI; chất lượng OCR cần benchmark |
 | M3 — Trợ lý | Model/migration hội thoại, vector 768 chiều, CLI kiểm tra JSONL | Ingestion, retrieval, guardrails và generation thật |
 
 Frontend dùng React/TypeScript/Vite. M1 chạy API thật hoặc mock adapter tách riêng;
-đọc [hướng dẫn Đợt A](docs/m1-phase-a.md) và [hướng dẫn Dashboard](docs/m1-dashboard.md). Fixture và prototype sandbox chỉ phục vụ thử nghiệm,
+đọc [hướng dẫn Đợt A](docs/m1-phase-a.md), [bàn giao Đợt B/C](docs/m1-phase-b-c.md) và [hướng dẫn Dashboard](docs/m1-dashboard.md). Fixture và prototype sandbox chỉ phục vụ thử nghiệm,
 không phải bằng chứng y khoa.
 
 ## Chạy dự án
