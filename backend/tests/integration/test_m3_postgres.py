@@ -2,9 +2,12 @@
 
 import asyncio
 import os
+from importlib import import_module
 from uuid import uuid4
 
 import pytest
+from alembic.migration import MigrationContext
+from alembic.operations import Operations
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -140,3 +143,28 @@ def test_offline_seed_is_repeatable_and_ineligible_for_retrieval(monkeypatch, m3
             await engine.dispose()
 
     asyncio.run(check_retrieval())
+
+
+def test_citation_migration_numbers_existing_rows(m3_api):
+    _, engine = m3_api
+    revision = import_module("migrations.versions.20261124_m3_citations")
+    message_id = str(uuid4())
+    rows = [
+        {"id": "00000000-0000-4000-8000-000000000012", "message_id": message_id},
+        {"id": "00000000-0000-4000-8000-000000000011", "message_id": str(uuid4())},
+        {"id": "00000000-0000-4000-8000-000000000013", "message_id": message_id},
+    ]
+
+    with engine.begin() as db:
+        # PostgreSQL resolves the unqualified migration table to this connection's temp table.
+        db.execute(text("""
+            CREATE TEMP TABLE message_citations (
+                id uuid PRIMARY KEY, message_id uuid NOT NULL
+            ) ON COMMIT DROP
+        """))
+        assert db.scalar(text("SELECT 'message_citations'::regclass = 'pg_temp.message_citations'::regclass"))
+        db.execute(text("INSERT INTO message_citations (id, message_id) VALUES (:id, :message_id)"), rows)
+        with Operations.context(MigrationContext.configure(db)):
+            revision.upgrade()
+        result = db.execute(text("SELECT id::text, citation_index FROM message_citations ORDER BY id")).all()
+        assert result == [(rows[1]["id"], 1), (rows[0]["id"], 1), (rows[2]["id"], 2)]
