@@ -57,7 +57,7 @@ jobs:
         run: cp .env.example .env
       - name: Check Compose configuration
         run: docker compose config --quiet
-      - name: Check API, vector queries, persistence and database recovery
+      - name: Check API, offline M3 startup, persistence and database recovery
         run: python scripts/smoke_compose.py
 
 

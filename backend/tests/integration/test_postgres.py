@@ -14,13 +14,19 @@ def engine():
     db.dispose()
 
 def test_migration_matches_model_columns(engine):
+    from pathlib import Path
+
+    from alembic.config import Config
+    from alembic.script import ScriptDirectory
     from app.core.model_registry import Base
     inspector=inspect(engine)
     for table in Base.metadata.sorted_tables:
         actual={c['name'] for c in inspector.get_columns(table.name)}
         assert actual == set(table.columns.keys()), table.name
+    config = Config()
+    config.set_main_option("script_location", str(Path(__file__).resolve().parents[2] / "migrations"))
     with engine.connect() as db:
-        assert db.scalar(text('SELECT version_num FROM alembic_version')) == '20261122_m1_symptoms'
+        assert db.scalar(text('SELECT version_num FROM alembic_version')) == ScriptDirectory.from_config(config).get_current_head()
         assert db.scalar(text("SELECT atttypmod FROM pg_attribute WHERE attrelid='knowledge_chunks'::regclass AND attname='embedding'")) == 768
 
 def test_constraints_on_real_database(engine):

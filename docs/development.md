@@ -7,7 +7,7 @@ frontend dùng Node >=22.12, .nvmrc và CI chọn Node 22.13.
 
 | File | Mục đích |
 |---|---|
-| .env từ .env.example | Docker Compose: PostgreSQL, SECRET_KEY, cổng API, mock AI |
+| .env từ .env.example | Docker Compose: PostgreSQL, SECRET_KEY, cổng API và cấu hình M3 |
 | backend/.env từ backend/.env.example | Backend chạy thủ công |
 | frontend/.env từ frontend/.env.example | URL API và mock frontend |
 
@@ -21,6 +21,10 @@ TTL 15 phút, refresh 7 ngày, Guest 24 giờ theo settings.
 
 ## Database và migration
 
+Khi chạy Compose, service `backend-init` chờ PostgreSQL healthy, chạy
+`alembic upgrade head` rồi nạp fixture M3. Backend và worker chờ `backend-init`
+hoàn tất. Xem lỗi khởi tạo bằng `docker compose logs backend-init`.
+
 ```bash
 docker compose exec backend alembic current
 docker compose exec backend alembic upgrade head
@@ -30,6 +34,10 @@ docker compose exec backend python -m data_seed.seed_dev
 Alembic quản lý schema; seed chỉ nạp dữ liệu. seed_dev nạp fixture tổng hợp idempotent,
 không tạo evidence hay coverage DDI. Entry point seed cũ bị vô hiệu; dataset thật cần
 chuyển sang UUID và review nguồn trước khi nạp.
+
+Fixture M3 gồm một tài liệu tổng hợp và hai chunk có vector 768 chiều cố định.
+Seed chạy lại theo cùng khóa nguồn và thứ tự chunk. Retrieval chỉ dùng tài liệu
+`ACTIVE`, còn fixture mang trạng thái `DEV_FIXTURE` dành cho smoke test.
 
 Baseline v2 dành cho PostgreSQL mới. Revision 20261111_dev_v3_1 nâng cấp tiếp, giữ các
 trường của API. DB demo integer cũ cần backup/chuyển đổi riêng. Migration dừng nếu có
@@ -44,6 +52,18 @@ Revision này cũng chặn downgrade để tránh mất declaration và giá tr�
 
 Thêm revision mới khi đổi schema; review SQL/autogenerate trước khi áp dụng và kiểm tra
 trên PostgreSQL. Không dùng create_all() thay Alembic trong ứng dụng hoặc seed.
+
+## API Chat M3
+
+Swagger liệt kê các route dưới `/api/v1/ai`. Đăng nhập bằng tài khoản đã cấp consent
+để tạo phiên, gửi tin nhắn và xem lịch sử. Mặc định Compose chạy offline với
+`USE_MOCK_AI=true`. Guardrail cấp cứu chạy tại backend. Khi thiếu bằng chứng, chat trả
+`INSUFFICIENT_EVIDENCE` và vẫn lưu lịch sử.
+
+Để kết nối provider thật, đặt `USE_MOCK_AI=false` và cấu hình `GEMINI_API_KEY`,
+`OLLAMA_BASE_URL` và corpus đã duyệt. URL provider phải truy cập được từ container.
+`RERANKER_URL` và `KAGGLE_MEDGEMMA_NGROK_URL` là cấu hình tùy chọn. Backend dùng
+chung cấu hình kết nối PostgreSQL cho Auth, M1/M2 và AsyncSession M3.
 
 ## Worker và dữ liệu
 

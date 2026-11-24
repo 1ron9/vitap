@@ -6,6 +6,10 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from app.core.database import engine
 from app.modules.auth import router as m0_auth
+from app.modules.ai_assistant.adapters import HealthContextAdapter, get_ai_principal
+from app.modules.ai_assistant.container import build_container
+from app.modules.ai_assistant.db import ai_database_lifespan, get_async_session
+from app.modules.ai_assistant.router import create_ai_assistant_router
 from app.modules.medication.router import router as medication_router
 from app.core.config import settings
 from app.shared.errors import install_error_handlers
@@ -14,7 +18,8 @@ from app.modules.health.router import router as health_router
 app = FastAPI(
     title="VitaP API",
     description="Sổ Tay Y Tế Cá Nhân Hóa, Tra Cứu Tương Tác Thuốc & Trợ Lý Sức Khỏe Thông Minh",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=ai_database_lifespan,
 )
 
 # Cấu hình CORS để Frontend React gọi được API
@@ -31,6 +36,11 @@ app.include_router(m0_auth.router, prefix="/api/v1/auth", tags=["F1/E0 - Tài kh
 app.include_router(m0_auth.guest_router, prefix="/api/v1", tags=["F1/E0 - Phiên Guest"])
 app.include_router(health_router)
 app.include_router(medication_router, prefix="/api/v1", tags=["F2/M2 - Số hóa Đơn thuốc & Dược phẩm"])
+app.include_router(create_ai_assistant_router(
+    get_principal=get_ai_principal,
+    get_db_session=get_async_session,
+    container=build_container(health_context_provider=HealthContextAdapter()),
+))
 
 
 install_error_handlers(app)

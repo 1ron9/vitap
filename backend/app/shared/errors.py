@@ -5,6 +5,7 @@ from starlette.exceptions import HTTPException
 from app.modules.auth.router import AuthError
 
 def install_error_handlers(app):
+    from app.modules.ai_assistant.errors import AppError as AiAssistantError
     from app.modules.health.errors import HealthError
     @app.middleware("http")
     async def request_id(request, call_next):
@@ -25,6 +26,10 @@ def install_error_handlers(app):
     @app.exception_handler(HealthError)
     async def health_error(request, exc):
         return error(request, exc.status_code, exc.code, exc.message, exc.details)
+
+    @app.exception_handler(AiAssistantError)
+    async def ai_assistant_error(request, exc):
+        return error(request, exc.status_code, exc.code, exc.message, exc.details, exc.headers)
 
     @app.exception_handler(RequestValidationError)
     async def validation(request, exc):

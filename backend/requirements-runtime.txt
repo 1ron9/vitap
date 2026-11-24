@@ -7,11 +7,15 @@ tzdata==2026.6
 sqlalchemy==2.0.57
 alembic==1.17.2
 psycopg2-binary==2.9.13
+asyncpg==0.31.0
 python-jose[cryptography]==3.5.0
 bcrypt==5.0.0
 python-multipart==0.0.33
 pillow==11.3.0
 requests==2.32.3
+httpx==0.28.1
+langchain-core==1.8.4
+langchain-text-splitters==1.2.0
 numpy>=2.0.0,<3.0
 google-generativeai==0.8.6
 

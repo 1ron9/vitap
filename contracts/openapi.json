@@ -449,6 +449,118 @@
         "title": "AnalyticsBucket",
         "type": "object"
       },
+      "AnswerOut": {
+        "properties": {
+          "answer_status": {
+            "$ref": "#/components/schemas/AnswerStatus"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/CitationOut"
+            },
+            "title": "Citations",
+            "type": "array"
+          },
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "feedback": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FeedbackSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "personal_context_used": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Personal Context Used",
+            "type": "array"
+          },
+          "suggested_followups": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Suggested Followups",
+            "type": "array"
+          },
+          "warning_level": {
+            "$ref": "#/components/schemas/WarningLevel"
+          }
+        },
+        "required": [
+          "content",
+          "answer_status",
+          "warning_level"
+        ],
+        "title": "AnswerOut",
+        "type": "object"
+      },
+      "AnswerStatus": {
+        "enum": [
+          "ANSWERED",
+          "PARTIAL",
+          "INSUFFICIENT_EVIDENCE",
+          "CONFLICTING_EVIDENCE",
+          "NEEDS_CLINICIAN",
+          "EMERGENCY_REDIRECT",
+          "OUT_OF_SCOPE"
+        ],
+        "title": "AnswerStatus",
+        "type": "string"
+      },
+      "AssistantMessageOut": {
+        "properties": {
+          "answer": {
+            "$ref": "#/components/schemas/AnswerOut"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "model_used": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Used"
+          },
+          "role": {
+            "const": "ASSISTANT",
+            "default": "ASSISTANT",
+            "title": "Role",
+            "type": "string"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "session_id",
+          "created_at",
+          "answer"
+        ],
+        "title": "AssistantMessageOut",
+        "type": "object"
+      },
       "Body_upload_prescription_ocr_api_v1_prescriptions_ocr_post": {
         "properties": {
           "image_file": {
@@ -463,6 +575,102 @@
         ],
         "title": "Body_upload_prescription_ocr_api_v1_prescriptions_ocr_post",
         "type": "object"
+      },
+      "CitationOut": {
+        "properties": {
+          "chunk_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chunk Id"
+          },
+          "citation_id": {
+            "title": "Citation Id",
+            "type": "integer"
+          },
+          "citation_type": {
+            "$ref": "#/components/schemas/CitationType"
+          },
+          "document_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Id"
+          },
+          "drug_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Drug Id"
+          },
+          "excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excerpt"
+          },
+          "source_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Title"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          }
+        },
+        "required": [
+          "citation_id",
+          "citation_type"
+        ],
+        "title": "CitationOut",
+        "type": "object"
+      },
+      "CitationType": {
+        "enum": [
+          "MEDICAL_DOCUMENT",
+          "DRUG_DATABASE",
+          "INTERACTION_RULE",
+          "PERSONAL_PROFILE"
+        ],
+        "title": "CitationType",
+        "type": "string"
       },
       "Condition": {
         "additionalProperties": false,
@@ -732,6 +940,14 @@
         ],
         "title": "ConsentInput",
         "type": "object"
+      },
+      "ContextMode": {
+        "enum": [
+          "PERSONAL",
+          "GENERAL"
+        ],
+        "title": "ContextMode",
+        "type": "string"
       },
       "Course": {
         "additionalProperties": false,
@@ -1362,6 +1578,109 @@
         "title": "ErrorResponse",
         "type": "object"
       },
+      "FeedbackOut": {
+        "properties": {
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment"
+          },
+          "message_id": {
+            "format": "uuid",
+            "title": "Message Id",
+            "type": "string"
+          },
+          "rating": {
+            "$ref": "#/components/schemas/FeedbackRating"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message_id",
+          "rating",
+          "updated_at"
+        ],
+        "title": "FeedbackOut",
+        "type": "object"
+      },
+      "FeedbackRating": {
+        "enum": [
+          "THUMBS_UP",
+          "THUMBS_DOWN"
+        ],
+        "title": "FeedbackRating",
+        "type": "string"
+      },
+      "FeedbackRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "comment": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment"
+          },
+          "rating": {
+            "$ref": "#/components/schemas/FeedbackRating"
+          }
+        },
+        "required": [
+          "rating"
+        ],
+        "title": "FeedbackRequest",
+        "type": "object"
+      },
+      "FeedbackSummary": {
+        "properties": {
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment"
+          },
+          "rating": {
+            "$ref": "#/components/schemas/FeedbackRating"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "rating"
+        ],
+        "title": "FeedbackSummary",
+        "type": "object"
+      },
       "GuestSessionCreated": {
         "properties": {
           "consent_accepted": {
@@ -1452,6 +1771,66 @@
           "password"
         ],
         "title": "LoginRequest",
+        "type": "object"
+      },
+      "MessageCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Content",
+            "type": "string"
+          },
+          "context_mode_override": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ContextMode"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "content"
+        ],
+        "title": "MessageCreateRequest",
+        "type": "object"
+      },
+      "MessageListOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "ASSISTANT": "#/components/schemas/AssistantMessageOut",
+                  "USER": "#/components/schemas/UserMessageOut"
+                },
+                "propertyName": "role"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/UserMessageOut"
+                },
+                {
+                  "$ref": "#/components/schemas/AssistantMessageOut"
+                }
+              ]
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/app__modules__ai_assistant__schemas__chat_dto__Pagination"
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ],
+        "title": "MessageListOut",
         "type": "object"
       },
       "Observation": {
@@ -2252,7 +2631,7 @@
             "type": "array"
           },
           "pagination": {
-            "$ref": "#/components/schemas/Pagination"
+            "$ref": "#/components/schemas/app__modules__health__schemas__Pagination"
           }
         },
         "required": [
@@ -2273,7 +2652,7 @@
             "type": "array"
           },
           "pagination": {
-            "$ref": "#/components/schemas/Pagination"
+            "$ref": "#/components/schemas/app__modules__health__schemas__Pagination"
           }
         },
         "required": [
@@ -2294,7 +2673,7 @@
             "type": "array"
           },
           "pagination": {
-            "$ref": "#/components/schemas/Pagination"
+            "$ref": "#/components/schemas/app__modules__health__schemas__Pagination"
           }
         },
         "required": [
@@ -2315,7 +2694,7 @@
             "type": "array"
           },
           "pagination": {
-            "$ref": "#/components/schemas/Pagination"
+            "$ref": "#/components/schemas/app__modules__health__schemas__Pagination"
           }
         },
         "required": [
@@ -2336,7 +2715,7 @@
             "type": "array"
           },
           "pagination": {
-            "$ref": "#/components/schemas/Pagination"
+            "$ref": "#/components/schemas/app__modules__health__schemas__Pagination"
           }
         },
         "required": [
@@ -2357,7 +2736,7 @@
             "type": "array"
           },
           "pagination": {
-            "$ref": "#/components/schemas/Pagination"
+            "$ref": "#/components/schemas/app__modules__health__schemas__Pagination"
           }
         },
         "required": [
@@ -2365,30 +2744,6 @@
           "pagination"
         ],
         "title": "Page[Observation]",
-        "type": "object"
-      },
-      "Pagination": {
-        "additionalProperties": false,
-        "properties": {
-          "page": {
-            "title": "Page",
-            "type": "integer"
-          },
-          "page_size": {
-            "title": "Page Size",
-            "type": "integer"
-          },
-          "total": {
-            "title": "Total",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "page",
-          "page_size",
-          "total"
-        ],
-        "title": "Pagination",
         "type": "object"
       },
       "Preferences": {
@@ -2744,6 +3099,107 @@
         "title": "RegisterRequest",
         "type": "object"
       },
+      "SendMessageOut": {
+        "properties": {
+          "assistant_message": {
+            "$ref": "#/components/schemas/AssistantMessageOut"
+          },
+          "user_message": {
+            "$ref": "#/components/schemas/UserMessageOut"
+          }
+        },
+        "required": [
+          "user_message",
+          "assistant_message"
+        ],
+        "title": "SendMessageOut",
+        "type": "object"
+      },
+      "SessionCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "context_mode": {
+            "$ref": "#/components/schemas/ContextMode",
+            "default": "PERSONAL"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "title": "SessionCreateRequest",
+        "type": "object"
+      },
+      "SessionListOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SessionOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/app__modules__ai_assistant__schemas__chat_dto__Pagination"
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ],
+        "title": "SessionListOut",
+        "type": "object"
+      },
+      "SessionOut": {
+        "properties": {
+          "context_mode": {
+            "$ref": "#/components/schemas/ContextMode"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "context_mode",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SessionOut",
+        "type": "object"
+      },
       "Symptom": {
         "additionalProperties": false,
         "properties": {
@@ -3092,6 +3548,43 @@
         "title": "UserIdentity",
         "type": "object"
       },
+      "UserMessageOut": {
+        "properties": {
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "role": {
+            "const": "USER",
+            "default": "USER",
+            "title": "Role",
+            "type": "string"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "session_id",
+          "content",
+          "created_at"
+        ],
+        "title": "UserMessageOut",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -3131,6 +3624,63 @@
         ],
         "title": "ValidationError",
         "type": "object"
+      },
+      "WarningLevel": {
+        "description": "Các mức cảnh báo dùng chung giữa API và PostgreSQL.",
+        "enum": [
+          "INFO",
+          "WARNING",
+          "CRITICAL"
+        ],
+        "title": "WarningLevel",
+        "type": "string"
+      },
+      "app__modules__ai_assistant__schemas__chat_dto__Pagination": {
+        "properties": {
+          "page": {
+            "title": "Page",
+            "type": "integer"
+          },
+          "page_size": {
+            "title": "Page Size",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "page",
+          "page_size",
+          "total"
+        ],
+        "title": "Pagination",
+        "type": "object"
+      },
+      "app__modules__health__schemas__Pagination": {
+        "additionalProperties": false,
+        "properties": {
+          "page": {
+            "title": "Page",
+            "type": "integer"
+          },
+          "page_size": {
+            "title": "Page Size",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "page",
+          "page_size",
+          "total"
+        ],
+        "title": "Pagination",
+        "type": "object"
       }
     }
   },
@@ -3155,6 +3705,501 @@
           }
         },
         "summary": "Read Root"
+      }
+    },
+    "/api/v1/ai/chat/messages/{message_id}/feedback": {
+      "post": {
+        "operationId": "feedback_api_v1_ai_chat_messages__message_id__feedback_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "message_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Message Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-guest-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Guest-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Feedback",
+        "tags": [
+          "M3 · AI Health Assistant"
+        ]
+      }
+    },
+    "/api/v1/ai/chat/sessions": {
+      "get": {
+        "operationId": "list_sessions_api_v1_ai_chat_sessions_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-guest-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Guest-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionListOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Sessions",
+        "tags": [
+          "M3 · AI Health Assistant"
+        ]
+      },
+      "post": {
+        "operationId": "create_session_api_v1_ai_chat_sessions_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-guest-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Guest-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Session",
+        "tags": [
+          "M3 · AI Health Assistant"
+        ]
+      }
+    },
+    "/api/v1/ai/chat/sessions/{session_id}": {
+      "delete": {
+        "operationId": "delete_session_api_v1_ai_chat_sessions__session_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-guest-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Guest-Token"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Session",
+        "tags": [
+          "M3 · AI Health Assistant"
+        ]
+      }
+    },
+    "/api/v1/ai/chat/sessions/{session_id}/messages": {
+      "get": {
+        "operationId": "list_messages_api_v1_ai_chat_sessions__session_id__messages_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-guest-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Guest-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageListOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Messages",
+        "tags": [
+          "M3 · AI Health Assistant"
+        ]
+      },
+      "post": {
+        "operationId": "send_message_api_v1_ai_chat_sessions__session_id__messages_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-guest-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Guest-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendMessageOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Send Message",
+        "tags": [
+          "M3 · AI Health Assistant"
+        ]
       }
     },
     "/api/v1/auth/login": {

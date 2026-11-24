@@ -1,5 +1,17 @@
 name: vitap
 
+x-backend-build: &backend-build
+  context: .
+  dockerfile: Dockerfile
+
+x-database-environment: &database-environment
+  POSTGRES_HOST: db
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: ${POSTGRES_DB:-vitap}
+  POSTGRES_USER: ${POSTGRES_USER:-vitap}
+  # Tách các thành phần để mật khẩu chứa @, :, / được URL-encode đúng.
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+
 services:
   db:
     image: pgvector/pgvector:0.8.1-pg16
@@ -17,19 +29,20 @@ services:
       retries: 12
       start_period: 10s
     ports:
-      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:${POSTGRES_PUBLISH_PORT:-5432}:5432"
+
+  backend-init:
+    build: *backend-build
+    environment: *database-environment
+    command: ["sh", "-ec", "alembic upgrade head && python -m data_seed.seed_m3_fixture"]
+    depends_on:
+      db:
+        condition: service_healthy
 
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: *backend-build
     environment:
-      # Tách các thành phần để mật khẩu chứa @, :, / được URL-encode đúng.
-      POSTGRES_HOST: db
-      POSTGRES_PORT: "5432"
-      POSTGRES_DB: ${POSTGRES_DB:-vitap}
-      POSTGRES_USER: ${POSTGRES_USER:-vitap}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      <<: *database-environment
       SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
       USE_MOCK_AI: ${USE_MOCK_AI:-true}
       OCR_MODE: ${OCR_MODE:-printed}
@@ -38,13 +51,18 @@ services:
       OCR_TIMEOUT_SECONDS: ${OCR_TIMEOUT_SECONDS:-180}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_VISION_MODEL: ${GEMINI_VISION_MODEL:-gemini-3.8-flash}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-}
+      RERANKER_URL: ${RERANKER_URL:-}
+      KAGGLE_MEDGEMMA_NGROK_URL: ${KAGGLE_MEDGEMMA_NGROK_URL:-}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-nomic-embed-text-v2-moe}
     volumes:
       - private_storage:/app/storage
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
     depends_on:
-      db:
-        condition: service_healthy
+      backend-init:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=5)"]
       interval: 5s
@@ -60,11 +78,7 @@ services:
       dockerfile: Dockerfile.worker
     command: ["python", "-m", "app.workers.runner"]
     environment:
-      POSTGRES_HOST: db
-      POSTGRES_PORT: "5432"
-      POSTGRES_DB: ${POSTGRES_DB:-vitap}
-      POSTGRES_USER: ${POSTGRES_USER:-vitap}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      <<: *database-environment
       SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY}
       STORAGE_ROOT: /app/storage
       USE_MOCK_AI: ${USE_MOCK_AI:-true}
@@ -78,8 +92,8 @@ services:
       - private_storage:/app/storage
       - paddlex_cache:/home/appuser/.paddlex
     depends_on:
-      db:
-        condition: service_healthy
+      backend-init:
+        condition: service_completed_successfully
 
 volumes:
   private_storage:
