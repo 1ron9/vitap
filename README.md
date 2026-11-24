@@ -11,7 +11,7 @@ thuốc và trợ lý thông tin y tế có dẫn nguồn.
 | Tài khoản | Đăng ký/đăng nhập UI, JWT, refresh rotation, logout, Guest và khôi phục phiên | Bảo mật nâng cao ngoài MVP |
 | M1 — Sức khỏe | Hồ sơ, Journal 4 chỉ số và triệu chứng có cấu trúc, preferences, medication courses, Dashboard số đo gốc và thống kê ngày/tuần/tháng | Dải tham chiếu theo ngữ cảnh thuộc task riêng |
 | M2 — Thuốc | Prescription OCR queue, PaddleOCR/VLM providers, private storage | UI review/save, tra cứu và rule engine DDI; chất lượng OCR cần benchmark |
-| M3 — Trợ lý | Model/migration hội thoại, vector 768 chiều, CLI kiểm tra JSONL | Ingestion, retrieval, guardrails và generation thật |
+| M3 — Trợ lý | API phiên/tin nhắn, guardrails, lưu lịch sử/citations, vector 768 chiều và fixture Compose offline | Nối Chatbot UI, nạp corpus thật và tích hợp Rule Engine M2 |
 
 Frontend dùng React/TypeScript/Vite. M1 chạy API thật hoặc mock adapter tách riêng;
 đọc [hướng dẫn Đợt A](docs/m1-phase-a.md), [bàn giao Đợt B/C](docs/m1-phase-b-c.md) và [hướng dẫn Dashboard](docs/m1-dashboard.md). Fixture và prototype sandbox chỉ phục vụ thử nghiệm,
@@ -33,12 +33,12 @@ trong `.env`, rồi chạy:
 
 ```bash
 docker compose up --build --wait
-docker compose exec backend alembic upgrade head
-docker compose exec backend python -m data_seed.seed_dev
 ```
 
-Seed là bước tùy chọn, nạp fixture tổng hợp và có thể chạy lặp. Với DB có sẵn,
-đọc [hướng dẫn migration](docs/development.md#database-và-migration) trước khi nâng cấp.
+Compose chạy Alembic và tự nạp fixture pgvector M3 trước khi backend lên. Lệnh
+`docker compose exec backend python -m data_seed.seed_dev` nạp thêm fixture demo tùy chọn.
+Với DB có sẵn, đọc [hướng dẫn migration](docs/development.md#database-và-migration)
+trước khi nâng cấp.
 
 OCR mặc định dùng PaddleOCR cho ảnh đơn in. OCR luôn chạy trên ảnh tải lên thật,
 không lấy output mẫu; xem [hướng dẫn OCR](docs/development.md#ocr-thật-local).

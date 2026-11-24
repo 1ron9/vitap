@@ -31,6 +31,7 @@ class MessageCitations(Base):
     __tablename__ = "message_citations"
     id = Column(Uuid, primary_key=True, default=uuid4, server_default=text('gen_random_uuid()'))
     message_id = Column(Uuid, ForeignKey("chat_messages.id", ondelete="CASCADE"), nullable=False)
+    citation_index = Column(Integer, nullable=False)
     document_id = Column(Uuid, ForeignKey("knowledge_documents.id"))
     chunk_id = Column(Uuid, ForeignKey("knowledge_chunks.id"))
     drug_id = Column(Uuid, ForeignKey("drugs.id"))
@@ -39,6 +40,10 @@ class MessageCitations(Base):
     excerpt = Column(Text)
     interaction_id = Column(Uuid, ForeignKey("drug_interactions.id"))
     source_url = Column(Text)
+    __table_args__ = (
+        UniqueConstraint("message_id", "citation_index", name="uq_message_citations_message_index"),
+        CheckConstraint("citation_index > 0", name="chk_message_citation_index"),
+    )
 
 class AiFeedback(Base):
     __tablename__ = "ai_feedback"
